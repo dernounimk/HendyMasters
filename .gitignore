@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# environment
+.env
+.env.local
+.env.production
+.env.development
+
+# builds
+dist/
+build/
+*.log
+
+# uploads
+uploads/*
+!uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# docker
+docker-compose.override.yml

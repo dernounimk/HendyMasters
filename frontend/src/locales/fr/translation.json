@@ -1,0 +1,133 @@
+{
+  "common": {
+    "and": "et",
+    "active": "Actif",
+    "DZD": "DZD"
+  },
+  "steps": {
+    "basicInfo": "Infos de base",
+    "security": "Sécurité",
+    "accountType": "Type de compte",
+    "professional": "Détails professionnels",
+    "confirmation": "Confirmation",
+    "additionalInfo": "Infos supplémentaires",
+    "professionalInfo": "Infos professionnelles",
+    "workInfo": "Infos de travail"
+  },
+  "fields": {
+    "fullName": "Nom complet",
+    "email": "Email",
+    "phone": "Numéro de téléphone",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "selectCraft": "Choisissez votre métier",
+    "experience": "Années d'expérience",
+    "serviceArea": "Zone de service",
+    "dailyRate": "Tarif journalier",
+    "skills": "Compétences",
+    "availability": "Disponibilité",
+    "ratePlaceholder": "Exemple: 3000",
+    "accountType": "Type de compte",
+    "craft": "Métier",
+    "skillsCount": "Nombre de compétences"
+  },
+  "roles": {
+    "client": "Client",
+    "artisan": "Artisan",
+    "worker": "Travailleur",
+    "clientDesc": "Je cherche des services",
+    "artisanDesc": "Je propose des services spécialisés",
+    "workerDesc": "Je cherche du travail quotidien"
+  },
+  "features": {
+    "client1": "Publier des demandes",
+    "client2": "Recevoir des offres",
+    "client3": "Évaluer les services",
+    "client4": "Suivre les commandes",
+    "artisan1": "Créer un profil",
+    "artisan2": "Recevoir des demandes",
+    "artisan3": "Soumettre des devis",
+    "artisan4": "Construire une réputation",
+    "worker1": "Définir les compétences",
+    "worker2": "Fixer le tarif",
+    "worker3": "Tâches variées",
+    "worker4": "Disponibilité flexible",
+    "secureTitle": "Sécurité",
+    "secureDesc": "Vos données sont protégées",
+    "growthTitle": "Opportunités",
+    "growthDesc": "Des milliers d'opportunités",
+    "verifiedTitle": "Comptes vérifiés",
+    "verifiedDesc": "Tous les comptes sont vérifiés"
+  },
+  "crafts": {
+    "electrician": "Électricien",
+    "plumber": "Plombier",
+    "carpenter": "Menuisier",
+    "painter": "Peintre",
+    "mason": "Maçon",
+    "mover": "Déménageur",
+    "cleaner": "Nettoyeur",
+    "ac_technician": "Technicien AC",
+    "tiler": "Carreleur",
+    "blacksmith": "Forgeron",
+    "gardener": "Jardinier",
+    "handyman": "Bricoleur"
+  },
+  "experience": {
+    "lessThanYear": "Moins d'un an",
+    "1to3": "1-3 ans",
+    "3to5": "3-5 ans",
+    "5to10": "5-10 ans",
+    "moreThan10": "10+ ans"
+  },
+  "cities": {
+    "algers": "Alger",
+    "oran": "Oran",
+    "constantine": "Constantine",
+    "annaba": "Annaba",
+    "blida": "Blida",
+    "bejaia": "Bejaia",
+    "setif": "Sétif",
+    "tipaza": "Tipaza",
+    "boumerdes": "Boumerdès",
+    "tiziouzou": "Tizi Ouzou"
+  },
+  "skills": {
+    "loading": "Chargement",
+    "cleaning": "Nettoyage",
+    "organizing": "Organisation",
+    "packing": "Emballage",
+    "wrapping": "Emballage cadeau",
+    "construction": "Aide construction",
+    "gardening": "Jardinage",
+    "painting": "Peinture simple",
+    "furniture": "Montage meubles"
+  },
+  "availability": {
+    "allDays": "Tous les jours",
+    "weekdays": "Jours de semaine",
+    "weekends": "Week-ends"
+  },
+  "password": {
+    "strength": "Force du mot de passe",
+    "weak": "Faible",
+    "medium": "Moyen",
+    "strong": "Fort",
+    "minLength": "6 caractères minimum",
+    "uppercase": "Lettre majuscule",
+    "number": "Chiffre",
+    "special": "Caractère spécial"
+  },
+  "buttons": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "creating": "Création...",
+    "createAccount": "Créer un compte",
+    "login": "Connexion"
+  },
+  "messages": {
+    "fillRequired": "Veuillez remplir tous les champs requis",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "accountCreated": "Compte créé avec succès!"
+  }
+}
