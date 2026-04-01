@@ -1,0 +1,72 @@
+{
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your account",
+    "fields": {
+      "email": {
+        "label": "Email Address",
+        "placeholder": "Enter your email"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Enter your password"
+      }
+    },
+    "buttons": {
+      "login": "Sign In",
+      "loggingIn": "Signing in...",
+      "forgotPassword": "Forgot Password?"
+    },
+    "links": {
+      "noAccount": "Don't have an account?",
+      "register": "Create new account"
+    },
+    "rememberMe": "Remember me",
+    "orContinueWith": "Or continue with",
+    "demo": {
+      "title": "Demo Accounts",
+      "client": "Client",
+      "artisan": "Artisan",
+      "worker": "Worker"
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email format",
+      "emailNotFound": "Email not registered",
+      "passwordRequired": "Password is required",
+      "passwordIncorrect": "Incorrect password",
+      "invalidCredentials": "Invalid email or password",
+      "accountLocked": "Account locked. Please try again later",
+      "tooManyAttempts": "Too many failed attempts. Please try again in {{minutes}} minutes"
+    },
+    "security": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "capsLockOn": "Caps Lock is on"
+    },
+    "messages": {
+      "success": "Login successful! Redirecting...",
+      "welcomeBack": "Welcome back, {{username}}!"
+    }
+  },
+  "validation": {
+    "required": {
+      "email": "Email is required",
+      "password": "Password is required"
+    },
+    "email": {
+      "invalidFormat": "Invalid email format",
+      "invalidDomain": "Email domain not supported"
+    },
+    "password": {
+      "minLength": "Password must be at least 8 characters"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close"
+  }
+}

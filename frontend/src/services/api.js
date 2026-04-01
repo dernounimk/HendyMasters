@@ -1,3 +1,4 @@
+// frontend/src/services/api.js
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -24,14 +25,45 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Response interceptor مع معالجة أفضل
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // إذا كان الخطأ 401 ولم يتم إعادة المحاولة من قبل
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        // محاولة تجديد الـ token
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+          const response = await axios.post(`${API_URL}/auth/refresh`, {
+            refreshToken
+          });
+          
+          if (response.data?.success) {
+            const { token } = response.data.data;
+            localStorage.setItem('token', token);
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return api(originalRequest);
+          }
+        }
+      } catch (refreshError) {
+        console.error('Refresh token failed:', refreshError);
+      }
+      
+      // إذا فشل تجديد الـ token، قم بتسجيل الخروج
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      localStorage.removeItem('refreshToken');
+      
+      // تجنب إعادة التوجيه المتكرر
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
+    
     return Promise.reject(error);
   }
 );

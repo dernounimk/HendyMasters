@@ -1,0 +1,35 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "lightMode": "Mode Clair",
+    "darkMode": "Mode Sombre",
+    "refresh": "Actualiser",
+    "tryAgain": "Réessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier"
+  },
+  "nav": {
+    "home": "Accueil",
+    "search": "Rechercher",
+    "create": "Créer",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "saved": "Enregistrés",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "suggestedUsers": "Utilisateurs suggérés",
+    "viewProfile": "Voir le profil",
+    "createPost": "Créer une publication"
+  },
+  "roles": {
+    "client": "Client",
+    "artisan": "Artisan",
+    "worker": "Travailleur"
+  },
+  "suggestions": {
+    "noUsers": "Aucun utilisateur suggéré"
+  }
+}

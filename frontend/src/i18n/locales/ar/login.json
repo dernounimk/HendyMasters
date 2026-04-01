@@ -1,0 +1,72 @@
+{
+  "login": {
+    "title": "مرحباً بعودتك",
+    "subtitle": "سجل الدخول للوصول إلى حسابك",
+    "fields": {
+      "email": {
+        "label": "البريد الإلكتروني",
+        "placeholder": "أدخل بريدك الإلكتروني"
+      },
+      "password": {
+        "label": "كلمة المرور",
+        "placeholder": "أدخل كلمة المرور"
+      }
+    },
+    "buttons": {
+      "login": "تسجيل الدخول",
+      "loggingIn": "جاري تسجيل الدخول...",
+      "forgotPassword": "نسيت كلمة المرور؟"
+    },
+    "links": {
+      "noAccount": "ليس لديك حساب؟",
+      "register": "إنشاء حساب جديد"
+    },
+    "rememberMe": "تذكرني",
+    "orContinueWith": "أو تابع باستخدام",
+    "demo": {
+      "title": "حسابات تجريبية",
+      "client": "عميل",
+      "artisan": "حرفي",
+      "worker": "عامل"
+    },
+    "errors": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "emailInvalid": "البريد الإلكتروني غير صالح",
+      "emailNotFound": "البريد الإلكتروني غير مسجل",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordIncorrect": "كلمة المرور غير صحيحة",
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "accountLocked": "تم قفل الحساب. يرجى المحاولة لاحقاً",
+      "tooManyAttempts": "محاولات كثيرة فاشلة. يرجى المحاولة بعد {{minutes}} دقيقة"
+    },
+    "security": {
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "capsLockOn": "Caps Lock مفعل"
+    },
+    "messages": {
+      "success": "تم تسجيل الدخول بنجاح! جاري التحويل...",
+      "welcomeBack": "مرحباً بعودتك، {{username}}!"
+    }
+  },
+  "validation": {
+    "required": {
+      "email": "البريد الإلكتروني مطلوب",
+      "password": "كلمة المرور مطلوبة"
+    },
+    "email": {
+      "invalidFormat": "صيغة البريد الإلكتروني غير صحيحة",
+      "invalidDomain": "نطاق البريد الإلكتروني غير مدعوم"
+    },
+    "password": {
+      "minLength": "كلمة المرور يجب أن تكون 8 أحرف على الأقل"
+    }
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "close": "إغلاق"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "common": {
+    "loading": "جاري التحميل...",
+    "lightMode": "وضع فاتح",
+    "darkMode": "وضع داكن",
+    "refresh": "تحديث",
+    "tryAgain": "حاول مرة أخرى",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "search": "بحث",
+    "create": "إنشاء",
+    "messages": "الرسائل",
+    "notifications": "الإشعارات",
+    "saved": "المحفوظات",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "suggestedUsers": "مستخدمون مقترحون",
+    "viewProfile": "عرض الملف الشخصي",
+    "createPost": "إنشاء منشور"
+  },
+  "roles": {
+    "client": "عميل",
+    "artisan": "حرفي",
+    "worker": "عامل"
+  },
+  "suggestions": {
+    "noUsers": "لا يوجد مستخدمون مقترحون"
+  },
+  "messages": {
+    "title": "الرسائل",
+    "noConversations": "لا توجد محادثات",
+    "typeMessage": "اكتب رسالة...",
+    "online": "متصل",
+    "offline": "غير متصل",
+    "you": "أنت",
+    "errors": {
+      "fetchFailed": "فشل في جلب المحادثات",
+      "fetchMessagesFailed": "فشل في جلب الرسائل",
+      "sendFailed": "فشل في إرسال الرسالة",
+      "noConnection": "لا يوجد اتصال بالخادم"
+    }
+  },
+  "time": {
+    "yesterday": "أمس",
+    "today": "اليوم"
+  }
+}

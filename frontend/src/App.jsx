@@ -1,90 +1,225 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+// frontend/src/App.jsx
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { HelmetProvider } from 'react-helmet-async';
+import { useStore } from './store';
 
-import Layout from './components/layout/Layout';
+// Layout
+import MainLayout from './components/layouts/MainLayout';
 
+// Pages
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Artisans from './pages/Artisans';
-import ArtisanProfile from './pages/ArtisanProfile';
-import Posts from './pages/Posts';
-import CreatePost from './pages/CreatePost';
-import PostDetails from './pages/PostDetails';
-import Chat from './pages/Chat';
-import Profile from './pages/Profile';
-import SavedPosts from './pages/SavedPosts';
+import Explore from './pages/Explore';
+import Messages from './pages/Messages';
 import Notifications from './pages/Notifications';
+import Profile from './pages/Profile';
+import Saved from './pages/Saved';
+import Register from './pages/Register';
+import Login from './pages/Login';
+import EditProfile from './pages/EditProfile';
+import CreatePost from './pages/CreatePost';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
-import NotFound from './pages/NotFound';
 
-// Context
-import { AuthProvider } from './context/AuthContext';
-import { SocketProvider } from './context/SocketContext';
-import { ThemeProvider } from './context/ThemeContext';
-import { LanguageProvider } from './context/LanguageContext'; // تأكد من استيراده
+// Loading Component
+import LoadingScreen from './components/LoadingScreen';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000,
-    },
-  },
-});
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="text-center p-8">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              حدث خطأ غير متوقع
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {this.state.error?.message || 'يرجى تحديث الصفحة والمحاولة مرة أخرى'}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              تحديث الصفحة
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useStore();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Role-based Route Component
+const RoleBasedRoute = ({ children, allowedRoles }) => {
+  const { isAuthenticated, isLoading, user } = useStore();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (!allowedRoles.includes(user?.role)) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
+// Public Route (غير مسجل دخول)
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useStore();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
+
+// Public Route مع إمكانية الوصول حتى لو كان مسجل دخول
+const SemiPublicRoute = ({ children }) => {
+  const { isLoading } = useStore();
+  
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+  
+  return children;
+};
 
 function App() {
+  const { checkAuth } = useStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <ThemeProvider>
-            <LanguageProvider> {/* ✅ يجب أن يكون قبل AuthProvider و SocketProvider */}
-              <AuthProvider>
-                <SocketProvider>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/register" element={<Register />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/artisans" element={<Artisans />} />
-                      <Route path="/artisans/:id" element={<ArtisanProfile />} />
-                      <Route path="/posts" element={<Posts />} />
-                      <Route path="/posts/create" element={<CreatePost />} />
-                      <Route path="/posts/:id" element={<PostDetails />} />
-                      <Route path="/chat" element={<Chat />} />
-                      <Route path="/chat/:id" element={<Chat />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/profile/:id" element={<Profile />} />
-                      <Route path="/saved" element={<SavedPosts />} />
-                      <Route path="/notifications" element={<Notifications />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                  <Toaster 
-                    position="top-center"
-                    toastOptions={{
-                      duration: 4000,
-                      style: {
-                        background: '#363636',
-                        color: '#fff',
-                      },
-                    }}
-                  />
-                </SocketProvider>
-              </AuthProvider>
-            </LanguageProvider>
-          </ThemeProvider>
-        </Router>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              duration: 3000,
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              duration: 4000,
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+        
+        <Routes>
+          {/* مسارات عامة (غير مسجل دخول) */}
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } />
+          
+          {/* مسارات إعادة تعيين كلمة المرور (متاحة للجميع) */}
+          <Route path="/forgot-password" element={
+            <SemiPublicRoute>
+              <ForgotPassword />
+            </SemiPublicRoute>
+          } />
+          <Route path="/reset-password" element={
+            <SemiPublicRoute>
+              <ResetPassword />
+            </SemiPublicRoute>
+          } />
+          
+          {/* جميع المسارات المحمية داخل MainLayout */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Home />} />
+            <Route path="explore" element={<Explore />} />
+            <Route path="messages" element={<Messages />} />
+            <Route path="messages/:conversationId" element={<Messages />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="profile/:username" element={<Profile />} />
+            <Route path="profile/edit" element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="saved" element={<Saved />} />
+            <Route path="posts/create" element={<CreatePost />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+          
+          {/* مسار 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

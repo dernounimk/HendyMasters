@@ -1,0 +1,280 @@
+{
+  "accountType": {
+    "title": "اختر نوع الحساب",
+    "subtitle": "اختر كيف تريد استخدام المنصة",
+    "platformDescription": "تواصل مع المحترفين والعملاء في الجزائر",
+    "roles": {
+      "client": {
+        "label": "عميل",
+        "description": "أريد توظيف محترفين",
+        "features": {
+          "postJobs": "نشر وظائف",
+          "browseArtisans": "تصفح الحرفيين",
+          "comparePrices": "مقارنة الأسعار",
+          "directChat": "محادثة مباشرة"
+        }
+      },
+      "artisan": {
+        "label": "حرفي",
+        "description": "أقدم خدمات احترافية",
+        "features": {
+          "portfolio": "عرض أعمالي",
+          "receiveOrders": "استقبال الطلبات",
+          "setRates": "تحديد أسعاري",
+          "buildReputation": "بناء سمعة"
+        }
+      },
+      "worker": {
+        "label": "عامل",
+        "description": "أقدم خدمات يومية",
+        "features": {
+          "showSkills": "عرض مهاراتي",
+          "dailyRate": "تحديد الأجر اليومي",
+          "jobOpportunities": "فرص عمل",
+          "directContact": "تواصل مباشر"
+        }
+      }
+    }
+  },
+  "steps": {
+    "accountType": "نوع الحساب",
+    "basicInfo": "المعلومات الأساسية",
+    "security": "الأمان",
+    "professional": "المهني",
+    "confirmation": "التأكيد"
+  },
+  "basicInfo": {
+    "title": "المعلومات الأساسية",
+    "subtitle": "أخبرنا عن نفسك",
+    "fields": {
+      "username": {
+        "placeholder": "اسم المستخدم"
+      },
+      "email": {
+        "placeholder": "البريد الإلكتروني"
+      },
+      "phone": {
+        "placeholder": "رقم الهاتف"
+      }
+    }
+  },
+  "security": {
+    "title": "الأمان",
+    "subtitle": "تأمين حسابك",
+    "fields": {
+      "password": {
+        "placeholder": "كلمة المرور"
+      },
+      "confirmPassword": {
+        "placeholder": "تأكيد كلمة المرور"
+      }
+    },
+    "passwordStrength": {
+      "label": "قوة كلمة المرور",
+      "weak": "ضعيفة",
+      "medium": "متوسطة",
+      "strong": "قوية"
+    },
+    "passwordChecks": {
+      "length": "8 أحرف على الأقل",
+      "uppercase": "حرف كبير",
+      "lowercase": "حرف صغير",
+      "number": "رقم",
+      "special": "رمز خاص"
+    }
+  },
+  "professional": {
+    "location": {
+      "label": "الموقع",
+      "placeholder": "ابحث عن مدينة...",
+      "noResults": "لا توجد مدن",
+      "help": "اختر مدينتك أو منطقتك"
+    },
+    "craft": {
+      "label": "الحرفة"
+    },
+    "experience": {
+      "label": "الخبرة",
+      "options": {
+        "0-1": "٠-١ سنة",
+        "1-3": "١-٣ سنوات",
+        "3-5": "٣-٥ سنوات",
+        "5-10": "٥-١٠ سنوات",
+        "10+": "١٠+ سنوات"
+      }
+    },
+    "dailyRate": {
+      "label": "الأجر اليومي (دج)",
+      "placeholder": "مثال: ٣٠٠٠"
+    },
+    "skills": {
+      "label": "المهارات",
+      "selected": "{{count}} مهارات مختارة"
+    },
+    "clientMessage": {
+      "title": "مرحباً بك عميلنا!",
+      "description": "يمكنك الآن تصفح المحترفين ونشر مشاريعك"
+    }
+  },
+  "confirmation": {
+    "title": "لقد أوشكت على الانتهاء!",
+    "subtitle": "راجع معلوماتك",
+    "summary": {
+      "fullName": "اسم المستخدم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "location": "الموقع",
+      "accountType": "نوع الحساب",
+      "skillsCount": "المهارات",
+      "notSpecified": "غير محدد"
+    },
+    "terms": {
+      "agree": "أوافق على",
+      "termsLink": "شروط الخدمة",
+      "and": "و",
+      "privacyLink": "سياسة الخصوصية"
+    }
+  },
+  "validation": {
+    "checkFields": "يرجى التحقق من الأخطاء في النموذج",
+    "required": {
+      "role": "يرجى اختيار نوع الحساب",
+      "username": "اسم المستخدم مطلوب",
+      "email": "البريد الإلكتروني مطلوب",
+      "phone": "رقم الهاتف مطلوب",
+      "password": "كلمة المرور مطلوبة",
+      "confirmPassword": "يرجى تأكيد كلمة المرور",
+      "location": "يرجى اختيار موقعك",
+      "craft": "يرجى اختيار حرفة",
+      "experience": "يرجى اختيار مستوى خبرتك",
+      "dailyRate": "الأجر اليومي مطلوب",
+      "skills": "يرجى اختيار مهارة واحدة على الأقل",
+      "terms": "يجب الموافقة على الشروط والأحكام"
+    },
+    "username": {
+      "tooShort": "اسم المستخدم يجب أن يكون ٣ أحرف على الأقل",
+      "tooLong": "اسم المستخدم لا يمكن أن يتجاوز ٣٠ حرفاً",
+      "invalidCharacters": "يسمح فقط بالأحرف اللاتينية و الأرقام",
+      "noSpaces": "اسم المستخدم لا يمكن أن يحتوي على مسافات",
+      "noArabic": "اسم المستخدم يجب أن يكون بالحروف الإنجليزية فقط",
+      "taken": "اسم المستخدم هذا مستخدم بالفعل"
+    },
+    "email": {
+      "invalidFormat": "يرجى إدخال بريد إلكتروني صحيح",
+      "invalidDomain": "يرجى استخدام نطاق بريد إلكتروني صحيح",
+      "taken": "هذا البريد الإلكتروني مسجل بالفعل"
+    },
+    "phone": {
+      "invalidAlgerian": "يرجى إدخال رقم هاتف جزائري صحيح",
+      "tooManyRepeats": "رقم الهاتف يحتوي على أرقام مكررة كثيرة"
+    },
+    "password": {
+      "minLength": "كلمة المرور يجب أن تكون ٨ أحرف على الأقل",
+      "uppercase": "كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل",
+      "lowercase": "كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل",
+      "number": "كلمة المرور يجب أن تحتوي على رقم واحد على الأقل",
+      "special": "كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل",
+      "mismatch": "كلمتا المرور غير متطابقتين"
+    },
+    "invalid": {
+      "dailyRate": "يرجى إدخال أجر يومي صحيح بين ١٠٠٠ و ٥٠٠٠٠ دج"
+    }
+  },
+  "crafts": {
+    "electrician": "كهربائي",
+    "plumber": "سباك",
+    "carpenter": "نجار",
+    "painter": "دهان",
+    "mason": "بناء",
+    "mover": "نقال",
+    "cleaner": "عامل نظافة",
+    "ac_technician": "فني تكييف",
+    "tiler": "مبلط",
+    "blacksmith": "حداد",
+    "gardener": "بستاني",
+    "handyman": "عامل صيانة",
+    "cabinet_maker": "صانع خزائن",
+    "upholsterer": "مفروشات",
+    "glass_worker": "عامل زجاج",
+    "flooring_specialist": "أخصائي أرضيات",
+    "facade_worker": "عامل واجهات",
+    "roofer": "عامل أسقف",
+    "kitchen_installer": "مركب مطابخ",
+    "bathroom_installer": "مركب حمامات",
+    "solar_installer": "مركب طاقة شمسية",
+    "electronics_repair": "إصلاح إلكترونيات",
+    "security_systems": "أنظمة أمنية",
+    "network_tech": "فني شبكات",
+    "satellite_installer": "مركب أطباق",
+    "cctv_installer": "مركب كاميرات",
+    "smart_home_tech": "فني منزل ذكي",
+    "hvac_tech": "فني تدفئة وتهوية",
+    "elevator_tech": "فني مصاعد",
+    "pool_tech": "فني مسابح",
+    "gas_tech": "فني غاز",
+    "auto_electrician": "كهربائي سيارات",
+    "generator_tech": "فني مولدات",
+    "interior_designer": "مصمم داخلي",
+    "decorator": "ديكور",
+    "landscape_designer": "مصمم حدائق",
+    "stone_cutter": "نحات حجر",
+    "wood_carver": "نحات خشب",
+    "foundation_worker": "عامل أساسات",
+    "steel_fixer": "حداد تسليح",
+    "plasterer": "جباص",
+    "window_installer": "مركب نوافذ",
+    "door_installer": "مركب أبواب",
+    "appliance_repair": "إصلاح أجهزة",
+    "furniture_repair": "إصلاح أثاث",
+    "pest_control": "مكافحة حشرات",
+    "water_tank_cleaner": "تنظيف خزانات"
+  },
+  "skills": {
+    "loading_unloading": "تحميل وتفريغ",
+    "cleaning": "تنظيف",
+    "organizing": "تنظيم",
+    "packing": "تعبئة",
+    "wrapping": "تغليف",
+    "construction": "بناء",
+    "farming": "زراعة",
+    "painting": "دهان",
+    "furniture_assembly": "تركيب أثاث",
+    "moving": "نقل",
+    "assembling": "تجميع",
+    "repairing": "إصلاح",
+    "plumbing": "سباكة",
+    "electrical": "كهرباء",
+    "tiling": "تبليط",
+    "carpentry": "نجارة",
+    "blacksmithing": "حدادة",
+    "welding": "لحام",
+    "stone_cutting": "قص حجر",
+    "carving": "نحت",
+    "glass_installation": "تركيب زجاج",
+    "kitchen_installation": "تركيب مطابخ",
+    "window_installation": "تركيب نوافذ",
+    "general_maintenance": "صيانة عامة",
+    "facade_cleaning": "تنظيف واجهات",
+    "carpet_cleaning": "تنظيف سجاد",
+    "pest_control": "مكافحة حشرات",
+    "gardening": "بستنة",
+    "automatic_irrigation": "ري آلي",
+    "artificial_grass": "عشب صناعي",
+    "decorative_painting": "دهان ديكوري"
+  },
+  "buttons": {
+    "previous": "السابق",
+    "next": "التالي",
+    "submit": "إنشاء حساب",
+    "submitting": "جاري الإنشاء..."
+  },
+  "links": {
+    "haveAccount": "لديك حساب بالفعل؟",
+    "login": "تسجيل الدخول"
+  },
+  "messages": {
+    "success": "تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لتأكيد حسابك.",
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى."
+  },
+  "videoNotSupported": "متصفحك لا يدعم تشغيل الفيديو"
+}

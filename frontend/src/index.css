@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
-
+/* frontend/src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,6 +17,14 @@
   /* Dark mode */
   .dark body {
     @apply bg-gray-900 text-gray-100;
+  }
+
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  }
+  
+  .dark .bg-gradient-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   }
 }
 

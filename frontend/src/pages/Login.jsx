@@ -1,395 +1,768 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
-  EnvelopeIcon, 
-  LockClosedIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  SparklesIcon
-} from '@heroicons/react/24/outline';
-import { useLanguage } from '../context/LanguageContext';
-import toast from 'react-hot-toast';
+  Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, ArrowLeft,
+  User, Wrench, Users, Shield, AlertCircle, CheckCircle,
+  Globe, ChevronDown, Sparkles, Fingerprint, Key,
+  Clock, AlertTriangle, Loader, X, Zap
+} from 'lucide-react';
 
-// Lottie animations
+import { useStore } from '../store';
 import Lottie from 'lottie-react';
-import artisanAnimation from '../assets/animations/artisan-animation.json';
-import workshopAnimation from '../assets/animations/workshop-animation.json';
-import toolsAnimation from '../assets/animations/tools-animation.json';
+import loginAnimation from '../assets/animations/login-animation.json';
+
+const style = document.createElement('style');
+style.textContent = `
+  html, body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  #root {
+    height: 100vh !important;
+    width: 100vw !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+  }
+
+  .h-screen {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+    overflow-y: hidden !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .language-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .language-button:hover {
+    transform: scale(1.05);
+  }
+
+  .error-shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
+  .success-pulse {
+    animation: pulse 1s ease-in-out;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  .dropdown-scroll {
+    max-height: 200px;
+    overflow-y: auto !important;
+  }
+
+  .fade-enter {
+    opacity: 0;
+  }
+  
+  .fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in;
+  }
+  
+  .fade-exit {
+    opacity: 1;
+  }
+  
+  .fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms ease-in;
+  }
+
+  [dir="rtl"] .space-x-reverse {
+    --tw-space-x-reverse: 1;
+  }
+
+  [dir="rtl"] .icon-left {
+    right: 0.75rem;
+    left: auto;
+  }
+  
+  [dir="rtl"] .icon-right {
+    left: 0.75rem;
+    right: auto;
+  }
+  
+  [dir="ltr"] .icon-left {
+    left: 0.75rem;
+    right: auto;
+  }
+  
+  [dir="ltr"] .icon-right {
+    right: 0.75rem;
+    left: auto;
+  }
+
+  .input-with-icon-left {
+    padding-left: 2.5rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  [dir="rtl"] .input-with-icon-left {
+    padding-right: 2.5rem !important;
+    padding-left: 1rem !important;
+  }
+`;
+document.head.appendChild(style);
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
-  
-  const { login } = useAuth();
-  const { language, toggleLanguage, t } = useLanguage();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  
+  // ✅ استخدام Zustand store
+  const { 
+    login, 
+    isLoading, 
+    isLocked, 
+    lockTimeRemaining,
+    loginAttempts,
+    isAuthenticated,
+    user,
+    isRTL, 
+    isTransitioning, 
+    direction, 
+    changeLanguage 
+  } = useStore();
 
-  // Auto-rotate testimonials
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLockOn, setCapsLockOn] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loginError, setLoginError] = useState({ field: null, message: '' });
+  
+  const languageButtonRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
+  const formRef = useRef(null);
+
+  // ✅ توجيه المستخدم إذا كان مسجل الدخول بالفعل
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    if (isAuthenticated && user) {
+      navigate('/');
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // ✅ إظهار تأثير النجاح عند نجاح تسجيل الدخول
+  useEffect(() => {
+    if (isAuthenticated) {
+      setShowSuccessAnimation(true);
+      
+      const timer = setTimeout(() => {
+        setShowSuccessAnimation(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+  }, [isRTL]);
+
+  useEffect(() => {
+    if (emailInputRef.current) {
+      emailInputRef.current.focus();
+    }
   }, []);
 
-  const testimonials = [
-    {
-      name: 'أحمد محمد',
-      role: 'حرفي',
-      content: 'منصة رائعة ساعدتني في عرض أعمالي والحصول على عملاء جدد',
-      rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      name: 'فاطمة علي',
-      role: 'عميلة',
-      content: 'وجدت أفضل الحرفيين في مكان واحد بجودة عالية وأسعار مناسبة',
-      rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'
-    },
-    {
-      name: 'محمد حسن',
-      role: 'حرفي',
-      content: 'التواصل مع العملاء أصبح أسهل بكثير، أنصح الجميع بالتسجيل',
-      rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80'
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (languageButtonRef.current && !languageButtonRef.current.contains(event.target)) {
+        setShowLanguageMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (errorMessage) {
+      setShowError(true);
+      const timer = setTimeout(() => {
+        setShowError(false);
+        setErrorMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
     }
-  ];
+  }, [errorMessage]);
+
+  const formatLockTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return [t('validation.email.invalidFormat')];
+    }
+    return [];
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.email) {
+      errors.email = t('validation.required.email');
+    } else {
+      const emailErrors = validateEmail(formData.email);
+      if (emailErrors.length > 0) {
+        errors.email = emailErrors[0];
+      }
+    }
+    
+    if (!formData.password) {
+      errors.password = t('validation.required.password');
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // مسح الخطأ الخاص بالحقل عند التغيير
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: null }));
+    }
+    
+    // مسح خطأ تسجيل الدخول الخاص بالحقل عند التغيير
+    if (loginError.field === name) {
+      setLoginError({ field: null, message: '' });
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'CapsLock') {
+      setCapsLockOn(e.getModifierState('CapsLock'));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success('تم تسجيل الدخول بنجاح');
-      navigate('/dashboard');
-    }, 1500);
+    if (isLocked) {
+      setErrorMessage(t('login.errors.accountLocked'));
+      return;
+    }
+    
+    setSubmitted(true);
+    setLoginError({ field: null, message: '' });
+    
+    if (!validateForm()) {
+      formRef.current?.classList.add('error-shake');
+      setTimeout(() => formRef.current?.classList.remove('error-shake'), 500);
+      return;
+    }
+    
+    // ✅ إخفاء animation قبل البدء
+    setShowSuccessAnimation(false);
+    
+    // ✅ استدعاء دالة login
+    const result = await login(formData.email, formData.password);
+    
+    if (!result?.success) {
+      // التحقق من نوع الخطأ
+      const error = result?.error || '';
+      console.log('Login error:', error); // للتأكد من وصول الخطأ
+      
+      // محاكاة أخطاء مختلفة للتجربة (يمكن إزالتها في الإنتاج)
+      // للاختبار: إذا كان البريد الإلكتروني "test@test.com" نعرض خطأ في البريد
+      if (formData.email === 'test@test.com' || error.includes('email') || error.includes('بريد')) {
+        // خطأ في البريد الإلكتروني - نطهر الحقل ونظهر الخطأ تحته
+        setLoginError({ 
+          field: 'email', 
+          message: t('login.errors.emailNotFound') || 'البريد الإلكتروني غير صحيح أو غير موجود'
+        });
+        setFormData(prev => ({ ...prev, email: '' }));
+        if (emailInputRef.current) {
+          emailInputRef.current.focus();
+        }
+      } 
+      // للاختبار: إذا كانت كلمة المرور "wrong" نعرض خطأ في كلمة المرور
+      else if (formData.password === 'wrong' || error.includes('password') || error.includes('كلمة المرور')) {
+        // خطأ في كلمة المرور - نطهر الحقل ونظهر الخطأ تحته
+        setLoginError({ 
+          field: 'password', 
+          message: t('login.errors.invalidPassword') || 'كلمة المرور غير صحيحة'
+        });
+        setFormData(prev => ({ ...prev, password: '' }));
+        if (passwordInputRef.current) {
+          passwordInputRef.current.focus();
+        }
+      } else {
+        // خطأ عام
+        setErrorMessage(error || t('login.errors.invalidCredentials'));
+      }
+    }
   };
 
-  const features = [
-    { icon: '🎨', text: 'آلاف الحرفيين الموثوقين' },
-    { icon: '🛡️', text: 'ضمان الجودة 100%' },
-    { icon: '💬', text: 'تواصل مباشر وآمن' },
-    { icon: '💰', text: 'أسعار تنافسية' }
+  const languages = [
+    { code: 'en', name: 'English' },
+    { code: 'fr', name: 'Français' },
+    { code: 'ar', name: 'العربية' }
   ];
 
+  const changeLanguageWithAnimation = (lng) => {
+    if (lng === i18n.language) return;
+    
+    const langOrder = ['en', 'fr', 'ar'];
+    const currentIndex = langOrder.indexOf(i18n.language);
+    const newIndex = langOrder.indexOf(lng);
+    const newDirection = newIndex > currentIndex ? 1 : -1;
+    
+    setShowLanguageMenu(false);
+    
+    changeLanguage(lng, newDirection);
+  };
+
+  const languageSwitchVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0
+    })
+  };
+
+  const renderFieldError = (fieldName) => {
+    // عرض خطأ التحقق الأول
+    if (submitted && validationErrors[fieldName]) {
+      return (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-xs mt-1 flex items-center space-x-1 rtl:space-x-reverse"
+        >
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+          <span>{validationErrors[fieldName]}</span>
+        </motion.p>
+      );
+    }
+    
+    // عرض خطأ تسجيل الدخول الخاص بالحقل
+    if (loginError.field === fieldName) {
+      return (
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-red-500 text-xs mt-1 flex items-center space-x-1 rtl:space-x-reverse"
+        >
+          <AlertCircle className="w-3 h-3 flex-shrink-0" />
+          <span>{loginError.message}</span>
+        </motion.p>
+      );
+    }
+    
+    return null;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* Language Toggle Button */}
-      <button
-        onClick={toggleLanguage}
-        className="fixed top-6 left-6 z-50 flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:shadow-xl transition-all duration-300 dark:bg-gray-800/80"
+    <div 
+      ref={formRef}
+      className={`h-screen flex overflow-hidden bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 no-scrollbar ${
+        showSuccessAnimation ? 'success-pulse' : ''
+      }`}
+      dir={isRTL ? 'rtl' : 'ltr'}
+      lang={i18n.language}
+    >
+      {/* Language Switcher - مطابق لتصميم صفحة Register */}
+      <div 
+        ref={languageButtonRef}
+        className={`fixed top-4 z-50 ${isRTL ? 'left-4' : 'right-4'}`}
+        style={{ transition: 'left 0.3s ease-in-out, right 0.3s ease-in-out' }}
       >
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {language === 'ar' ? 'English' : 'العربية'}
-        </span>
-        <ArrowLeftIcon className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-300 ${
-          language === 'ar' ? 'rotate-0' : 'rotate-180'
-        }`} />
-      </button>
-
-      <div className="flex min-h-screen">
-        {/* Left Side - Form */}
-        <motion.div 
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-12"
-        >
-          <div className="w-full max-w-md">
-            {/* Logo */}
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="text-center mb-8"
+        <div className="relative">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+            className="language-button flex items-center space-x-2 rtl:space-x-reverse bg-white dark:bg-gray-800 shadow-lg rounded-lg px-5 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 transition-colors border border-gray-200 dark:border-gray-700"
+          >
+            <Globe className="w-5 h-5" />
+            <span className="text-sm">{languages.find(lang => lang.code === i18n.language)?.name || 'English'}</span>
+            <motion.div
+              animate={{ rotate: showLanguageMenu ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <h1 className="text-4xl font-bold bg-gradient-to-l from-primary-600 to-primary-800 bg-clip-text text-transparent">
-                HandyMasters
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                {t('welcomeBack')}
-              </p>
+              <ChevronDown className="w-4 h-4" />
             </motion.div>
-
-            {/* Form */}
-            <motion.form 
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              onSubmit={handleSubmit} 
-              className="space-y-6"
-            >
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t('email')}
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pr-10 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    placeholder={t('emailPlaceholder')}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {t('password')}
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-500 transition-colors" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pr-10 pl-10 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    placeholder={t('passwordPlaceholder')}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 left-0 pl-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="h-5 w-5 text-gray-400 hover:text-primary-500 transition-colors" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5 text-gray-400 hover:text-primary-500 transition-colors" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
-                  />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {t('rememberMe')}
-                  </span>
-                </label>
-                <Link 
-                  to="/forgot-password"
-                  className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                >
-                  {t('forgotPassword')}
-                </Link>
-              </div>
-
-              {/* Submit Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-l from-primary-600 to-primary-700 text-white py-3 rounded-xl font-semibold shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+          </motion.button>
+          
+          <AnimatePresence>
+            {showLanguageMenu && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden dropdown-scroll`}
               >
-                <span className="relative z-10 flex items-center justify-center space-x-2">
-                  {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>{t('loggingIn')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <SparklesIcon className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                      <span>{t('login')}</span>
-                    </>
-                  )}
-                </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-l from-primary-700 to-primary-800"
-                  initial={{ x: '100%' }}
-                  whileHover={{ x: 0 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.button>
-            </motion.form>
+                {languages.map((lang) => (
+                  <motion.button
+                    key={lang.code}
+                    onClick={() => changeLanguageWithAnimation(lang.code)}
+                    className={`w-full text-left rtl:text-right px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 rtl:space-x-reverse ${
+                      i18n.language === lang.code ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-200'
+                    }`}
+                  >
+                    <span className="flex-1">{lang.name}</span>
+                    {i18n.language === lang.code && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
-            {/* Register Link */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8 text-center"
-            >
-              <p className="text-gray-600 dark:text-gray-400">
-                {t('noAccount')}{' '}
-                <Link 
-                  to="/register" 
-                  className="text-primary-600 hover:text-primary-700 font-semibold inline-flex items-center space-x-1 group"
-                >
-                  <span>{t('createAccount')}</span>
-                  <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                </Link>
-              </p>
-            </motion.div>
+      {/* Error Notification تحت - للأخطاء العامة فقط */}
+      <AnimatePresence>
+        {showError && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className={`fixed top-20 z-50 ${isRTL ? 'left-1/2 -translate-x-1/2' : 'left-1/2 -translate-x-1/2'} bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg shadow-lg p-4 max-w-md w-full mx-4`}
+          >
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700 dark:text-red-400 flex-1">{errorMessage}</p>
+              <button
+                onClick={() => setShowError(false)}
+                className="text-red-400 hover:text-red-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* Features */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="mt-8 grid grid-cols-2 gap-4"
-            >
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="text-xl">{feature.icon}</span>
-                  <span>{feature.text}</span>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Right Side - Animation & Content */}
+      {/* Background Effects */}
+      <motion.div 
+        className="fixed inset-0 overflow-hidden pointer-events-none"
+        animate={{ scale: isTransitioning ? [1, 1.1, 1] : 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <motion.div 
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.8, type: 'spring' }}
-          className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 to-primary-800 relative overflow-hidden"
+          animate={{
+            x: isRTL ? [0, -20, 0] : [0, 20, 0],
+            y: [0, 20, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity }}
+          className="absolute -top-40 -right-40 w-80 h-80 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        />
+        <motion.div 
+          animate={{
+            x: isRTL ? [0, 20, 0] : [0, -20, 0],
+            y: [0, -20, 0]
+          }}
+          transition={{ duration: 8, repeat: Infinity, delay: 2 }}
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
+        />
+      </motion.div>
+
+      <div className="flex w-full h-full">
+        {/* Left Side - Login Form */}
+        <motion.div 
+          className="w-full lg:w-1/2 h-full"
+          animate={{ x: isTransitioning ? (direction > 0 ? [0, -20, 0] : [0, 20, 0]) : 0 }}
+          transition={{ duration: 0.3 }}
         >
-          {/* Animated Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-            <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-            <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-          </div>
-
-          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 text-white">
-            {/* Lottie Animation */}
-            <motion.div
-              animate={{ 
-                y: [0, -20, 0],
-              }}
-              transition={{ 
-                duration: 5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="w-96 h-96 mb-8"
-            >
-              <Lottie 
-                animationData={artisanAnimation}
-                loop={true}
-                autoplay={true}
-              />
-            </motion.div>
-
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-3xl font-bold text-center mb-4"
-            >
-              {t('heroTitle')}
-            </motion.h2>
-
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-center text-primary-100 mb-12 max-w-md"
-            >
-              {t('heroDescription')}
-            </motion.p>
-
-            {/* Testimonials Slider */}
-            <div className="relative w-full max-w-md">
-              <AnimatePresence mode="wait">
+          <div className="h-full flex items-center justify-center p-6 lg:p-8 overflow-hidden">
+            <div className="w-full max-w-md">
+              <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
-                  key={activeTestimonial}
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  transition={{ duration: 0.5 }}
-                  className="bg-white/10 backdrop-blur-lg rounded-2xl p-6"
+                  key={i18n.language}
+                  custom={direction}
+                  variants={languageSwitchVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-center space-x-4 mb-4">
-                    <img
-                      src={testimonials[activeTestimonial].avatar}
-                      alt={testimonials[activeTestimonial].name}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-white"
-                    />
-                    <div>
-                      <h4 className="font-semibold">{testimonials[activeTestimonial].name}</h4>
-                      <p className="text-sm text-primary-200">{testimonials[activeTestimonial].role}</p>
-                    </div>
+                  {/* Header */}
+                  <div className="text-center mb-8">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="inline-flex p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl mb-4"
+                    >
+                      <User className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+                    </motion.div>
+                    
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                      {t('login.title')}
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {t('login.subtitle')}
+                    </p>
                   </div>
-                  <p className="text-primary-100">"{testimonials[activeTestimonial].content}"</p>
-                  <div className="flex mt-4">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                      </svg>
-                    ))}
+
+                  {/* Lock Warning */}
+                  {isLocked && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <Clock className="w-5 h-5 text-red-500 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                            {t('login.errors.accountLocked')}
+                          </p>
+                          <p className="text-xs text-red-600 dark:text-red-300 mt-1">
+                            {t('login.errors.tooManyAttempts', { minutes: Math.ceil(lockTimeRemaining / 60) })}
+                          </p>
+                        </div>
+                        <div className="text-lg font-bold text-red-600 dark:text-red-400">
+                          {formatLockTime(lockTimeRemaining)}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Email Field */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t('login.fields.email.label')}
+                      </label>
+                      <div className="relative">
+                        <div className="absolute icon-left top-1/2 -translate-y-1/2">
+                          <Mail className={`w-5 h-5 ${validationErrors.email || loginError.field === 'email' ? 'text-red-400' : 'text-gray-400'}`} />
+                        </div>
+                        <input
+                          ref={emailInputRef}
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          onKeyDown={handleKeyDown}
+                          className={`w-full input-with-icon-left py-3 text-gray-100 text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
+                            ${validationErrors.email || loginError.field === 'email'
+                              ? 'border-red-500 focus:border-red-500' 
+                              : formData.email && !validationErrors.email && loginError.field !== 'email'
+                                ? 'border-green-500 focus:border-green-500'
+                                : 'border-gray-200 dark:border-gray-600 focus:border-primary-600'
+                            }`}
+                          placeholder={t('login.fields.email.placeholder')}
+                          disabled={isLocked}
+                        />
+                      </div>
+                      {renderFieldError('email')}
+                    </div>
+
+                    {/* Password Field */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t('login.fields.password.label')}
+                      </label>
+                      <div className="relative">
+                        <div className="absolute icon-left top-1/2 -translate-y-1/2">
+                          <Lock className={`w-5 h-5 ${validationErrors.password || loginError.field === 'password' ? 'text-red-400' : 'text-gray-400'}`} />
+                        </div>
+                        <input
+                          ref={passwordInputRef}
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          onKeyDown={handleKeyDown}
+                          className={`w-full input-with-icon-left py-3 text-gray-100 text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
+                            ${validationErrors.password || loginError.field === 'password'
+                              ? 'border-red-500 focus:border-red-500' 
+                              : formData.password && !validationErrors.password && loginError.field !== 'password'
+                                ? 'border-green-500 focus:border-green-500'
+                                : 'border-gray-200 dark:border-gray-600 focus:border-primary-600'
+                            }`}
+                          placeholder={t('login.fields.password.placeholder')}
+                          disabled={isLocked}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute icon-right top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
+
+                      {/* Caps Lock Warning */}
+                      {capsLockOn && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex items-center space-x-1 rtl:space-x-reverse mt-1"
+                        >
+                          <AlertTriangle className="w-3 h-3 text-yellow-500" />
+                          <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                            {t('login.security.capsLockOn')}
+                          </span>
+                        </motion.div>
+                      )}
+                      
+                      {renderFieldError('password')}
+                    </div>
+
+                    {/* Remember Me & Forgot Password */}
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center space-x-2 rtl:space-x-reverse cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="rememberMe"
+                          checked={formData.rememberMe}
+                          onChange={handleChange}
+                          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          disabled={isLocked}
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">
+                          {t('login.rememberMe')}
+                        </span>
+                      </label>
+                      
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+                      >
+                        {t('login.buttons.forgotPassword')}
+                      </Link>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isLoading || isLocked}
+                      className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-3 rounded-lg text-base font-medium flex items-center justify-center space-x-2 rtl:space-x-reverse disabled:opacity-50 hover:shadow-lg transition-all"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader className="w-5 h-5 animate-spin" />
+                          <span>{t('login.buttons.loggingIn')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <LogIn className="w-5 h-5" />
+                          <span>{t('login.buttons.login')}</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+
+                  {/* Register Link */}
+                  <div className="text-center mt-6">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {t('login.links.noAccount')}{' '}
+                      <Link to="/register" className="text-primary-600 hover:underline font-medium">
+                        {t('login.links.register')}
+                      </Link>
+                    </p>
                   </div>
                 </motion.div>
               </AnimatePresence>
-
-              {/* Dots Indicator */}
-              <div className="flex justify-center mt-4 space-x-2">
-                {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveTestimonial(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === activeTestimonial 
-                        ? 'w-8 bg-white' 
-                        : 'bg-white/50 hover:bg-white/75'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 mt-12">
-              {[
-                { value: '10k+', label: 'حرفي' },
-                { value: '50k+', label: 'عميل' },
-                { value: '100k+', label: 'خدمة' }
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <div className="text-sm text-primary-200">{stat.label}</div>
-                </motion.div>
-              ))}
             </div>
           </div>
         </motion.div>
+
+        {/* Right Side - Animation */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 relative overflow-hidden items-center justify-center">
+          <div className="absolute inset-0">
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative z-10 w-full max-w-md px-4">
+            <Lottie 
+              animationData={loginAnimation}
+              loop={true}
+              className="w-full h-auto"
+            />
+          </div>
+
+          {/* Floating Elements */}
+          <motion.div
+            animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
+            transition={{ duration: 6, repeat: Infinity }}
+            className="absolute top-20 left-20 w-16 h-16 bg-white/10 rounded-lg backdrop-blur-sm flex items-center justify-center"
+          >
+            <Lock className="w-8 h-8 text-white/50" />
+          </motion.div>
+
+          <motion.div
+            animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
+            transition={{ duration: 7, repeat: Infinity }}
+            className="absolute bottom-20 right-20 w-16 h-16 bg-white/10 rounded-lg backdrop-blur-sm flex items-center justify-center"
+          >
+            <Key className="w-8 h-8 text-white/50" />
+          </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,280 @@
+{
+  "accountType": {
+    "title": "Choisissez le type de compte",
+    "subtitle": "Sélectionnez comment vous souhaitez utiliser la plateforme",
+    "platformDescription": "Connectez-vous avec des professionnels et des clients en Algérie",
+    "roles": {
+      "client": {
+        "label": "Client",
+        "description": "Je veux embaucher des professionnels",
+        "features": {
+          "postJobs": "Publier des offres",
+          "browseArtisans": "Parcourir les artisans",
+          "comparePrices": "Comparer les prix",
+          "directChat": "Chat direct"
+        }
+      },
+      "artisan": {
+        "label": "Artisan",
+        "description": "J'offre des services professionnels",
+        "features": {
+          "portfolio": "Présenter un portfolio",
+          "receiveOrders": "Recevoir des commandes",
+          "setRates": "Fixer vos tarifs",
+          "buildReputation": "Bâtir une réputation"
+        }
+      },
+      "worker": {
+        "label": "Travailleur",
+        "description": "J'offre des services de travail journalier",
+        "features": {
+          "showSkills": "Montrer vos compétences",
+          "dailyRate": "Fixer un tarif journalier",
+          "jobOpportunities": "Trouver des opportunités",
+          "directContact": "Contact direct"
+        }
+      }
+    }
+  },
+  "steps": {
+    "accountType": "Type de compte",
+    "basicInfo": "Infos de base",
+    "security": "Sécurité",
+    "professional": "Professionnel",
+    "confirmation": "Confirmation"
+  },
+  "basicInfo": {
+    "title": "Informations de base",
+    "subtitle": "Parlez-nous de vous",
+    "fields": {
+      "username": {
+        "placeholder": "Nom d'utilisateur (lettres et chiffres anglais uniquement)"
+      },
+      "email": {
+        "placeholder": "Adresse e-mail"
+      },
+      "phone": {
+        "placeholder": "Numéro de téléphone (numéro algérien)"
+      }
+    }
+  },
+  "security": {
+    "title": "Sécurité",
+    "subtitle": "Sécurisez votre compte",
+    "fields": {
+      "password": {
+        "placeholder": "Mot de passe"
+      },
+      "confirmPassword": {
+        "placeholder": "Confirmer le mot de passe"
+      }
+    },
+    "passwordStrength": {
+      "label": "Force du mot de passe",
+      "weak": "Faible",
+      "medium": "Moyen",
+      "strong": "Fort"
+    },
+    "passwordChecks": {
+      "length": "Au moins 8 caractères",
+      "uppercase": "Lettre majuscule",
+      "lowercase": "Lettre minuscule",
+      "number": "Chiffre",
+      "special": "Caractère spécial"
+    }
+  },
+  "professional": {
+    "location": {
+      "label": "Localisation",
+      "placeholder": "Rechercher une ville...",
+      "noResults": "Aucune ville trouvée",
+      "help": "Sélectionnez votre ville ou région"
+    },
+    "craft": {
+      "label": "Métier"
+    },
+    "experience": {
+      "label": "Expérience",
+      "options": {
+        "0-1": "0-1 an",
+        "1-3": "1-3 ans",
+        "3-5": "3-5 ans",
+        "5-10": "5-10 ans",
+        "10+": "10+ ans"
+      }
+    },
+    "dailyRate": {
+      "label": "Tarif journalier (DZD)",
+      "placeholder": "ex: 3000"
+    },
+    "skills": {
+      "label": "Compétences",
+      "selected": "{{count}} compétences sélectionnées"
+    },
+    "clientMessage": {
+      "title": "Bienvenue Client !",
+      "description": "Vous pouvez maintenant parcourir les professionnels et publier vos projets"
+    }
+  },
+  "confirmation": {
+    "title": "Presque terminé !",
+    "subtitle": "Vérifiez vos informations",
+    "summary": {
+      "fullName": "Nom d'utilisateur",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "location": "Localisation",
+      "accountType": "Type de compte",
+      "skillsCount": "Compétences",
+      "notSpecified": "Non spécifié"
+    },
+    "terms": {
+      "agree": "J'accepte les",
+      "termsLink": "Conditions d'utilisation",
+      "and": "et la",
+      "privacyLink": "Politique de confidentialité"
+    }
+  },
+  "validation": {
+    "checkFields": "Veuillez vérifier les erreurs dans le formulaire",
+    "required": {
+      "role": "Veuillez sélectionner un type de compte",
+      "username": "Le nom d'utilisateur est requis",
+      "email": "L'e-mail est requis",
+      "phone": "Le numéro de téléphone est requis",
+      "password": "Le mot de passe est requis",
+      "confirmPassword": "Veuillez confirmer votre mot de passe",
+      "location": "Veuillez sélectionner votre localisation",
+      "craft": "Veuillez sélectionner un métier",
+      "experience": "Veuillez sélectionner votre niveau d'expérience",
+      "dailyRate": "Le tarif journalier est requis",
+      "skills": "Veuillez sélectionner au moins une compétence",
+      "terms": "Vous devez accepter les conditions générales"
+    },
+    "username": {
+      "tooShort": "Le nom d'utilisateur doit contenir au moins 3 caractères",
+      "tooLong": "Le nom d'utilisateur ne peut pas dépasser 30 caractères",
+      "invalidCharacters": "Seules les lettres, chiffres, _ et - sont autorisés",
+      "noSpaces": "Le nom d'utilisateur ne peut pas contenir d'espaces",
+      "noArabic": "Le nom d'utilisateur doit être en lettres anglaises uniquement",
+      "taken": "Ce nom d'utilisateur est déjà pris"
+    },
+    "email": {
+      "invalidFormat": "Veuillez entrer une adresse e-mail valide",
+      "invalidDomain": "Veuillez utiliser un domaine e-mail valide",
+      "taken": "Cet e-mail est déjà enregistré"
+    },
+    "phone": {
+      "invalidAlgerian": "Veuillez entrer un numéro de téléphone algérien valide (05, 06 ou 07 suivi de 8 chiffres)",
+      "tooManyRepeats": "Le numéro de téléphone contient trop de chiffres répétés"
+    },
+    "password": {
+      "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "uppercase": "Le mot de passe doit contenir au moins une lettre majuscule",
+      "lowercase": "Le mot de passe doit contenir au moins une lettre minuscule",
+      "number": "Le mot de passe doit contenir au moins un chiffre",
+      "special": "Le mot de passe doit contenir au moins un caractère spécial",
+      "mismatch": "Les mots de passe ne correspondent pas"
+    },
+    "invalid": {
+      "dailyRate": "Veuillez entrer un tarif journalier valide entre 1000 et 50000 DZD"
+    }
+  },
+  "crafts": {
+    "electrician": "Électricien",
+    "plumber": "Plombier",
+    "carpenter": "Menuisier",
+    "painter": "Peintre",
+    "mason": "Maçon",
+    "mover": "Déménageur",
+    "cleaner": "Nettoyeur",
+    "ac_technician": "Technicien Climatisation",
+    "tiler": "Carreleur",
+    "blacksmith": "Forgeron",
+    "gardener": "Jardinier",
+    "handyman": "Bricoleur",
+    "cabinet_maker": "Ébéniste",
+    "upholsterer": "Tapissier",
+    "glass_worker": "Vitrier",
+    "flooring_specialist": "Spécialiste revêtement de sol",
+    "facade_worker": "Façadier",
+    "roofer": "Couvreur",
+    "kitchen_installer": "Installateur de cuisines",
+    "bathroom_installer": "Installateur de salles de bain",
+    "solar_installer": "Installateur solaire",
+    "electronics_repair": "Réparateur électronique",
+    "security_systems": "Systèmes de sécurité",
+    "network_tech": "Technicien réseau",
+    "satellite_installer": "Installateur satellite",
+    "cctv_installer": "Installateur CCTV",
+    "smart_home_tech": "Technicien maison intelligente",
+    "hvac_tech": "Technicien CVC",
+    "elevator_tech": "Technicien ascenseur",
+    "pool_tech": "Technicien piscine",
+    "gas_tech": "Technicien gaz",
+    "auto_electrician": "Électricien auto",
+    "generator_tech": "Technicien générateur",
+    "interior_designer": "Designer d'intérieur",
+    "decorator": "Décorateur",
+    "landscape_designer": "Paysagiste",
+    "stone_cutter": "Tailleur de pierre",
+    "wood_carver": "Sculpteur sur bois",
+    "foundation_worker": "Fondations",
+    "steel_fixer": "Ferronnier",
+    "plasterer": "Plâtrier",
+    "window_installer": "Installateur de fenêtres",
+    "door_installer": "Installateur de portes",
+    "appliance_repair": "Réparation électroménager",
+    "furniture_repair": "Réparation de meubles",
+    "pest_control": "Désinsectisation",
+    "water_tank_cleaner": "Nettoyeur de réservoir d'eau"
+  },
+  "skills": {
+    "loading_unloading": "Chargement & Déchargement",
+    "cleaning": "Nettoyage",
+    "organizing": "Organisation",
+    "packing": "Emballage",
+    "wrapping": "Emballage cadeau",
+    "construction": "Construction",
+    "farming": "Agriculture",
+    "painting": "Peinture",
+    "furniture_assembly": "Assemblage de meubles",
+    "moving": "Déménagement",
+    "assembling": "Assemblage",
+    "repairing": "Réparation",
+    "plumbing": "Plomberie",
+    "electrical": "Électricité",
+    "tiling": "Carrelage",
+    "carpentry": "Menuiserie",
+    "blacksmithing": "Forge",
+    "welding": "Soudure",
+    "stone_cutting": "Taille de pierre",
+    "carving": "Sculpture",
+    "glass_installation": "Installation de verre",
+    "kitchen_installation": "Installation de cuisine",
+    "window_installation": "Installation de fenêtres",
+    "general_maintenance": "Maintenance générale",
+    "facade_cleaning": "Nettoyage de façade",
+    "carpet_cleaning": "Nettoyage de tapis",
+    "pest_control": "Lutte antiparasitaire",
+    "gardening": "Jardinage",
+    "automatic_irrigation": "Irrigation automatique",
+    "artificial_grass": "Gazon artificiel",
+    "decorative_painting": "Peinture décorative"
+  },
+  "buttons": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "submit": "Créer un compte",
+    "submitting": "Création..."
+  },
+  "links": {
+    "haveAccount": "Vous avez déjà un compte ?",
+    "login": "Se connecter"
+  },
+  "messages": {
+    "success": "Inscription réussie ! Veuillez vérifier votre e-mail pour confirmer votre compte.",
+    "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "videoNotSupported": "Votre navigateur ne supporte pas la balise vidéo."
+}

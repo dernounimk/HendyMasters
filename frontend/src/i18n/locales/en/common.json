@@ -1,0 +1,53 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "refresh": "Refresh",
+    "tryAgain": "Try Again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "nav": {
+    "home": "Home",
+    "search": "Search",
+    "create": "Create",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "saved": "Saved",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "suggestedUsers": "Suggested Users",
+    "viewProfile": "View Profile",
+    "createPost": "Create Post"
+  },
+  "roles": {
+    "client": "Client",
+    "artisan": "Artisan",
+    "worker": "Worker"
+  },
+  "suggestions": {
+    "noUsers": "No suggested users"
+  },
+  "messages": {
+    "title": "Messages",
+    "noConversations": "No conversations",
+    "typeMessage": "Type a message...",
+    "online": "Online",
+    "offline": "Offline",
+    "you": "You",
+    "errors": {
+      "fetchFailed": "Failed to fetch conversations",
+      "fetchMessagesFailed": "Failed to fetch messages",
+      "sendFailed": "Failed to send message",
+      "noConnection": "No connection to server"
+    }
+  },
+  "time": {
+    "yesterday": "Yesterday",
+    "today": "Today"
+  }
+}

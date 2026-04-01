@@ -1,117 +1,171 @@
+// backend/server.js
+import dotenv from 'dotenv';
+// ✅ تحميل متغيرات البيئة أولاً
+dotenv.config();
+
+// ✅ بعد تحميل البيئة، قم بباقي الاستيرادات
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import mongoSanitize from 'express-mongo-sanitize';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import dotenv from 'dotenv';
+import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load environment variables
-dotenv.config();
+// تعديل المسارات
+import connectDB from './src/config/database.js';
+import configureSocket from './src/config/socket.js';
 
-// Get __dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Import routes
+// استيراد المسارات
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import postRoutes from './src/routes/postRoutes.js';
-import proposalRoutes from './src/routes/proposalRoutes.js';
-import chatRoutes from './src/routes/chatRoutes.js';
+import reviewRoutes from './src/routes/reviewRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 
-// Import socket
-import { setupSocket } from './src/socket/index.js';
+// استيراد معالجات الأخطاء
+import { errorHandler, notFound } from './src/middleware/errorHandler.js';
+import { protect, optionalAuth } from './src/middleware/auth.js';
 
-// Initialize app
+// ✅ التحقق من أن المتغيرات تم تحميلها
+console.log('🔧 Environment Check:');
+console.log('  - RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ موجود' : '❌ مفقود');
+console.log('  - EMAIL_FROM:', process.env.EMAIL_FROM || '❌ مفقود');
+console.log('  - JWT_SECRET:', process.env.JWT_SECRET ? '✅ موجود' : '❌ مفقود');
+console.log('  - MONGODB_URI:', process.env.MONGODB_URI ? '✅ موجود' : '❌ مفقود');
+
+// ✅ إعداد __dirname للـ ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// الاتصال بقاعدة البيانات
+connectDB();
+
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true
+const server = http.createServer(app);
+
+// إعداد Socket.IO
+const io = configureSocket(server);
+app.set('io', io);
+
+// ✅ تحديد معدل الطلبات
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 100,
+  message: {
+    success: false,
+    message: 'لقد تجاوزت الحد الأقصى من الطلبات، حاول مرة أخرى بعد 15 دقيقة'
   }
 });
 
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+// ✅ ========== MIDDLEWARE الأساسية ==========
+
+// 1. الأمان والضغط
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
-});
-app.use('/api', limiter);
-
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// Data sanitization
-app.use(mongoSanitize());
-
-// Compression
 app.use(compression());
+app.use(cookieParser());
 
-// Static files
+// 2. ✅ خدمة الملفات الثابتة (الأهم لحل مشكلة الصور)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
+// 3. JSON Parser
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 4. CORS
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// 5. Rate limiting للمصادقة فقط
+app.use('/api/auth', limiter);
+
+// 6. تسجيل الطلبات (للتصحيح)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`📨 ${req.method} ${req.url}`);
+    if (req.body && Object.keys(req.body).length > 0) {
+      console.log('📦 Body:', req.body);
+    }
+    if (req.query && Object.keys(req.query).length > 0) {
+      console.log('🔍 Query:', req.query);
+    }
+    next();
+  });
+}
+
+// ✅ ========== المسارات ==========
+
+// مسارات عامة (لا تحتاج مصادقة)
 app.use('/api/auth', authRoutes);
+
+// ✅ مسارات المستخدمين - بعضها عام وبعضها محمي
 app.use('/api/users', userRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/proposals', proposalRoutes);
-app.use('/api/chat', chatRoutes);
 
-// Health check
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', message: 'Server is running' });
-});
+// المسارات المحمية
+app.use('/api/posts', protect, postRoutes);
+app.use('/api/reviews', protect, reviewRoutes);
+app.use('/api/messages', protect, messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.statusCode || 500).json({
-    status: 'error',
-    message: err.message || 'Internal server error'
+// مسار الترحيب
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'مرحباً بك في HandyMasters API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      posts: '/api/posts',
+      reviews: '/api/reviews',
+      messages: '/api/messages'
+    }
   });
 });
 
-// Socket setup
-setupSocket(io);
+// مسار اختبار بسيط
+app.get('/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Server is working correctly',
+    query: req.query,
+    time: new Date().toISOString()
+  });
+});
 
-// Database connection
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('✅ MongoDB connected');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
+// ✅ معالجة المسارات غير الموجودة
+app.use(notFound);
 
-// Start server
+// ✅ معالج الأخطاء المركزي
+app.use(errorHandler);
+
+// ✅ تشغيل الخادم
 const PORT = process.env.PORT || 5000;
-
-connectDB().then(() => {
-  httpServer.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Test: http://localhost:${PORT}/test`);
+  console.log(`🖼️  Static files: http://localhost:${PORT}/uploads`);
 });
 
-export { io };
+// معالجة الأخطاء غير المتوقعة
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Rejection:', err);
+  server.close(() => process.exit(1));
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  server.close(() => process.exit(1));
+});
+
+export default app;
