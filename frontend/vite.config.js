@@ -1,9 +1,9 @@
-// frontend/vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   server: {
     port: 5173,
     proxy: {
@@ -20,7 +20,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
+    minify: false,  // تم التغيير من 'terser' إلى false
     rollupOptions: {
       output: {
         manualChunks: {
