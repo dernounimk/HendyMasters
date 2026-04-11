@@ -5,8 +5,8 @@
   "routes": [
     {
       "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": { "Content-Type": "application/javascript" }
+      "headers": { "Content-Type": "application/javascript" },
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*)",
