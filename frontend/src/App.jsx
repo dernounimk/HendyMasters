@@ -21,6 +21,7 @@ import CreatePost from './pages/CreatePost';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
+import PostDetails from './pages/PostDetails';  // ✅ أضف هذا الاستيراد
 
 // Loading Component
 import LoadingScreen from './components/LoadingScreen';
@@ -77,25 +78,6 @@ const ProtectedRoute = ({ children }) => {
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
-  }
-  
-  return children;
-};
-
-// Role-based Route Component
-const RoleBasedRoute = ({ children, allowedRoles }) => {
-  const { isAuthenticated, isLoading, user } = useStore();
-  
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (!allowedRoles.includes(user?.role)) {
-    return <Navigate to="/" replace />;
   }
   
   return children;
@@ -212,7 +194,8 @@ function App() {
             } />
             <Route path="saved" element={<Saved />} />
             <Route path="posts/create" element={<CreatePost />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="post/:id" element={<PostDetails />} />  {/* ✅ أضف هذا المسار */}
           </Route>
           
           {/* مسار 404 */}

@@ -304,18 +304,40 @@ const createAuthSlice = (set, get) => ({
     }
   },
 
-  fetchBlockedUsers: async () => {
-    try {
-      const response = await api.get('/users/blocks');
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching blocked users:', error);
-      return [];
+fetchBlockedUsers: async () => {
+  try {
+    console.log('📋 Fetching blocked users from API...');
+    const response = await api.get('/users/blocks');
+    console.log('📋 API Response:', response.data);
+    
+    if (response.data.success) {
+      const blockedUsers = response.data.data || [];
+      console.log('📋 Blocked users loaded:', blockedUsers.length);
+      return blockedUsers;
     }
-  },
+    return [];
+  } catch (error) {
+    console.error('❌ Error fetching blocked users:', error);
+    return [];
+  }
+},
+
+blockUser: async (userId) => {
+  set({ isLoading: true, error: null });
+  try {
+    console.log(`🔒 Blocking user: ${userId}`);
+    const response = await api.post(`/users/block/${userId}`);
+    if (response.data.success) {
+      set({ isLoading: false });
+      return { success: true, message: response.data.message };
+    }
+    throw new Error(response.data.message || 'فشل حظر المستخدم');
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'حدث خطأ في حظر المستخدم';
+    set({ isLoading: false, error: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+},
 
   unblockUser: async (userId) => {
     try {
@@ -327,22 +349,6 @@ const createAuthSlice = (set, get) => ({
     } catch (error) {
       console.error('Error unblocking user:', error);
       return { success: false, error: error.response?.data?.message || 'حدث خطأ' };
-    }
-  },
-
-  blockUser: async (userId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post(`/users/block/${userId}`);
-      if (response.data.success) {
-        set({ isLoading: false });
-        return { success: true, message: response.data.message };
-      }
-      throw new Error(response.data.message || 'فشل حظر المستخدم');
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'حدث خطأ في حظر المستخدم';
-      set({ isLoading: false, error: errorMessage });
-      return { success: false, error: errorMessage };
     }
   },
 
@@ -406,28 +412,31 @@ const createProfileSlice = (set, get) => ({
     }
   },
 
-  updateProfile: async (profileData) => {
-    set({ profileLoading: true, profileError: null });
-    try {
-      const response = await api.put('/users/profile', profileData);
-      if (response.data.success) {
-        const updatedUser = response.data.data.user;
-        const currentUser = get().user;
-        
-        if (currentUser && currentUser._id === updatedUser._id) {
-          set({ user: updatedUser });
-        }
-        
-        set({ profileData: updatedUser, profileLoading: false });
-        return { success: true, data: updatedUser };
+updateProfile: async (profileData) => {
+  set({ profileLoading: true, profileError: null });
+  try {
+    const response = await api.put('/users/profile', profileData);
+    if (response.data.success) {
+      // ✅ إصلاح: الخادم يرجع data مباشرة، وليس data.user
+      const updatedUser = response.data.data;
+      const currentUser = get().user;
+
+      // ✅ تحديث حالة المستخدم الحالي (user) إذا كان هو نفسه
+      if (currentUser && currentUser._id === updatedUser._id) {
+        set({ user: updatedUser });
       }
-      throw new Error(response.data.message || 'فشل تحديث الملف الشخصي');
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      set({ profileError: errorMessage, profileLoading: false });
-      return { success: false, error: errorMessage };
+
+      set({ profileData: updatedUser, profileLoading: false });
+      // ✅ إرجاع success: true و data
+      return { success: true, data: updatedUser };
     }
-  },
+    throw new Error(response.data.message || 'فشل تحديث الملف الشخصي');
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message;
+    set({ profileError: errorMessage, profileLoading: false });
+    return { success: false, error: errorMessage };
+  }
+},
 
   setActiveTab: (tab) => set({ activeTab: tab }),
   clearProfileError: () => set({ profileError: null })
@@ -482,11 +491,13 @@ const createReviewsSlice = (set, get) => ({
   reviewsLoading: false,
   reviewsPage: 1,
   hasMoreReviews: true,
-  reviewsStats: { average: 0, count: 0 },
+  reviewsStats: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
   reviewsError: null,
-
-  fetchUserReviews: async (userId, reset = true) => {
-    const { reviewsPage, reviews } = get();
+  
+  // جلب تقييمات المستخدم
+  fetchUserReviews: async (userId, page = 1, reset = true) => {
+    const { reviews, reviewsPage } = get();
+    
     if (reset) {
       set({ reviewsLoading: true, reviews: [], reviewsPage: 1, hasMoreReviews: true });
     } else {
@@ -494,7 +505,7 @@ const createReviewsSlice = (set, get) => ({
     }
     
     try {
-      const response = await api.get(`/users/${userId}/reviews`, {
+      const response = await api.get(`/reviews/user/${userId}`, {
         params: { page: reset ? 1 : reviewsPage, limit: 10 }
       });
       
@@ -502,19 +513,79 @@ const createReviewsSlice = (set, get) => ({
         const newReviews = response.data.data;
         set({
           reviews: reset ? newReviews : [...reviews, ...newReviews],
-          hasMoreReviews: newReviews.length === 10,
-          reviewsStats: response.data.stats || { average: 0, count: 0 },
-          reviewsLoading: false
+          hasMoreReviews: response.data.pagination?.hasMore || false,
+          reviewsStats: response.data.stats || { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+          reviewsLoading: false,
+          reviewsPage: reset ? 2 : reviewsPage + 1
         });
-        if (!reset && newReviews.length > 0) {
-          set((state) => ({ reviewsPage: state.reviewsPage + 1 }));
-        }
+        return response.data;
       }
     } catch (error) {
       set({ reviewsError: error.response?.data?.message || error.message, reviewsLoading: false });
     }
   },
-
+  
+  // إنشاء تقييم جديد
+  createReview: async (reviewData) => {
+    set({ reviewsLoading: true, reviewsError: null });
+    try {
+      const response = await api.post('/reviews', reviewData);
+      if (response.data.success) {
+        // تحديث قائمة التقييمات
+        const { reviewedUser } = reviewData;
+        const { fetchUserReviews, reviewsStats } = get();
+        await fetchUserReviews(reviewedUser, 1, true);
+        
+        set({ reviewsLoading: false });
+        return { success: true, data: response.data.data };
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'حدث خطأ في إنشاء التقييم';
+      set({ reviewsLoading: false, reviewsError: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  },
+  
+  // تحديث تقييم
+  updateReview: async (reviewId, updateData) => {
+    set({ reviewsLoading: true, reviewsError: null });
+    try {
+      const response = await api.put(`/reviews/${reviewId}`, updateData);
+      if (response.data.success) {
+        set((state) => ({
+          reviews: state.reviews.map(review =>
+            review._id === reviewId ? response.data.data : review
+          ),
+          reviewsLoading: false
+        }));
+        return { success: true, data: response.data.data };
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'حدث خطأ في تحديث التقييم';
+      set({ reviewsLoading: false, reviewsError: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  },
+  
+  // حذف تقييم
+  deleteReview: async (reviewId) => {
+    set({ reviewsLoading: true, reviewsError: null });
+    try {
+      const response = await api.delete(`/reviews/${reviewId}`);
+      if (response.data.success) {
+        set((state) => ({
+          reviews: state.reviews.filter(review => review._id !== reviewId),
+          reviewsLoading: false
+        }));
+        return { success: true };
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'حدث خطأ في حذف التقييم';
+      set({ reviewsLoading: false, reviewsError: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  },
+  
   resetReviews: () => set({ reviews: [], reviewsPage: 1, hasMoreReviews: true }),
   incrementReviewsPage: () => set((state) => ({ reviewsPage: state.reviewsPage + 1 }))
 });
@@ -563,24 +634,33 @@ const createPostsManagementSlice = (set, get) => ({
       set({ allPostsError: error.response?.data?.message || error.message, allPostsLoading: false });
     }
   },
-  
-  fetchSavedPosts: async (page = 1, limit = 10) => {
-    try {
-      const response = await api.get('/posts/saved', {
-        params: { page, limit }
-      });
-      if (response.data.success) {
-        return {
-          posts: response.data.posts,
-          pagination: response.data.pagination
-        };
-      }
-      return { posts: [], pagination: null };
-    } catch (error) {
-      console.error('Error fetching saved posts:', error);
-      return { posts: [], pagination: null };
+
+fetchSavedPosts: async (page = 1, limit = 10) => {
+  try {
+    console.log(`📋 Fetching saved posts - page: ${page}, limit: ${limit}`);
+    const response = await api.get('/posts/saved', {
+      params: { page, limit }
+    });
+    console.log('📋 Saved posts response:', response.data);
+    
+    if (response.data.success) {
+      return {
+        posts: response.data.posts || [],
+        pagination: response.data.pagination || {
+          page: page,
+          limit: limit,
+          total: 0,
+          hasMore: false,
+          pages: 0
+        }
+      };
     }
-  },
+    return { posts: [], pagination: null };
+  } catch (error) {
+    console.error('Error fetching saved posts:', error);
+    return { posts: [], pagination: null };
+  }
+},
   
   fetchPostById: async (postId) => {
     set({ currentPostLoading: true, currentPostError: null });
@@ -832,41 +912,45 @@ export const useStore = create(
       },
 
       // ============== Chat Functions ==============
-      createConversation: async (recipientId, initialMessage = '') => {
-        return new Promise((resolve, reject) => {
-          if (!recipientId) {
-            reject(new Error('معرف المستلم غير صالح'));
-            return;
-          }
-          
-          const currentUser = get().user;
-          if (currentUser && String(currentUser._id) === String(recipientId)) {
-            reject(new Error('لا يمكنك إنشاء محادثة مع نفسك'));
-            return;
-          }
-          
-          if (!socketService.getConnectionStatus()) {
-            reject(new Error('لا يوجد اتصال بالخادم'));
-            return;
-          }
-          
-          socketService.emit('conversation:start', {
-            recipientId,
-            initialMessage
-          }, (response) => {
-            if (response?.success) {
-              resolve(response.data);
-            } else {
-              reject(new Error(response?.message || 'فشل في إنشاء المحادثة'));
-            }
-          });
-          
-          setTimeout(() => {
-            reject(new Error('انتهت مهلة الاتصال'));
-          }, 10000);
+createConversation: async (recipientId, initialMessage = '') => {
+  console.log(`📨 Creating conversation with recipient: ${recipientId}`);
+  
+  return new Promise((resolve, reject) => {
+    if (!recipientId) {
+      reject(new Error('معرف المستلم غير صالح'));
+      return;
+    }
+    
+    const currentUser = get().user;
+    if (currentUser && String(currentUser._id) === String(recipientId)) {
+      reject(new Error('لا يمكنك إنشاء محادثة مع نفسك'));
+      return;
+    }
+    
+    // استخدام API endpoint بدلاً من Socket للموثوقية
+    const createViaAPI = async () => {
+      try {
+        const response = await api.post('/messages/conversations', {
+          recipientId,
+          initialMessage
         });
-      },
-      
+        
+        console.log('📨 API conversation response:', response.data);
+        
+        if (response.data.success) {
+          resolve(response.data.data);
+        } else {
+          reject(new Error(response.data.message || 'فشل في إنشاء المحادثة'));
+        }
+      } catch (error) {
+        console.error('API error:', error);
+        reject(new Error(error.response?.data?.message || 'حدث خطأ في إنشاء المحادثة'));
+      }
+    };
+    
+    createViaAPI();
+  });
+},
       checkMessagingPermission: async (userId) => {
         try {
           const response = await api.get(`/messages/check/${userId}`);

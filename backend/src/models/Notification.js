@@ -5,52 +5,55 @@ const notificationSchema = new mongoose.Schema({
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    index: true
+    required: true
   },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: 'User'
   },
   type: {
     type: String,
-    enum: ['like', 'save', 'share', 'message', 'proposal', 'proposal_accepted', 'work_completed', 'rating', 'follow'],
+    enum: [
+      'like',      // إعجاب ببوست
+      'save',      // حفظ بوست
+      'share',     // مشاركة بوست
+      'review'     // تقييم بروفايل
+    ],
     required: true
   },
   title: {
     type: String,
     required: true
   },
-  content: {
+  message: {
     type: String,
-    required: false,  // ✅ إزالة required
-    default: ''
+    required: true
   },
-  referenceId: {
-    type: mongoose.Schema.Types.ObjectId,
-    refPath: 'referenceModel'
+  relatedId: {
+    type: mongoose.Schema.Types.ObjectId
   },
-  referenceModel: {
+  relatedModel: {
     type: String,
-    enum: ['Post', 'Message', 'User', 'Proposal']
+    enum: ['Post', 'User', 'Review']
   },
   read: {
     type: Boolean,
-    default: false,
-    index: true
+    default: false
+  },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-    index: true
+    default: Date.now
   }
-}, {
-  timestamps: true
 });
 
-notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
-notificationSchema.index({ recipient: 1, type: 1 });
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ recipient: 1, read: 1 });
+notificationSchema.index({ createdAt: -1 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
+
 export default Notification;

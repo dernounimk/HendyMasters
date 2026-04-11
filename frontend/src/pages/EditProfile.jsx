@@ -120,8 +120,78 @@ style.textContent = `
   .craft-icon {
     transition: color 0.2s ease;
   }
+
+  /* Modal Popup Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .modal-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    animation: slideUp 0.2s ease-out;
+  }
+
+  .dark .modal-content {
+    background: #1f2937;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
 `;
 document.head.appendChild(style);
+
+// ✅ Modal Popup Component
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          {title || 'تأكيد'}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          {message || 'هل أنت متأكد من رغبتك في القيام بهذا الإجراء؟'}
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+          >
+            {cancelText || 'إلغاء'}
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            {confirmText || 'تأكيد'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Skeleton للتعديل
 const EditProfileSkeleton = () => {
@@ -172,6 +242,7 @@ const EditProfile = () => {
   } = useStore();
 
   const [formData, setFormData] = useState({
+    username: '', // ✅ أضفنا حقل username
     bio: '',
     email: '',
     phone: '',
@@ -194,13 +265,18 @@ const EditProfile = () => {
     }
   });
 
-  const [originalData, setOriginalData] = useState({}); // لحفظ البيانات الأصلية
+  const [originalData, setOriginalData] = useState({});
+  const [daysUntilUsernameChange, setDaysUntilUsernameChange] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [selectedSection, setSelectedSection] = useState('basic');
+  
+  // ✅ Modal state
+  const [showRemoveAvatarModal, setShowRemoveAvatarModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const isRTL = document.dir === 'rtl';
   const isArtisan = currentUser?.role === 'artisan';
@@ -210,63 +286,26 @@ const EditProfile = () => {
 
   // قائمة الولايات الجزائرية
   const algerianCities = [
-    "أدرار", "Adrar",
-    "الشلف", "Chlef",
-    "الأغواط", "Laghouat",
-    "أم البواقي", "Oum El Bouaghi",
-    "باتنة", "Batna",
-    "بجاية", "Béjaïa",
-    "بسكرة", "Biskra",
-    "بشار", "Béchar",
-    "البليدة", "Blida",
-    "البويرة", "Bouira",
-    "تمنراست", "Tamanrasset",
-    "تبسة", "Tébessa",
-    "تلمسان", "Tlemcen",
-    "تيارت", "Tiaret",
-    "تيزي وزو", "Tizi Ouzou",
-    "الجزائر", "Algiers",
-    "الجلفة", "Djelfa",
-    "جيجل", "Jijel",
-    "سطيف", "Sétif",
-    "سعيدة", "Saïda",
-    "سكيكدة", "Skikda",
-    "سيدي بلعباس", "Sidi Bel Abbès",
-    "عنابة", "Annaba",
-    "قالمة", "Guelma",
-    "قسنطينة", "Constantine",
-    "المدية", "Médéa",
-    "مستغانم", "Mostaganem",
-    "المسيلة", "M'Sila",
-    "معسكر", "Mascara",
-    "ورقلة", "Ouargla",
-    "وهران", "Oran",
-    "البيض", "El Bayadh",
-    "إليزي", "Illizi",
-    "برج بوعريريج", "Bordj Bou Arréridj",
-    "بومرداس", "Boumerdès",
-    "الطارف", "El Tarf",
-    "تندوف", "Tindouf",
-    "تيسمسيلت", "Tissemsilt",
-    "الوادي", "El Oued",
-    "خنشلة", "Khenchela",
-    "سوق أهراس", "Souk Ahras",
-    "تيبازة", "Tipaza",
-    "ميلة", "Mila",
-    "عين الدفلى", "Aïn Defla",
-    "النعامة", "Naâma",
-    "عين تموشنت", "Aïn Témouchent",
-    "غرداية", "Ghardaïa",
-    "غليزان", "Relizane",
-    "المغير", "El M'Ghair",
-    "المنيعة", "El Menia",
-    "أولاد جلال", "Ouled Djellal",
-    "بني عباس", "Béni Abbès",
-    "عين صالح", "Aïn Salah",
-    "عين قزام", "Aïn Guezzam",
-    "تقرت", "Touggourt",
-    "جانت", "Djanet",
-    "تيميمون", "Timimoun"
+    "أدرار", "Adrar", "الشلف", "Chlef", "الأغواط", "Laghouat",
+    "أم البواقي", "Oum El Bouaghi", "باتنة", "Batna", "بجاية", "Béjaïa",
+    "بسكرة", "Biskra", "بشار", "Béchar", "البليدة", "Blida",
+    "البويرة", "Bouira", "تمنراست", "Tamanrasset", "تبسة", "Tébessa",
+    "تلمسان", "Tlemcen", "تيارت", "Tiaret", "تيزي وزو", "Tizi Ouzou",
+    "الجزائر", "Algiers", "الجلفة", "Djelfa", "جيجل", "Jijel",
+    "سطيف", "Sétif", "سعيدة", "Saïda", "سكيكدة", "Skikda",
+    "سيدي بلعباس", "Sidi Bel Abbès", "عنابة", "Annaba", "قالمة", "Guelma",
+    "قسنطينة", "Constantine", "المدية", "Médéa", "مستغانم", "Mostaganem",
+    "المسيلة", "M'Sila", "معسكر", "Mascara", "ورقلة", "Ouargla",
+    "وهران", "Oran", "البيض", "El Bayadh", "إليزي", "Illizi",
+    "برج بوعريريج", "Bordj Bou Arréridj", "بومرداس", "Boumerdès",
+    "الطارف", "El Tarf", "تندوف", "Tindouf", "تيسمسيلت", "Tissemsilt",
+    "الوادي", "El Oued", "خنشلة", "Khenchela", "سوق أهراس", "Souk Ahras",
+    "تيبازة", "Tipaza", "ميلة", "Mila", "عين الدفلى", "Aïn Defla",
+    "النعامة", "Naâma", "عين تموشنت", "Aïn Témouchent", "غرداية", "Ghardaïa",
+    "غليزان", "Relizane", "المغير", "El M'Ghair", "المنيعة", "El Menia",
+    "أولاد جلال", "Ouled Djellal", "بني عباس", "Béni Abbès",
+    "عين صالح", "Aïn Salah", "عين قزام", "Aïn Guezzam",
+    "تقرت", "Touggourt", "جانت", "Djanet", "تيميمون", "Timimoun"
   ];
 
   const filteredCities = algerianCities.filter(city => 
@@ -335,36 +374,17 @@ const EditProfile = () => {
 
   // مهارات العمال
   const workerSkills = [
-    t('skills.loading_unloading'),
-    t('skills.cleaning'),
-    t('skills.organizing'),
-    t('skills.packing'),
-    t('skills.wrapping'),
-    t('skills.construction'),
-    t('skills.farming'),
-    t('skills.painting'),
-    t('skills.furniture_assembly'),
-    t('skills.moving'),
-    t('skills.assembling'),
-    t('skills.repairing'),
-    t('skills.plumbing'),
-    t('skills.electrical'),
-    t('skills.tiling'),
-    t('skills.carpentry'),
-    t('skills.blacksmithing'),
-    t('skills.welding'),
-    t('skills.stone_cutting'),
-    t('skills.carving'),
-    t('skills.glass_installation'),
-    t('skills.kitchen_installation'),
-    t('skills.window_installation'),
-    t('skills.general_maintenance'),
-    t('skills.facade_cleaning'),
-    t('skills.carpet_cleaning'),
-    t('skills.pest_control'),
-    t('skills.gardening'),
-    t('skills.automatic_irrigation'),
-    t('skills.artificial_grass'),
+    t('skills.loading_unloading'), t('skills.cleaning'), t('skills.organizing'),
+    t('skills.packing'), t('skills.wrapping'), t('skills.construction'),
+    t('skills.farming'), t('skills.painting'), t('skills.furniture_assembly'),
+    t('skills.moving'), t('skills.assembling'), t('skills.repairing'),
+    t('skills.plumbing'), t('skills.electrical'), t('skills.tiling'),
+    t('skills.carpentry'), t('skills.blacksmithing'), t('skills.welding'),
+    t('skills.stone_cutting'), t('skills.carving'), t('skills.glass_installation'),
+    t('skills.kitchen_installation'), t('skills.window_installation'),
+    t('skills.general_maintenance'), t('skills.facade_cleaning'),
+    t('skills.carpet_cleaning'), t('skills.pest_control'), t('skills.gardening'),
+    t('skills.automatic_irrigation'), t('skills.artificial_grass'),
     t('skills.decorative_painting')
   ];
 
@@ -384,10 +404,22 @@ const EditProfile = () => {
     loadProfile();
   }, [currentUser, profileData, navigate, fetchCurrentUserProfile]);
 
-  // تحديث النموذج عند تحميل البيانات - مع التأكد من حفظ البيانات الأصلية
+  // تحديث النموذج عند تحميل البيانات
   useEffect(() => {
     if (profileData) {
+      // حساب الأيام المتبقية لتغيير اسم المستخدم
+      let daysLeft = null;
+      if (profileData.lastUsernameChange) {
+        const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+        const timeSinceLastChange = Date.now() - new Date(profileData.lastUsernameChange).getTime();
+        if (timeSinceLastChange < FIFTEEN_DAYS) {
+          daysLeft = Math.ceil((FIFTEEN_DAYS - timeSinceLastChange) / (24 * 60 * 60 * 1000));
+        }
+      }
+      setDaysUntilUsernameChange(daysLeft);
+
       const newFormData = {
+        username: profileData.username || '',
         bio: profileData.bio || '',
         email: profileData.email || '',
         phone: profileData.phone || '',
@@ -411,7 +443,7 @@ const EditProfile = () => {
       };
 
       setFormData(newFormData);
-      setOriginalData(newFormData); // حفظ البيانات الأصلية
+      setOriginalData(newFormData);
 
       if (profileData.profileImage) {
         setAvatarPreview(profileData.profileImage);
@@ -430,7 +462,15 @@ const EditProfile = () => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (name.startsWith('privacy.')) {
+    if (name === 'username') {
+      // التحقق من صحة اسم المستخدم (أحرف إنجليزية وأرقام وشرطة سفلية فقط)
+      const usernameRegex = /^[a-zA-Z0-9_]*$/;
+      if (value && !usernameRegex.test(value)) {
+        toast.error(t('profile.edit.usernameInvalidChars'));
+        return;
+      }
+      setFormData(prev => ({ ...prev, username: value }));
+    } else if (name.startsWith('privacy.')) {
       const privacyField = name.split('.')[1];
       setFormData(prev => ({
         ...prev,
@@ -479,30 +519,18 @@ const EditProfile = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveAvatar = async () => {
-    if (window.confirm(t('profile.edit.confirmRemoveAvatar'))) {
-      const result = await removeAvatar();
-      if (result?.success) {
-        setAvatarPreview(defaultImgProfile);
-        setAvatarFile(null);
-        toast.success(t('profile.edit.avatarRemoved'));
-      }
-    }
+  // ✅ دالة مع popup تأكيد لحذف الصورة
+  const handleRemoveAvatarClick = () => {
+    setShowRemoveAvatarModal(true);
   };
 
-  const removeSkill = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      professionalInfo: {
-        ...prev.professionalInfo,
-        skills: prev.professionalInfo.skills.filter((_, i) => i !== index)
-      }
-    }));
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+  const confirmRemoveAvatar = async () => {
+    setShowRemoveAvatarModal(false);
+    const result = await removeAvatar();
+    if (result?.success) {
+      setAvatarPreview(defaultImgProfile);
+      setAvatarFile(null);
+      toast.success(t('profile.edit.avatarRemoved'));
     }
   };
 
@@ -538,56 +566,27 @@ const EditProfile = () => {
   const scrollCrafts = (direction) => {
     if (craftsContainerRef.current) {
       const scrollAmount = 300;
-      
-      if (isRTL) {
-        if (direction === 'left') {
-          craftsContainerRef.current.scrollBy({
-            left: -scrollAmount,
-            behavior: 'smooth'
-          });
-        } else {
-          craftsContainerRef.current.scrollBy({
-            left: scrollAmount,
-            behavior: 'smooth'
-          });
-        }
-      } else {
-        craftsContainerRef.current.scrollBy({
-          left: direction === 'left' ? -scrollAmount : scrollAmount,
-          behavior: 'smooth'
-        });
-      }
+      craftsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
   };
 
   const scrollSkills = (direction) => {
     if (skillsContainerRef.current) {
       const scrollAmount = 250;
-      
-      if (isRTL) {
-        if (direction === 'left') {
-          skillsContainerRef.current.scrollBy({
-            left: -scrollAmount,
-            behavior: 'smooth'
-          });
-        } else {
-          skillsContainerRef.current.scrollBy({
-            left: scrollAmount,
-            behavior: 'smooth'
-          });
-        }
-      } else {
-        skillsContainerRef.current.scrollBy({
-          left: direction === 'left' ? -scrollAmount : scrollAmount,
-          behavior: 'smooth'
-        });
-      }
+      skillsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
   };
 
   // التحقق من وجود تغييرات
   const hasChanges = () => {
     return (
+      formData.username !== originalData.username ||
       formData.bio !== originalData.bio ||
       formData.email !== originalData.email ||
       formData.phone !== originalData.phone ||
@@ -596,6 +595,20 @@ const EditProfile = () => {
       JSON.stringify(formData.privacy) !== JSON.stringify(originalData.privacy) ||
       avatarFile !== null
     );
+  };
+
+  // ✅ دالة مع popup تأكيد للإلغاء
+  const handleCancelClick = () => {
+    if (hasChanges()) {
+      setShowCancelModal(true);
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const confirmCancel = () => {
+    setShowCancelModal(false);
+    navigate(-1);
   };
 
   const handleSubmit = async (e) => {
@@ -618,15 +631,27 @@ const EditProfile = () => {
         }
       }
 
-      // بناء كائن التحديث - فقط الحقول التي تغيرت
+      // بناء كائن التحديث
       const updateData = {};
 
-      // فقط أضف الحقول التي تغيرت
+      if (formData.username !== originalData.username) {
+        if (!formData.username || formData.username.trim() === '') {
+          toast.error(t('profile.edit.usernameRequired'));
+          setIsSubmitting(false);
+          return;
+        }
+        if (formData.username.length < 3 || formData.username.length > 30) {
+          toast.error(t('profile.edit.usernameLength'));
+          setIsSubmitting(false);
+          return;
+        }
+        updateData.username = formData.username;
+      }
+
       if (formData.bio !== originalData.bio) {
         updateData.bio = formData.bio;
       }
 
-      // البريد الإلكتروني - نرسله فقط إذا تغير وأيضاً ليس فارغاً
       if (formData.email !== originalData.email) {
         if (formData.email && formData.email.trim() !== '') {
           updateData.email = formData.email;
@@ -637,7 +662,6 @@ const EditProfile = () => {
         }
       }
 
-      // رقم الهاتف - نرسله فقط إذا تغير وأيضاً ليس فارغاً
       if (formData.phone !== originalData.phone) {
         if (formData.phone && formData.phone.trim() !== '') {
           updateData.phone = formData.phone;
@@ -648,12 +672,10 @@ const EditProfile = () => {
         }
       }
 
-      // الموقع
       if (formData.location !== originalData.location) {
         updateData.location = formData.location;
       }
 
-      // المعلومات المهنية - فقط للمحترفين وإذا تغيرت
       if (isProfessional) {
         const professionalChanged = 
           formData.professionalInfo.craft !== originalData.professionalInfo?.craft ||
@@ -671,12 +693,10 @@ const EditProfile = () => {
         }
       }
 
-      // إعدادات الخصوصية - إذا تغيرت
       if (JSON.stringify(formData.privacy) !== JSON.stringify(originalData.privacy)) {
         updateData.privacy = formData.privacy;
       }
 
-      // إذا لم يكن هناك أي تغييرات بعد التحقق
       if (Object.keys(updateData).length === 0) {
         toast.info(t('profile.edit.noChanges'));
         setIsSubmitting(false);
@@ -689,16 +709,19 @@ const EditProfile = () => {
       
       if (result?.success) {
         toast.success(t('profile.edit.success'));
-        // تحديث البيانات الأصلية بعد الحفظ الناجح
-        setOriginalData(prev => ({
-          ...prev,
+        setOriginalData({
           ...formData
-        }));
-        navigate(`/profile/${profileData.username}`);
+        });
+        
+        // تحديث اسم المستخدم في الرابط إذا تم تغييره
+        const newUsername = updateData.username || profileData.username;
+        navigate(`/profile/${newUsername}`);
+      } else if (result?.error) {
+        toast.error(result.error);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error(t('profile.edit.error'));
+      toast.error(error.response?.data?.message || t('profile.edit.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -727,8 +750,31 @@ const EditProfile = () => {
     );
   }
 
+  const isUsernameChangeAllowed = daysUntilUsernameChange === null || daysUntilUsernameChange === 0;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* ✅ Popup Modals */}
+      <ConfirmModal
+        isOpen={showRemoveAvatarModal}
+        onClose={() => setShowRemoveAvatarModal(false)}
+        onConfirm={confirmRemoveAvatar}
+        title={t('profile.edit.confirmRemoveAvatarTitle') || 'حذف الصورة الشخصية'}
+        message={t('profile.edit.confirmRemoveAvatarMessage') || 'هل أنت متأكد من حذف الصورة الشخصية؟'}
+        confirmText={t('common.delete') || 'حذف'}
+        cancelText={t('common.cancel') || 'إلغاء'}
+      />
+
+      <ConfirmModal
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancel}
+        title={t('profile.edit.confirmCancelTitle') || 'إلغاء التعديلات'}
+        message={t('profile.edit.confirmCancelMessage') || 'هل أنت متأكد من إلغاء التعديلات؟ سيتم فقدان جميع التغييرات غير المحفوظة.'}
+        confirmText={t('common.confirm') || 'تأكيد'}
+        cancelText={t('common.cancel') || 'إلغاء'}
+      />
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -738,7 +784,7 @@ const EditProfile = () => {
           {/* رأس الصفحة */}
           <div className="mb-6 flex items-center justify-between">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleCancelClick}
               className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -755,7 +801,7 @@ const EditProfile = () => {
             <div className="h-32 bg-gradient-to-r from-primary-400 to-primary-600 relative">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={handleCancelClick}
                 className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-white/30 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -789,7 +835,7 @@ const EditProfile = () => {
                     {avatarPreview && avatarPreview !== defaultImgProfile && (
                       <button
                         type="button"
-                        onClick={handleRemoveAvatar}
+                        onClick={handleRemoveAvatarClick}
                         className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
                         disabled={uploadingAvatar}
                       >
@@ -847,7 +893,7 @@ const EditProfile = () => {
                         transition={{ duration: 0.3 }}
                         className="mt-4 space-y-4"
                       >
-                        {/* اسم المستخدم */}
+                        {/* ✅ اسم المستخدم - قابل للتعديل مع رسوم بيانية */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             <AtSign className="w-4 h-4 inline ml-1 rtl:mr-1" />
@@ -855,12 +901,37 @@ const EditProfile = () => {
                           </label>
                           <input
                             type="text"
-                            value={profileData.username}
-                            disabled
-                            className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white cursor-not-allowed"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleInputChange}
+                            disabled={!isUsernameChangeAllowed}
+                            className={`w-full px-4 py-2 border rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                              ${!isUsernameChangeAllowed 
+                                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-75' 
+                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
+                              }`}
+                            placeholder={t('profile.edit.usernamePlaceholder')}
+                            minLength={3}
+                            maxLength={30}
                           />
+                          
+                          {/* ✅ عرض الأيام المتبقية لتغيير اسم المستخدم */}
+                          {!isUsernameChangeAllowed && daysUntilUsernameChange > 0 && (
+                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {t('profile.edit.usernameChangeWait', { days: daysUntilUsernameChange })}
+                            </p>
+                          )}
+                          
+                          {isUsernameChangeAllowed && (
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              {t('profile.edit.usernameChangeAvailable')}
+                            </p>
+                          )}
+                          
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {t('profile.edit.usernameCannotChange')}
+                            {t('profile.edit.usernameChangeNote')}
                           </p>
                         </div>
 
@@ -1324,7 +1395,7 @@ const EditProfile = () => {
                   
                   <button
                     type="button"
-                    onClick={() => navigate(-1)}
+                    onClick={handleCancelClick}
                     className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                   >
                     {t('common.cancel')}

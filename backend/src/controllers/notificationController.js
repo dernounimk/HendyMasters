@@ -1,6 +1,7 @@
 // backend/src/controllers/notificationController.js
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
+import Review from '../models/Review.js';
 import Post from '../models/Post.js';
 
 export const getNotifications = async (req, res) => {
@@ -24,27 +25,36 @@ export const getNotifications = async (req, res) => {
       notifications.map(async (notification) => {
         let enriched = notification.toObject();
         
-        if (notification.referenceId && notification.referenceModel) {
+        if (notification.relatedId && notification.relatedModel) {
           try {
-            if (notification.referenceModel === 'Post') {
-              const post = await Post.findById(notification.referenceId)
+            if (notification.relatedModel === 'Post') {
+              const post = await Post.findById(notification.relatedId)
                 .select('title type images');
               if (post) {
-                enriched.reference = {
+                enriched.relatedData = {
                   id: post._id,
                   title: post.title,
                   type: post.type,
                   image: post.images?.[0]?.url
                 };
               }
-            } else if (notification.referenceModel === 'User') {
-              const user = await User.findById(notification.referenceId)
+            } else if (notification.relatedModel === 'User') {
+              const user = await User.findById(notification.relatedId)
                 .select('username profileImage');
               if (user) {
-                enriched.reference = {
+                enriched.relatedData = {
                   id: user._id,
                   username: user.username,
                   profileImage: user.profileImage
+                };
+              }
+            } else if (notification.relatedModel === 'Review') {
+              const review = await Review.findById(notification.relatedId)
+                .populate('reviewedUser', 'username');
+              if (review) {
+                enriched.relatedData = {
+                  id: review._id,
+                  rating: review.rating
                 };
               }
             }

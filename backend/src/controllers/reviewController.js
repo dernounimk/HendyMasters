@@ -1,31 +1,42 @@
+// backend/src/controllers/reviewController.js
+import mongoose from 'mongoose';
 import Review from '../models/Review.js';
 import User from '../models/User.js';
-import Post from '../models/Post.js';
+import Notification from '../models/Notification.js';
+
+// دالة إنشاء إشعار
+const createNotification = async (notificationData, req) => {
+  try {
+    const notification = new Notification(notificationData);
+    await notification.save();
+    
+    const io = req?.app?.get('io');
+    if (io && notificationData.recipient) {
+      io.to(notificationData.recipient.toString()).emit('notification:new', notification);
+    }
+    
+    return notification;
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    return null;
+  }
+};
 
 // @desc    إنشاء تقييم جديد
-// @route   POST /api/reviews
-// @access  Private
-export const createReview = async (req, res, next) => {
+export const createReview = async (req, res) => {
   try {
-    const {
-      reviewedUserId,
-      rating,
-      comment,
-      subRatings,
-      referenceType,
-      referenceId,
-      workImages
-    } = req.body;
-
-    // التحقق من عدم تقييم النفس
-    if (reviewedUserId === req.user.id) {
+    const { reviewedUserId, rating, comment } = req.body;
+    const reviewerId = req.user.id;
+    
+    console.log('📝 Creating review:', { reviewerId, reviewedUserId, rating, comment });
+    
+    if (reviewerId === reviewedUserId) {
       return res.status(400).json({
         success: false,
         message: 'لا يمكنك تقييم نفسك'
       });
     }
-
-    // التحقق من وجود المستخدم المراد تقييمه
+    
     const reviewedUser = await User.findById(reviewedUserId);
     if (!reviewedUser) {
       return res.status(404).json({
@@ -33,284 +44,201 @@ export const createReview = async (req, res, next) => {
         message: 'المستخدم غير موجود'
       });
     }
-
-    // التحقق من عدم وجود تقييم مكرر
+    
     const existingReview = await Review.findOne({
-      reviewer: req.user.id,
-      reviewedUser: reviewedUserId,
-      'reference.id': referenceId
+      reviewer: reviewerId,
+      reviewedUser: reviewedUserId
     });
-
+    
     if (existingReview) {
       return res.status(400).json({
         success: false,
         message: 'لقد قمت بتقييم هذا المستخدم بالفعل'
       });
     }
-
-    // إنشاء التقييم
+    
     const review = await Review.create({
-      reviewer: req.user.id,
+      reviewer: reviewerId,
       reviewedUser: reviewedUserId,
       rating,
-      comment,
-      subRatings,
-      reference: {
-        type: referenceType,
-        id: referenceId
-      },
-      workImages: workImages || []
+      comment: comment.trim()
     });
-
-    // تحديث تقييم المستخدم
-    await updateUserRating(reviewedUserId);
-
+    
+    console.log('✅ Review created:', review._id);
+    
+    const reviewer = await User.findById(reviewerId).select('username profileImage');
+    
+    await createNotification({
+      recipient: reviewedUserId,
+      sender: reviewerId,
+      type: 'review',
+      title: 'تقييم جديد ⭐',
+      message: `${reviewer.username} قيمك بـ ${rating}/5 نجوم`,
+      relatedId: review._id,
+      relatedModel: 'Review',
+      metadata: { rating, comment: comment?.substring(0, 100) }
+    }, req);
+    
     const populatedReview = await Review.findById(review._id)
       .populate('reviewer', 'username profileImage')
-      .populate('reviewedUser', 'username profileImage role');
-
+      .populate('reviewedUser', 'username profileImage');
+    
     res.status(201).json({
       success: true,
-      data: populatedReview
+      data: populatedReview,
+      message: 'تم إضافة التقييم بنجاح'
     });
-
+    
   } catch (error) {
-    next(error);
+    console.error('Error creating review:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'حدث خطأ في إنشاء التقييم'
+    });
   }
 };
 
-// @desc    الرد على تقييم
-// @route   PUT /api/reviews/:id/reply
-// @access  Private (Owner of reviewed user only)
-export const replyToReview = async (req, res, next) => {
+// @desc    جلب تقييمات مستخدم
+export const getUserReviews = async (req, res) => {
   try {
-    const { content } = req.body;
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({
-        success: false,
-        message: 'التقييم غير موجود'
+    const { userId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const reviews = await Review.find({ reviewedUser: userId })
+      .populate('reviewer', 'username profileImage role')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Review.countDocuments({ reviewedUser: userId });
+    
+    const stats = await Review.aggregate([
+      { $match: { reviewedUser: new mongoose.Types.ObjectId(userId) } },
+      {
+        $group: {
+          _id: null,
+          average: { $avg: '$rating' },
+          count: { $sum: 1 },
+          ratings: { $push: '$rating' }
+        }
+      }
+    ]);
+    
+    const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    
+    if (stats.length > 0 && stats[0].ratings) {
+      stats[0].ratings.forEach(rating => {
+        ratingDistribution[rating]++;
       });
     }
-
-    // التحقق من أن المستخدم هو صاحب التقييم
-    if (review.reviewedUser.toString() !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'ليس لديك صلاحية للرد على هذا التقييم'
-      });
-    }
-
-    review.reply = {
-      content,
-      repliedAt: new Date()
-    };
-
-    await review.save();
-
-    res.status(200).json({
+    
+    res.json({
       success: true,
-      data: review
+      data: reviews,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+        hasMore: skip + reviews.length < total
+      },
+      stats: {
+        average: stats.length > 0 ? parseFloat(stats[0].average.toFixed(1)) : 0,
+        count: total,
+        distribution: ratingDistribution
+      }
     });
-
+    
   } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    الإبلاغ عن تقييم
-// @route   POST /api/reviews/:id/report
-// @access  Private
-export const reportReview = async (req, res, next) => {
-  try {
-    const { reason } = req.body;
-    const review = await Review.findById(req.params.id);
-
-    if (!review) {
-      return res.status(404).json({
-        success: false,
-        message: 'التقييم غير موجود'
-      });
-    }
-
-    review.reported = {
-      isReported: true,
-      reason,
-      reportedBy: req.user.id
-    };
-
-    await review.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'تم الإبلاغ عن التقييم'
+    console.error('Error fetching user reviews:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'حدث خطأ في جلب التقييمات'
     });
-
-  } catch (error) {
-    next(error);
   }
 };
 
 // @desc    تحديث تقييم
-// @route   PUT /api/reviews/:id
-// @access  Private (Reviewer only)
-export const updateReview = async (req, res, next) => {
+export const updateReview = async (req, res) => {
   try {
-    const { rating, comment, subRatings } = req.body;
-    const review = await Review.findById(req.params.id);
-
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    
+    const review = await Review.findById(id);
+    
     if (!review) {
       return res.status(404).json({
         success: false,
         message: 'التقييم غير موجود'
       });
     }
-
-    // التحقق من أن المستخدم هو صاحب التقييم
+    
     if (review.reviewer.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'ليس لديك صلاحية لتعديل هذا التقييم'
+        message: 'غير مصرح لك بتعديل هذا التقييم'
       });
     }
-
-    // منع التعديل بعد فترة (مثلاً 7 أيام)
-    const daysSinceCreation = (Date.now() - review.createdAt) / (1000 * 60 * 60 * 24);
-    if (daysSinceCreation > 7) {
-      return res.status(400).json({
-        success: false,
-        message: 'لا يمكن تعديل التقييم بعد 7 أيام من إنشائه'
-      });
-    }
-
-    review.rating = rating || review.rating;
-    review.comment = comment || review.comment;
-    review.subRatings = subRatings || review.subRatings;
-
+    
+    if (rating) review.rating = rating;
+    if (comment) review.comment = comment;
+    
     await review.save();
-
-    // تحديث تقييم المستخدم
-    await updateUserRating(review.reviewedUser);
-
-    res.status(200).json({
+    
+    const updatedReview = await Review.findById(id)
+      .populate('reviewer', 'username profileImage')
+      .populate('reviewedUser', 'username profileImage');
+    
+    res.json({
       success: true,
-      data: review
+      data: updatedReview,
+      message: 'تم تحديث التقييم بنجاح'
     });
-
+    
   } catch (error) {
-    next(error);
+    console.error('Error updating review:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'حدث خطأ في تحديث التقييم'
+    });
   }
 };
 
 // @desc    حذف تقييم
-// @route   DELETE /api/reviews/:id
-// @access  Private (Reviewer or Admin)
-export const deleteReview = async (req, res, next) => {
+export const deleteReview = async (req, res) => {
   try {
-    const review = await Review.findById(req.params.id);
-
+    const { id } = req.params;
+    
+    const review = await Review.findById(id);
+    
     if (!review) {
       return res.status(404).json({
         success: false,
         message: 'التقييم غير موجود'
       });
     }
-
-    // التحقق من الصلاحية
-    if (review.reviewer.toString() !== req.user.id && req.user.role !== 'admin') {
+    
+    if (review.reviewer.toString() !== req.user.id) {
       return res.status(403).json({
         success: false,
-        message: 'ليس لديك صلاحية لحذف هذا التقييم'
+        message: 'غير مصرح لك بحذف هذا التقييم'
       });
     }
-
+    
     await review.deleteOne();
-
-    // تحديث تقييم المستخدم
-    await updateUserRating(review.reviewedUser);
-
-    res.status(200).json({
+    
+    res.json({
       success: true,
       message: 'تم حذف التقييم بنجاح'
     });
-
+    
   } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    الحصول على تقييمات المستخدم
-// @route   GET /api/reviews/user/:userId
-// @access  Private
-export const getUserReviews = async (req, res, next) => {
-  try {
-    const { page = 1, limit = 10 } = req.query;
-
-    const reviews = await Review.find({ reviewedUser: req.params.userId })
-      .populate('reviewer', 'username profileImage')
-      .populate('reference.id')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Review.countDocuments({ reviewedUser: req.params.userId });
-
-    // إحصائيات التقييمات
-    const stats = await Review.aggregate([
-      { $match: { reviewedUser: req.params.userId } },
-      {
-        $group: {
-          _id: null,
-          averageRating: { $avg: '$rating' },
-          totalReviews: { $sum: 1 },
-          distribution: {
-            $push: '$rating'
-          },
-          avgProfessionalism: { $avg: '$subRatings.professionalism' },
-          avgQuality: { $avg: '$subRatings.quality' },
-          avgCommunication: { $avg: '$subRatings.communication' },
-          avgPunctuality: { $avg: '$subRatings.punctuality' },
-          avgPrice: { $avg: '$subRatings.price' }
-        }
-      }
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: reviews,
-      stats: stats[0] || {
-        averageRating: 0,
-        totalReviews: 0,
-        distribution: []
-      },
-      pagination: {
-        total,
-        page: Number(page),
-        pages: Math.ceil(total / limit)
-      }
+    console.error('Error deleting review:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'حدث خطأ في حذف التقييم'
     });
-
-  } catch (error) {
-    next(error);
   }
-};
-
-// دالة مساعدة لتحديث تقييم المستخدم
-const updateUserRating = async (userId) => {
-  const stats = await Review.aggregate([
-    { $match: { reviewedUser: userId } },
-    {
-      $group: {
-        _id: null,
-        average: { $avg: '$rating' },
-        count: { $sum: 1 }
-      }
-    }
-  ]);
-
-  await User.findByIdAndUpdate(userId, {
-    'ratings.average': stats[0]?.average || 0,
-    'ratings.count': stats[0]?.count || 0
-  });
 };

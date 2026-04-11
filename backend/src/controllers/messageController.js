@@ -1,8 +1,10 @@
+// backend/src/controllers/messageController.js
 import Message from '../models/Message.js';
 import Conversation from '../models/Conversation.js';
 import User from '../models/User.js';
 import Block from '../models/Block.js';
 
+// دالة التحقق من صلاحية التواصل
 const canUsersMessage = async (user1Id, user2Id) => {
   try {
     const [user1, user2] = await Promise.all([
@@ -14,45 +16,48 @@ const canUsersMessage = async (user1Id, user2Id) => {
       return { allowed: false, reason: 'أحد المستخدمين غير موجود' };
     }
     
-    // لا يمكن مراسلة النفس
     if (user1._id.toString() === user2._id.toString()) {
       return { allowed: false, reason: 'لا يمكنك مراسلة نفسك' };
     }
     
-    // التحقق من نشاط المستخدمين
     if (!user1.isActive || !user2.isActive) {
       return { allowed: false, reason: 'أحد المستخدمين غير نشط' };
     }
     
-    // الحصول على الأدوار المسموح للمستخدم الأول بالتواصل معها
+    // التحقق من الحظر
+    const isBlocked = await Block.findOne({
+      $or: [
+        { blocker: user1Id, blocked: user2Id },
+        { blocker: user2Id, blocked: user1Id }
+      ]
+    });
+    
+    if (isBlocked) {
+      return { allowed: false, reason: 'لا يمكنك التواصل مع هذا المستخدم' };
+    }
+    
     const getAllowedMessageRecipients = (role) => {
       switch(role) {
-        case 'client':
-          return ['artisan'];
-        case 'artisan':
-          return ['client', 'worker'];
-        case 'worker':
-          return ['artisan'];
-        default:
-          return [];
+        case 'client': return ['artisan'];
+        case 'artisan': return ['client', 'worker'];
+        case 'worker': return ['artisan'];
+        default: return [];
       }
     };
     
     const allowedRoles1 = getAllowedMessageRecipients(user1.role);
     const allowedRoles2 = getAllowedMessageRecipients(user2.role);
     
-    // التحقق من أن المستخدم الأول يمكنه مراسلة المستخدم الثاني
+    const roleNames = { client: 'العميل', artisan: 'الحرفي', worker: 'العامل' };
+    
     if (!allowedRoles1.includes(user2.role)) {
-      const roleNames = { client: 'العميل', artisan: 'الحرفي', worker: 'العامل' };
       return { 
         allowed: false, 
         reason: `لا يمكن لـ ${roleNames[user1.role]} مراسلة ${roleNames[user2.role]}` 
       };
     }
     
-    // التحقق من أن المستخدم الثاني يمكنه استقبال رسائل من المستخدم الأول
     if (!allowedRoles2.includes(user1.role)) {
-      const roleNames = { client: 'العميل', artisan: 'الحرفي', worker: 'العامل' };
       return { 
         allowed: false, 
         reason: `لا يمكن لـ ${roleNames[user2.role]} استقبال رسائل من ${roleNames[user1.role]}` 
@@ -67,11 +72,23 @@ const canUsersMessage = async (user1Id, user2Id) => {
   }
 };
 
+// @desc    إنشاء محادثة جديدة
+// @route   POST /api/messages/conversations
 export const startConversation = async (req, res) => {
   try {
     const { recipientId, initialMessage } = req.body;
+    const senderId = req.user.id;
     
-    const permission = await canUsersMessage(req.user.id, recipientId);
+    console.log(`📨 Starting conversation between ${senderId} and ${recipientId}`);
+    
+    if (!recipientId) {
+      return res.status(400).json({
+        success: false,
+        message: 'معرف المستلم مطلوب'
+      });
+    }
+    
+    const permission = await canUsersMessage(senderId, recipientId);
     
     if (!permission.allowed) {
       return res.status(403).json({
@@ -81,34 +98,37 @@ export const startConversation = async (req, res) => {
     }
     
     let conversation = await Conversation.findOne({
-      participants: { $all: [req.user.id, recipientId], $size: 2 }
+      participants: { $all: [senderId, recipientId], $size: 2 }
     });
     
     if (!conversation) {
       conversation = await Conversation.create({
-        participants: [req.user.id, recipientId],
+        participants: [senderId, recipientId],
         lastMessageAt: new Date()
       });
+      console.log(`✅ New conversation created: ${conversation._id}`);
     }
     
+    let message = null;
     if (initialMessage && initialMessage.trim()) {
-      const message = await Message.create({
+      message = await Message.create({
         conversation: conversation._id,
-        sender: req.user.id,
+        sender: senderId,
+        recipient: recipientId,
         content: initialMessage.trim(),
-        readBy: [req.user.id]
+        readBy: [senderId]
       });
       
       conversation.lastMessage = message._id;
       conversation.lastMessageAt = message.createdAt;
       await conversation.save();
       
+      const populatedMessage = await Message.findById(message._id)
+        .populate('sender', 'username profileImage');
+      
       const io = req.app.get('io');
       if (io) {
-        const populatedMessage = await Message.findById(message._id)
-          .populate('sender', 'username profileImage');
-        
-        io.to(recipientId).emit('message:new', {
+        io.to(`user:${recipientId}`).emit('message:new', {
           conversationId: conversation._id,
           message: populatedMessage
         });
@@ -124,7 +144,10 @@ export const startConversation = async (req, res) => {
     
     res.json({
       success: true,
-      data: populatedConversation
+      data: {
+        conversation: populatedConversation,
+        message: message ? await Message.findById(message._id).populate('sender', 'username profileImage') : null
+      }
     });
     
   } catch (error) {
@@ -136,50 +159,50 @@ export const startConversation = async (req, res) => {
   }
 };
 
+// @desc    جلب المحادثات
+// @route   GET /api/messages/conversations
 export const getConversations = async (req, res) => {
   try {
-    const blockedUsers = await Block.find({ blocker: req.user.id }).distinct('blocked');
+    const userId = req.user.id;
+    
+    // جلب قائمة المستخدمين المحظورين
+    const blocks = await Block.find({
+      $or: [
+        { blocker: userId },
+        { blocked: userId }
+      ]
+    });
+    
+    const blockedUserIds = blocks.map(block => {
+      if (block.blocker.toString() === userId) return block.blocked.toString();
+      return block.blocker.toString();
+    });
+    
+    // إضافة المستخدم الحالي إلى قائمة الاستبعاد
+    const excludedUsers = [...new Set([userId, ...blockedUserIds])];
+    
     const conversations = await Conversation.find({
-      participants: req.user.id,
-      'participants': { $nin: blockedUsers } // تجاهل المحادثات مع المحظورين
+      participants: { $in: [userId] },
+      'participants.0': { $nin: excludedUsers },
+      'participants.1': { $nin: excludedUsers }
     })
-      .populate('participants', 'username profileImage role isOnline')
-      .populate({
-        path: 'lastMessage',
-        populate: { path: 'sender', select: 'username profileImage' }
-      })
+      .populate('participants', 'username profileImage role isOnline lastSeen')
+      .populate('lastMessage')
       .sort({ lastMessageAt: -1 });
     
-    const filteredConversations = [];
-    
-    for (const conv of conversations) {
-      const otherParticipant = conv.participants.find(p => p._id.toString() !== req.user.id);
-      
-      if (otherParticipant) {
-        const permission = await canUsersMessage(req.user.id, otherParticipant._id);
-        
-        if (permission.allowed) {
-          const unreadCount = await Message.countDocuments({
-            conversation: conv._id,
-            sender: { $ne: req.user.id },
-            readBy: { $ne: req.user.id }
-          });
-          
-          filteredConversations.push({
-            ...conv.toObject(),
-            unreadCount
-          });
-        }
-      }
-    }
+    // تصفية المحادثات التي تحتوي على مستخدمين محظورين أو النفس
+    const filteredConversations = conversations.filter(conv => {
+      const otherParticipant = conv.participants.find(p => p._id.toString() !== userId);
+      // التأكد من وجود مشارك آخر وليس المستخدم الحالي
+      return otherParticipant && otherParticipant._id.toString() !== userId && !blockedUserIds.includes(otherParticipant._id.toString());
+    });
     
     res.json({
       success: true,
       data: filteredConversations
     });
-    
   } catch (error) {
-    console.error('Error in getConversations:', error);
+    console.error('Get conversations error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -187,50 +210,64 @@ export const getConversations = async (req, res) => {
   }
 };
 
+// @desc    جلب رسائل محادثة
+// @route   GET /api/messages/conversations/:id/messages
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.params;
-    const { page = 1, limit = 50 } = req.query;
+    const userId = req.user.id;
+    const { page = 1, limit = 30 } = req.query;
     
-    const conversation = await Conversation.findOne({
-      _id: id,
-      participants: req.user.id
-    }).populate('participants', 'username profileImage role');
+    const conversation = await Conversation.findById(id);
     
     if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: 'المحادثة غير موجودة'
+      });
+    }
+    
+    if (!conversation.participants.includes(userId)) {
       return res.status(403).json({
         success: false,
         message: 'غير مصرح لك بالوصول إلى هذه المحادثة'
       });
     }
     
-    const otherParticipant = conversation.participants.find(p => p._id.toString() !== req.user.id);
+    const otherParticipant = conversation.participants.find(p => p.toString() !== userId);
     
     if (otherParticipant) {
-      const permission = await canUsersMessage(req.user.id, otherParticipant._id);
+      const isBlocked = await Block.findOne({
+        $or: [
+          { blocker: userId, blocked: otherParticipant },
+          { blocker: otherParticipant, blocked: userId }
+        ]
+      });
       
-      if (!permission.allowed) {
+      if (isBlocked) {
         return res.status(403).json({
           success: false,
-          message: permission.reason
+          message: 'غير مصرح لك بالوصول إلى هذه المحادثة'
         });
       }
     }
     
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+    
     const messages = await Message.find({ conversation: id })
       .populate('sender', 'username profileImage')
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .skip(skip)
+      .limit(limitNum);
     
     res.json({
       success: true,
       data: messages.reverse(),
-      hasMore: messages.length === parseInt(limit)
+      hasMore: messages.length === limitNum
     });
-    
   } catch (error) {
-    console.error('Error in getMessages:', error);
+    console.error('Get messages error:', error);
     res.status(500).json({
       success: false,
       message: error.message
@@ -238,18 +275,35 @@ export const getMessages = async (req, res) => {
   }
 };
 
+// @desc    تعليم الرسائل كمقروءة
+// @route   PUT /api/messages/conversations/:id/read
 export const markMessagesAsRead = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
     
     const result = await Message.updateMany(
       {
         conversation: id,
-        sender: { $ne: req.user.id },
-        readBy: { $ne: req.user.id }
+        sender: { $ne: userId },
+        readBy: { $ne: userId }
       },
-      { $addToSet: { readBy: req.user.id } }
+      { $addToSet: { readBy: userId } }
     );
+    
+    const io = req.app.get('io');
+    if (io) {
+      const conversation = await Conversation.findById(id);
+      if (conversation) {
+        const sender = conversation.participants.find(p => p.toString() !== userId);
+        if (sender) {
+          io.to(`user:${sender}`).emit('messages:read', {
+            conversationId: id,
+            readBy: userId
+          });
+        }
+      }
+    }
     
     res.json({ 
       success: true, 
@@ -266,26 +320,29 @@ export const markMessagesAsRead = async (req, res) => {
   }
 };
 
-
+// @desc    جلب عدد الرسائل غير المقروءة
+// @route   GET /api/messages/unread-count
 export const getUnreadCount = async (req, res) => {
   try {
+    const userId = req.user.id;
+    
     const conversations = await Conversation.find({
-      participants: req.user.id
-    }).populate('participants', 'username profileImage role');
+      participants: userId
+    });
     
     let totalUnread = 0;
     
     for (const conv of conversations) {
-      const otherParticipant = conv.participants.find(p => p._id.toString() !== req.user.id);
+      const otherParticipant = conv.participants.find(p => p.toString() !== userId);
       
       if (otherParticipant) {
-        const permission = await canUsersMessage(req.user.id, otherParticipant._id);
+        const permission = await canUsersMessage(userId, otherParticipant);
         
         if (permission.allowed) {
           const unreadCount = await Message.countDocuments({
             conversation: conv._id,
-            sender: { $ne: req.user.id },
-            readBy: { $ne: req.user.id }
+            sender: { $ne: userId },
+            readBy: { $ne: userId }
           });
           totalUnread += unreadCount;
         }
@@ -306,11 +363,14 @@ export const getUnreadCount = async (req, res) => {
   }
 };
 
+// @desc    التحقق من صلاحية المراسلة
+// @route   GET /api/messages/check/:userId
 export const checkMessagingPermission = async (req, res) => {
   try {
     const { userId } = req.params;
+    const currentUserId = req.user.id;
     
-    const permission = await canUsersMessage(req.user.id, userId);
+    const permission = await canUsersMessage(currentUserId, userId);
     
     if (permission.allowed) {
       const targetUser = await User.findById(userId).select('username profileImage role');
@@ -341,6 +401,8 @@ export const checkMessagingPermission = async (req, res) => {
   }
 };
 
+// @desc    الحصول على المستخدمين المسموح بالتواصل معهم
+// @route   GET /api/messages/allowed-recipients
 export const getAllowedRecipients = async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.id);
@@ -378,15 +440,14 @@ export const getAllowedRecipients = async (req, res) => {
 
 // @desc    حذف محادثة
 // @route   DELETE /api/messages/conversations/:id
-// @access  Private
 export const deleteConversation = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
     
-    // التحقق من وجود المحادثة وأن المستخدم مشارك فيها
     const conversation = await Conversation.findOne({
       _id: id,
-      participants: req.user.id
+      participants: userId
     });
     
     if (!conversation) {
@@ -396,10 +457,7 @@ export const deleteConversation = async (req, res) => {
       });
     }
     
-    // حذف جميع الرسائل
     await Message.deleteMany({ conversation: id });
-    
-    // حذف المحادثة
     await conversation.deleteOne();
     
     res.json({

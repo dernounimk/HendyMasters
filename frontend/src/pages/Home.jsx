@@ -104,14 +104,14 @@ const Home = () => {
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
               />
               <input
-                type="number"
+                type="text"
                 placeholder="الحد الأدنى للميزانية"
                 value={filters.minBudget}
                 onChange={(e) => setFilters({ ...filters, minBudget: e.target.value })}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700"
               />
               <input
-                type="number"
+                type="text"
                 placeholder="الحد الأقصى للميزانية"
                 value={filters.maxBudget}
                 onChange={(e) => setFilters({ ...filters, maxBudget: e.target.value })}

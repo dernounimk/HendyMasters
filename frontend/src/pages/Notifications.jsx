@@ -1,5 +1,5 @@
 // frontend/src/pages/Notifications.jsx
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -8,9 +8,9 @@ import api from '../services/api';
 import socketService from '../services/socketService';
 import toast from 'react-hot-toast';
 import {
-  Bell, Heart, Bookmark, Share2, MessageCircle, Briefcase,
-  Star, CheckCircle, Trash2, CheckCheck, Loader,
-  UserPlus, Award, Clock, MoreHorizontal
+  Bell, Heart, Bookmark, Share2, Star,
+  Trash2, CheckCheck, Loader,
+  Clock, MoreHorizontal
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
 
@@ -29,7 +29,6 @@ const NotificationSkeleton = () => {
 };
 
 const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [showActions, setShowActions] = useState(false);
   
@@ -41,21 +40,13 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
         return <Bookmark className="w-5 h-5 text-yellow-500" />;
       case 'share':
         return <Share2 className="w-5 h-5 text-green-500" />;
-      case 'message':
-        return <MessageCircle className="w-5 h-5 text-blue-500" />;
-      case 'proposal':
-        return <Briefcase className="w-5 h-5 text-purple-500" />;
-      case 'proposal_accepted':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'rating':
+      case 'review':
         return <Star className="w-5 h-5 text-yellow-500" />;
-      case 'follow':
-        return <UserPlus className="w-5 h-5 text-primary-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
   };
-  
+
   const getBackgroundColor = () => {
     if (notification.read) {
       return 'bg-white dark:bg-gray-800';
@@ -68,12 +59,10 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
       onMarkAsRead(notification._id);
     }
     
-    if (notification.referenceId && notification.referenceModel) {
-      if (notification.referenceModel === 'Post') {
-        navigate(`/post/${notification.referenceId}`);
-      } else if (notification.referenceModel === 'User') {
-        navigate(`/profile/${notification.reference?.username || notification.referenceId}`);
-      }
+    if (notification.relatedId && notification.relatedModel === 'Post') {
+      navigate(`/post/${notification.relatedId}`);
+    } else if (notification.relatedId && notification.relatedModel === 'Review') {
+      navigate(`/profile/${notification.sender?.username}`);
     } else if (notification.sender) {
       navigate(`/profile/${notification.sender.username}`);
     }
@@ -120,7 +109,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
                 <span className="text-gray-600 dark:text-gray-400"> {notification.title}</span>
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {notification.content}
+                {notification.message}
               </p>
               
               <div className="flex items-center gap-2 mt-2">
@@ -183,9 +172,9 @@ const Notifications = () => {
   const [filter, setFilter] = useState('all');
   const [markingAll, setMarkingAll] = useState(false);
   
-  const containerRef = useRef(null);
-  
   const fetchNotifications = useCallback(async (reset = true) => {
+    const currentPage = reset ? 1 : page + 1;
+    
     if (reset) {
       setLoading(true);
       setPage(1);
@@ -195,7 +184,7 @@ const Notifications = () => {
     
     try {
       const response = await api.get('/notifications', {
-        params: { page: reset ? 1 : page + 1, limit: 20 }
+        params: { page: currentPage, limit: 20 }
       });
       
       if (response.data.success) {
@@ -283,15 +272,25 @@ const Notifications = () => {
     ? notifications 
     : notifications.filter(n => !n.read);
   
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    if (scrollTop + clientHeight >= scrollHeight - 100) {
-      if (hasMore && !loadingMore && !loading) {
-        fetchNotifications(false);
-      }
-    }
-  }, [hasMore, loadingMore, loading, fetchNotifications]);
+  useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          fetchNotifications(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    const sentinel = document.getElementById('notifications-sentinel');
+    if (sentinel) observer.observe(sentinel);
+    
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [hasMore, loading, loadingMore, fetchNotifications]);
   
   useEffect(() => {
     if (isAuthenticated) {
@@ -320,7 +319,7 @@ const Notifications = () => {
   
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
@@ -366,11 +365,7 @@ const Notifications = () => {
         </div>
       </div>
       
-      <div 
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="space-y-3 overflow-y-auto max-h-[calc(100vh-200px)]"
-      >
+      <div className="space-y-3">
         {loading ? (
           <>
             {[1, 2, 3, 4, 5].map(i => (
@@ -411,6 +406,8 @@ const Notifications = () => {
                 <Loader className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
               </div>
             )}
+            
+            <div id="notifications-sentinel" className="h-10" />
             
             {!hasMore && notifications.length > 0 && (
               <div className="py-4 text-center text-gray-500 dark:text-gray-400 text-sm">

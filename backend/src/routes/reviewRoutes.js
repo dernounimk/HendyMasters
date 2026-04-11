@@ -1,24 +1,22 @@
+// backend/src/routes/reviewRoutes.js
 import express from 'express';
+import { protect } from '../middleware/auth.js';
 import {
   createReview,
-  replyToReview,
-  reportReview,
+  getUserReviews,
   updateReview,
-  deleteReview,
-  getUserReviews
+  deleteReview
 } from '../controllers/reviewController.js';
-import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// جميع المسارات محمية
-router.use(protect);
-
-router.post('/', createReview);
+// مسارات عامة (يمكن لأي شخص رؤية التقييمات)
 router.get('/user/:userId', getUserReviews);
+
+// المسارات المحمية (تتطلب تسجيل دخول)
+router.use(protect);
+router.post('/', createReview);
 router.put('/:id', updateReview);
-router.put('/:id/reply', replyToReview);
-router.post('/:id/report', reportReview);
 router.delete('/:id', deleteReview);
 
 export default router;

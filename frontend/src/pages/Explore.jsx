@@ -258,24 +258,6 @@ const performSearch = useCallback(async (query) => {
   
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">{t('common.back')}</span>
-        </button>
-        
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('nav.search')}
-        </h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-          ابحث عن مستخدمين، حرفيين، أو عاملين
-        </p>
-      </div>
-      
       {/* Search Bar */}
       <div className="mb-6">
         <div className="relative">
@@ -303,9 +285,6 @@ const performSearch = useCallback(async (query) => {
       {searchQuery && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              {t('nav.results')} ({results.length} {results.length === 3 ? '(أقصى 3 نتائج)' : ''})
-            </h3>
             {loading && (
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />

@@ -10,15 +10,19 @@ import {
   getUserPosts,
   getUserReviews,
   getUserStats,
-  blockUser,
-  unblockUser,
-  getBlockedUsers,
   savePost,
   getSavedPosts,
   uploadAvatar as uploadAvatarController,
   removeAvatar,
   updateProfile
 } from '../controllers/userController.js';
+
+// استيراد دوال الحظر من blockController
+import { 
+  blockUser, 
+  unblockUser, 
+  getBlockedUsers 
+} from '../controllers/blockController.js';
 
 const router = express.Router();
 
@@ -28,7 +32,12 @@ router.get('/profile/:username', getUserProfile);
 // ✅ جميع المسارات التالية تحتاج مصادقة
 router.use(protect);
 
-// ✅ المسارات الأكثر تحديداً أولاً
+// ✅ مسارات الحظر (يجب أن تكون قبل المسارات ذات المعاملات)
+router.get('/blocks', getBlockedUsers);
+router.post('/block/:userId', blockUser);
+router.delete('/block/:userId', unblockUser);
+
+// ✅ مسارات أخرى
 router.get('/me', getCurrentUser);
 router.get('/saved-posts', getSavedPosts);
 
@@ -38,14 +47,11 @@ router.post('/upload-avatar', uploadAvatar, handleMulterError, uploadAvatarContr
 router.delete('/remove-avatar', removeAvatar);
 router.put('/profile', updateProfile);
 
-// ✅ مسارات جلب البيانات - معامل ID يجب أن يكون آخر شيء
+// ✅ مسارات جلب البيانات - يجب أن تأتي بعد المسارات الثابتة
 router.get('/', getUsers);
 router.get('/:userId/posts', getUserPosts);
 router.get('/:userId/reviews', getUserReviews);
 router.get('/:userId/stats', getUserStats);
 router.get('/:id', getUserById);
-router.post('/block/:userId', protect, blockUser);
-router.delete('/block/:userId', protect, unblockUser);
-router.get('/blocks', protect, getBlockedUsers);
 
 export default router;

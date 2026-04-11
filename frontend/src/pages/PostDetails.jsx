@@ -1,13 +1,12 @@
-// frontend/src/components/PostCard.jsx
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+// frontend/src/pages/PostDetails.jsx
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
-  MapPin, Heart, MessageCircle,
-  Clock, Share2, Bookmark, Send, XCircle, Loader, Trash2, AlertCircle
+  MapPin, Heart, MessageCircle, Share2, Bookmark, Clock,
+  Send, X, Loader, AlertCircle, ChevronRight, Trash2
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
 
@@ -61,26 +60,60 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
   );
 };
 
-const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
-  const { t } = useTranslation();
+const PostDetails = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { user, savePost } = useStore();
+  const { user, isAuthenticated, savePost } = useStore();
   
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [savesCount, setSavesCount] = useState(0);
+  const [sharesCount, setSharesCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isSaved, setIsSaved] = useState(post.isSaved || false);
-  const [isLiked, setIsLiked] = useState(post.isLiked || false);
-  const [likesCount, setLikesCount] = useState(post.stats?.likesCount || 0);
-  const [savesCount, setSavesCount] = useState(post.stats?.savesCount || 0);
-  const [sharesCount, setSharesCount] = useState(post.stats?.sharesCount || 0);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   
-  const isOwner = user?._id === post.author?._id;
+  const isOwner = user?._id === post?.author?._id;
+  
+  const fetchPost = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get(`/posts/${id}`);
+      if (response.data.success) {
+        const postData = response.data.data;
+        setPost(postData);
+        setIsSaved(postData.isSaved || false);
+        setIsLiked(postData.isLiked || false);
+        setLikesCount(postData.stats?.likesCount || 0);
+        setSavesCount(postData.stats?.savesCount || 0);
+        setSharesCount(postData.stats?.sharesCount || 0);
+      } else {
+        setError(response.data.message || 'فشل في تحميل البوست');
+      }
+    } catch (err) {
+      console.error('Error fetching post:', err);
+      setError(err.response?.data?.message || 'حدث خطأ في تحميل البوست');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
   
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -98,14 +131,18 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
     return new Intl.NumberFormat('ar-DZ').format(amount) + ' دج';
   };
   
-  const handleLike = async (e) => {
-    e.stopPropagation();
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      toast.error('يجب تسجيل الدخول أولاً');
+      navigate('/login');
+      return;
+    }
+    
     try {
       const response = await api.post(`/posts/${post._id}/like`);
       if (response.data.success) {
         setIsLiked(response.data.data.liked);
         setLikesCount(response.data.data.likesCount);
-        if (onLike) onLike(post._id, response.data.data.liked);
       }
     } catch (error) {
       console.error('Error liking post:', error);
@@ -113,8 +150,13 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
     }
   };
   
-  const handleSave = async (e) => {
-    e.stopPropagation();
+  const handleSave = async () => {
+    if (!isAuthenticated) {
+      toast.error('يجب تسجيل الدخول أولاً');
+      navigate('/login');
+      return;
+    }
+    
     if (saving) return;
     setSaving(true);
     try {
@@ -122,7 +164,6 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
       if (result.success) {
         setIsSaved(result.data.saved);
         setSavesCount(result.data.savesCount);
-        if (onSave) onSave(post._id, result.data.saved);
         toast.success(result.data.saved ? 'تم الحفظ' : 'تم الإزالة');
       }
     } catch (error) {
@@ -132,10 +173,8 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
     }
   };
   
-  const handleMessage = async (e) => {
-    e.stopPropagation();
-    
-    if (!user) {
+  const handleMessage = async () => {
+    if (!isAuthenticated) {
       toast.error('يجب تسجيل الدخول أولاً');
       navigate('/login');
       return;
@@ -178,8 +217,7 @@ ${postUrl}
     }
   };
   
-  const handleShareClick = async (e) => {
-    e.stopPropagation();
+  const handleShareClick = async () => {
     setLoadingConversations(true);
     setShowShareModal(true);
     try {
@@ -188,27 +226,15 @@ ${postUrl}
         const users = response.data.users || [];
         const filteredUsers = users.filter(u => u._id !== user?._id);
         setConversations(filteredUsers);
-      } else {
-        setConversations([]);
       }
     } catch (error) {
-      console.error('Error loading conversations for sharing:', error);
-      toast.error('فشل في تحميل المحادثات');
-      setConversations([]);
+      console.error('Error loading conversations:', error);
     } finally {
       setLoadingConversations(false);
     }
   };
   
-  const handleShareWithUser = async (recipientId, recipientName, e) => {
-    e.stopPropagation();
-    
-    if (recipientId === user?._id) {
-      toast.error('لا يمكنك مشاركة البوست مع نفسك');
-      setShowShareModal(false);
-      return;
-    }
-    
+  const handleShareWithUser = async (recipientId, recipientName) => {
     if (sharing) return;
     
     setSharing(true);
@@ -239,7 +265,6 @@ ${postUrl}`;
           });
           if (shareResponse.data.success) {
             setSharesCount(shareResponse.data.data.sharesCount);
-            if (onShare) onShare(post._id, shareResponse.data.data.sharesCount);
           }
         } catch (shareError) {
           console.error('Error updating share count:', shareError);
@@ -249,15 +274,13 @@ ${postUrl}`;
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      console.error('Error sharing with user:', error);
       toast.error(error.message || 'حدث خطأ أثناء المشاركة');
     } finally {
       setSharing(false);
     }
   };
   
-  const handleCopyLink = async (e) => {
-    e.stopPropagation();
+  const handleCopyLink = async () => {
     const url = `${window.location.origin}/post/${post._id}`;
     try {
       await navigator.clipboard.writeText(url);
@@ -269,7 +292,6 @@ ${postUrl}`;
         });
         if (shareResponse.data.success) {
           setSharesCount(shareResponse.data.data.sharesCount);
-          if (onShare) onShare(post._id, shareResponse.data.data.sharesCount);
         }
       } catch (shareError) {
         console.error('Error updating share count:', shareError);
@@ -277,6 +299,7 @@ ${postUrl}`;
     } catch (error) {
       toast.error('فشل نسخ الرابط');
     }
+    setShowShareModal(false);
   };
   
   const handleDelete = async () => {
@@ -290,9 +313,7 @@ ${postUrl}`;
       if (response.data.success) {
         toast.dismiss(loadingToast);
         toast.success('تم حذف المنشور بنجاح');
-        if (onDelete) {
-          onDelete(post._id);
-        }
+        navigate('/');
       } else {
         throw new Error(response.data.message || 'فشل حذف المنشور');
       }
@@ -306,12 +327,53 @@ ${postUrl}`;
     }
   };
   
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader className="w-12 h-12 animate-spin text-primary-500 mx-auto mb-4" />
+          <p className="text-gray-500">جاري تحميل المنشور...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !post) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            عذراً!
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {error || 'المنشور غير موجود أو تم حذفه'}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all">
+    <div className="max-w-4xl mx-auto">
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 mb-4 transition-colors"
+      >
+        <ChevronRight className="w-5 h-5" />
+        <span>رجوع</span>
+      </button>
+      
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-3">
-            <Link to={`/profile/${post.author?.username}`} onClick={(e) => e.stopPropagation()}>
+            <Link to={`/profile/${post.author?.username}`}>
               <img
                 src={post.author?.profileImage || defaultImgProfile}
                 alt={post.author?.username}
@@ -335,10 +397,7 @@ ${postUrl}`;
             {isOwner && (
               <div className="relative">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowMoreMenu(!showMoreMenu);
-                  }}
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
                   className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
                   <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
@@ -349,8 +408,7 @@ ${postUrl}`;
                 {showMoreMenu && (
                   <div className="absolute left-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setShowMoreMenu(false);
                         setShowDeleteModal(true);
                       }}
@@ -367,42 +425,61 @@ ${postUrl}`;
           </div>
         </div>
         
-        <div className="cursor-pointer" onClick={() => navigate(`/post/${post._id}`)}>
-          <div className="px-4 pb-2">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-              {post.title}
-            </h3>
-            
-            <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{post.location}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span>{formatCurrency(post.budget)}</span>
-              </div>
+        <div className="px-4 pb-2">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            {post.title}
+          </h1>
+          
+          <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-4 h-4" />
+              <span>{post.location}</span>
             </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-3">
-              {post.description}
-            </p>
+            <div className="flex items-center gap-1">
+              <span>{formatCurrency(post.budget)}</span>
+            </div>
           </div>
           
-          {post.images && post.images.length > 0 && (
-            <div className="relative h-56 mt-2">
-              <img
-                src={post.images[0].url}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
-              {post.images.length > 1 && (
-                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
-                  +{post.images.length}
-                </div>
-              )}
-            </div>
-          )}
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 whitespace-pre-wrap">
+            {post.description}
+          </p>
         </div>
+        
+        {post.images && post.images.length > 0 && (
+          <div className="relative">
+            {post.images.length === 1 ? (
+              <div className="relative mt-2">
+                <img
+                  src={post.images[0].url}
+                  alt={post.title}
+                  className="w-full h-auto max-h-[500px] object-contain bg-gray-100 dark:bg-gray-900 cursor-pointer"
+                  onClick={() => setSelectedImage(post.images[0].url)}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-1 mt-2">
+                {post.images.slice(0, 4).map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="relative aspect-square overflow-hidden cursor-pointer"
+                    onClick={() => setSelectedImage(img.url)}
+                  >
+                    <img
+                      src={img.url}
+                      alt={`${post.title} - ${idx + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                    {idx === 3 && post.images.length > 4 && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-white text-xl font-bold">+{post.images.length - 4}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         
         <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between">
@@ -454,13 +531,28 @@ ${postUrl}`;
         </div>
       </div>
       
+      {/* Modal عرض الصورة */}
+      {selectedImage && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-5xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Modal تأكيد الحذف */}
       <ConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
         title="حذف المنشور"
-        message={`هل أنت متأكد من حذف المنشور "${post.title}"؟\n\nلا يمكن التراجع عن هذا الإجراء.`}
+        message={`هل أنت متأكد من حذف المنشور "${post?.title}"؟\n\nلا يمكن التراجع عن هذا الإجراء.`}
         confirmText="حذف"
         cancelText="إلغاء"
         isDanger={true}
@@ -472,12 +564,12 @@ ${postUrl}`;
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b dark:border-gray-700">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">مشاركة البوست</h3>
-                <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                  <XCircle className="w-6 h-6" />
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">مشاركة المنشور</h3>
+                <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <X className="w-6 h-6" />
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">اختر شخصاً لمشاركة البوست معه</p>
+              <p className="text-sm text-gray-500 mt-1">اختر شخصاً لمشاركة المنشور معه</p>
             </div>
             <div className="p-4 overflow-y-auto max-h-96">
               {loadingConversations ? (
@@ -490,7 +582,7 @@ ${postUrl}`;
                   {conversations.map(conv => (
                     <button
                       key={conv._id}
-                      onClick={(e) => handleShareWithUser(conv._id, conv.username, e)}
+                      onClick={() => handleShareWithUser(conv._id, conv.username)}
                       disabled={sharing}
                       className="w-full flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors disabled:opacity-50"
                     >
@@ -528,8 +620,8 @@ ${postUrl}`;
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
-export default PostCard;
+export default PostDetails;

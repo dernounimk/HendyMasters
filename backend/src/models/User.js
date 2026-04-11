@@ -1,4 +1,3 @@
-// backend/src/models/User.js
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -10,6 +9,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     minlength: [3, 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'],
     maxlength: [30, 'اسم المستخدم يجب أن يكون أقل من 30 حرف']
+  },
+  // ✅ حقل جديد لتخزين تاريخ آخر تغيير لاسم المستخدم
+  lastUsernameChange: {
+    type: Date,
+    default: null
   },
   email: {
     type: String,
@@ -149,10 +153,6 @@ const userSchema = new mongoose.Schema({
     reviewsCount: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     totalRatings: { type: Number, default: 0 },
-    completedJobsCount: { type: Number, default: 0 },
-    totalEarnings: { type: Number, default: 0 },
-    proposalsCount: { type: Number, default: 0 },
-    acceptedProposalsCount: { type: Number, default: 0 }
   },
   
   isOnline: {
@@ -452,6 +452,18 @@ userSchema.methods.getApplicablePostTypes = function() {
     default:
       return [];
   }
+};
+
+// ✅ دالة لحساب الأيام المتبقية لتغيير اسم المستخدم
+userSchema.methods.getDaysUntilUsernameChange = function() {
+  if (!this.lastUsernameChange) return 0;
+  
+  const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+  const timeSinceLastChange = Date.now() - this.lastUsernameChange.getTime();
+  
+  if (timeSinceLastChange >= FIFTEEN_DAYS) return 0;
+  
+  return Math.ceil((FIFTEEN_DAYS - timeSinceLastChange) / (24 * 60 * 60 * 1000));
 };
 
 // Statics

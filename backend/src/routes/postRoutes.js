@@ -9,14 +9,6 @@ import {
   updatePost,
   deletePost,
   deletePostImage,
-  submitProposal,
-  selectProposal,
-  completeWork,
-  addRating,
-  getRatings,
-  updateProposalStatus,
-  getProposalsCount,
-  getProposals,
   savePost,
   sharePost,
   getSavedPosts,
@@ -24,7 +16,6 @@ import {
   likePost,
   getLikesCount,
   getUserPosts,
-  getUserCompletedJobs
 } from '../controllers/postController.js';
 
 const router = express.Router();
@@ -50,18 +41,6 @@ router.route('/:id')
 // Routes للصور
 router.delete('/:id/images/:imageIndex', deletePostImage);
 
-// Routes للعروض - المحسنة
-router.get('/:id/proposals-count', getProposalsCount);
-router.get('/:id/proposals', getProposals);
-router.post('/:id/proposals', submitProposal);
-router.put('/:id/proposals/:proposalId/select', selectProposal);
-router.put('/:id/proposals/:proposalId/:action', updateProposalStatus);
-
-// Routes للعمل والتقييم
-router.put('/:id/complete', completeWork);
-router.get('/:id/ratings', getRatings);
-router.post('/:id/ratings', addRating);
-
 router.post('/:id/like', likePost);
 router.get('/:id/likes-count', getLikesCount);
 
@@ -71,6 +50,5 @@ router.post('/:id/share', sharePost);
 
 // Routes لمستخدم معين
 router.get('/user/:userId', getUserPosts);
-router.get('/user/:userId/completed-jobs', getUserCompletedJobs);
 
 export default router;

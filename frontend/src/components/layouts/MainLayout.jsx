@@ -267,13 +267,15 @@ style.textContent = `
   .nav-item-active {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white !important;
-    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+  }
+
+  .nav-item-active:hover {
+    transform: translateX(0);
   }
 
   .dark .nav-item-active {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white !important;
-    box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
   }
 
   .notification-badge {
@@ -338,7 +340,6 @@ style.textContent = `
   }
 
   .suggested-card:hover {
-    transform: translateY(-2px);
     border-color: #2563eb;
     box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
   }
@@ -754,7 +755,6 @@ const MainLayout = () => {
       if (response.data?.success && response.data?.data) {
         return {
           rating: response.data.data.rating || 0,
-          completedJobs: response.data.data.completedJobs || 0,
           totalRatings: response.data.data.totalRatings || 0
         };
       }
@@ -797,7 +797,6 @@ const MainLayout = () => {
               }
               
               const rating = stats?.rating || dbUser.stats?.rating || 0;
-              const completedJobs = stats?.completedJobs || dbUser.stats?.completedJobs || 0;
               
               return {
                 _id: dbUser._id,
@@ -810,7 +809,6 @@ const MainLayout = () => {
                 craft: craft,
                 location: dbUser.location || 'الجزائر',
                 rating: parseFloat(rating).toFixed(1),
-                completedJobs: completedJobs,
                 isOnline: dbUser.isOnline || false,
                 bio: dbUser.bio || ''
               };
@@ -1052,44 +1050,12 @@ const MainLayout = () => {
                 })}
               </nav>
             </div>
-
-            <div className="user-profile-section">
-              <div className="suggested-card p-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={user?.profileImage || defaultImgProfile}
-                      alt={user?.username}
-                      className="w-12 h-12 rounded-xl object-cover border-2 border-primary-200 dark:border-primary-800"
-                      onError={(e) => { e.target.onerror = null; e.target.src = defaultImgProfile; }}
-                    />
-                    <span className="online-indicator" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                      {user?.username || 'User'}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-center gap-1">
-                      <Award className="w-3 h-3 text-primary-500 flex-shrink-0" />
-                      <span className="truncate">{t(`roles.${user?.role}`)}</span>
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleThemeToggle}
-                    className="action-button w-10 h-10 flex-shrink-0"
-                    title={theme === 'dark' ? t('common.lightMode') : t('common.darkMode')}
-                  >
-                    {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </aside>
 
       {/* Middle Column - Main Content */}
-      <main className="main-column relative z-10">
+      <main className="main-column relative z-10 p-1">
         <div className="top-bar-container">
           <div className="flex items-center justify-between gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="action-button lg:hidden">
@@ -1152,7 +1118,7 @@ const MainLayout = () => {
                         </p>
                       </div>
                       
-                      <Link to="/profile" className="dropdown-item flex items-center gap-3" onClick={() => setIsProfileMenuOpen(false)}>
+                      <Link to="/profile" className="dropdown-item flex mt-1 items-center gap-3" onClick={() => setIsProfileMenuOpen(false)}>
                         <User className="w-4 h-4" />
                         <span className="text-sm">{t('nav.profile')}</span>
                       </Link>
@@ -1200,7 +1166,6 @@ const MainLayout = () => {
                     <Users className="w-4 h-4 text-white" />
                   </div>
                   <span>{t('nav.suggestedUsers')}</span>
-                  <Sparkles className="w-4 h-4 text-yellow-500 pulse-animation" />
                 </h3>
                 
                 <button
@@ -1246,10 +1211,6 @@ const MainLayout = () => {
                             <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                               <Star className="w-3 h-3 text-yellow-500 ml-1 flex-shrink-0" />
                               <span className="font-medium">{user.rating}</span>
-                            </div>
-                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                              <Briefcase className="w-3 h-3 text-primary-500 ml-1 flex-shrink-0" />
-                              <span>{user.completedJobs} مشروع</span>
                             </div>
                             {user.location && (
                               <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">

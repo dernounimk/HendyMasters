@@ -1,4 +1,3 @@
-// backend/controllers/userController.js
 import User from '../models/User.js';
 import Post from '../models/Post.js';
 import Review from '../models/Review.js';
@@ -102,10 +101,23 @@ export const unblockUser = async (req, res) => {
 // @access  Private
 export const getBlockedUsers = async (req, res) => {
   try {
-    const blocks = await Block.find({ blocker: req.user.id })
-      .populate('blocked', 'username profileImage role');
+    const blockerId = req.user.id;
     
-    const blockedUsers = blocks.map(block => block.blocked);
+    console.log(`🔍 Fetching blocked users for: ${blockerId}`);
+    
+    const blocks = await Block.find({ blocker: blockerId })
+      .populate('blocked', 'username profileImage role email');
+    
+    console.log(`📋 Found ${blocks.length} blocked users`);
+    
+    const blockedUsers = blocks.map(block => ({
+      _id: block.blocked._id,
+      username: block.blocked.username,
+      profileImage: block.blocked.profileImage,
+      role: block.blocked.role,
+      email: block.blocked.email,
+      blockedAt: block.createdAt
+    }));
     
     res.json({ 
       success: true, 
@@ -120,11 +132,13 @@ export const getBlockedUsers = async (req, res) => {
   }
 };
 
-// @desc    الحصول على جميع المستخدمين
+// @desc    الحصول على جميع المستخدمين (للبحث والاقتراحات)
 // @route   GET /api/users
 // @access  Private
 export const getUsers = async (req, res, next) => {
   try {
+    const currentUserId = req.user.id;
+    
     const { 
       role, 
       search, 
@@ -133,8 +147,15 @@ export const getUsers = async (req, res, next) => {
       page = 1, 
       limit = 20 
     } = req.query;
+    
+    // جلب قائمة المستخدمين المحظورين
+    const blockedUsers = await Block.find({ blocker: currentUserId }).select('blocked');
+    const blockedUserIds = blockedUsers.map(block => block.blocked.toString());
 
-    const filter = { isActive: true };
+    const filter = { 
+      isActive: true,
+      _id: { $nin: [currentUserId, ...blockedUserIds] }
+    };
 
     if (role) filter.role = role;
     if (city) filter.location = city;
@@ -183,15 +204,7 @@ export const getCurrentUser = async (req, res, next) => {
     console.log('🔍 Fetching current user with ID:', req.user.id);
     
     const user = await User.findById(req.user.id)
-      .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires')
-      .populate({
-        path: 'savedPosts',
-        select: 'title content images createdAt',
-        populate: {
-          path: 'author',
-          select: 'username profileImage'
-        }
-      });
+      .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires');
 
     if (!user) {
       console.log('❌ User not found with ID:', req.user.id);
@@ -203,66 +216,46 @@ export const getCurrentUser = async (req, res, next) => {
 
     console.log('✅ User found:', user.username);
 
+    // جلب savedPosts بشكل منفصل وآمن
+    let savedPostsData = [];
+    if (user.savedPosts && user.savedPosts.length > 0) {
+      try {
+        savedPostsData = await Post.find({ _id: { $in: user.savedPosts } })
+          .select('title content images createdAt')
+          .populate('author', 'username profileImage')
+          .lean();
+      } catch (err) {
+        console.log('⚠️ Could not fetch saved posts:', err.message);
+      }
+    }
+
     // جلب إحصائيات إضافية
     const postsCount = await Post.countDocuments({ author: user._id });
     const reviewsCount = await Review.countDocuments({ reviewedUser: user._id });
     
-    // جلب المشاريع المكتملة مع التقييمات
-    let completedJobs = [];
-    let jobsStats = { total: 0, averageRating: 0 };
+    // حساب التقييم من التقييمات فقط
+    let averageRating = 0;
+    let totalRatings = 0;
     
-    try {
-      if (mongoose.models.Job) {
-        completedJobs = await mongoose.model('Job').find({
-          $or: [
-            { artisan: user._id, status: 'completed' },
-            { worker: user._id, status: 'completed' }
-          ]
-        })
-        .populate('client', 'username profileImage')
-        .populate({
-          path: 'review',
-          populate: {
-            path: 'reviewer',
-            select: 'username profileImage'
-          }
-        })
-        .sort({ completedAt: -1 })
-        .limit(5);
-
-        // حساب متوسط التقييم من المشاريع
-        const ratingStats = await mongoose.model('Job').aggregate([
-          { 
-            $match: { 
-              $or: [
-                { artisan: user._id, status: 'completed' },
-                { worker: user._id, status: 'completed' }
-              ],
-              rating: { $exists: true, $ne: null }
-            } 
-          },
-          {
-            $group: {
-              _id: null,
-              average: { $avg: '$rating' },
-              count: { $sum: 1 }
-            }
-          }
-        ]);
-
-        if (ratingStats.length > 0) {
-          jobsStats.averageRating = ratingStats[0].average;
-          jobsStats.total = ratingStats[0].count;
+    const reviewStats = await Review.aggregate([
+      { $match: { reviewedUser: user._id } },
+      {
+        $group: {
+          _id: null,
+          average: { $avg: '$rating' },
+          count: { $sum: 1 }
         }
       }
-    } catch (jobError) {
-      console.log('Job model not available:', jobError);
+    ]);
+    
+    if (reviewStats && reviewStats.length > 0) {
+      averageRating = reviewStats[0].average;
+      totalRatings = reviewStats[0].count;
     }
 
     // جلب التقييمات مع تفاصيل المراجعين
     const recentReviews = await Review.find({ reviewedUser: user._id })
       .populate('reviewer', 'username profileImage role')
-      .populate('job', 'title budget')
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -278,9 +271,8 @@ export const getCurrentUser = async (req, res, next) => {
       stats: {
         postsCount: postsCount || 0,
         reviewsCount: reviewsCount || 0,
-        rating: user.stats?.rating || jobsStats.averageRating || 0,
-        totalRatings: user.stats?.totalRatings || jobsStats.total || 0,
-        completedJobs: completedJobs.length || 0
+        rating: averageRating || user.stats?.rating || 0,
+        totalRatings: totalRatings || user.stats?.totalRatings || 0
       },
       professionalInfo: user.professionalInfo || {},
       isOnline: user.privacy?.showOnlineStatus ? user.isOnline : false,
@@ -292,8 +284,7 @@ export const getCurrentUser = async (req, res, next) => {
         showLocation: true,
         showOnlineStatus: true
       },
-      savedPosts: user.savedPosts || [],
-      recentJobs: completedJobs,
+      savedPosts: savedPostsData,
       recentReviews: recentReviews
     };
 
@@ -318,33 +309,52 @@ export const getCurrentUser = async (req, res, next) => {
 export const getUserProfile = async (req, res, next) => {
   try {
     const { username } = req.params;
+    const currentUserId = req.user?.id;
     
-    console.log(`🔍 Searching for user with username: ${username}`);
+    console.log(`🔍 Fetching profile: ${username}`);
     
-    const user = await User.findOne({ username, isActive: true })
+    // البحث عن المستخدم
+    const targetUser = await User.findOne({ username, isActive: true })
       .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires');
 
-    if (!user) {
+    if (!targetUser) {
       console.log(`❌ User not found: ${username}`);
       return res.status(404).json({
         success: false,
         message: 'المستخدم غير موجود'
       });
     }
+    
+    // التحقق من الحظر
+    if (currentUserId) {
+      const isBlocked = await Block.findOne({
+        $or: [
+          { blocker: currentUserId, blocked: targetUser._id },
+          { blocker: targetUser._id, blocked: currentUserId }
+        ]
+      });
+      
+      if (isBlocked) {
+        console.log(`🚫 Access blocked: ${currentUserId} <-> ${targetUser._id}`);
+        return res.status(403).json({
+          success: false,
+          message: 'لا يمكنك الوصول إلى هذا الملف الشخصي'
+        });
+      }
+    }
 
-    console.log(`✅ User found: ${user._id}`);
+    console.log(`✅ User found: ${targetUser._id}`);
 
     // إحصائيات إضافية
-    const postsCount = await Post.countDocuments({ author: user._id });
-    const reviewsCount = await Review.countDocuments({ reviewedUser: user._id });
+    const postsCount = await Post.countDocuments({ author: targetUser._id });
+    const reviewsCount = await Review.countDocuments({ reviewedUser: targetUser._id });
     
-    // حساب التقييم من المشاريع والتقييمات
-    let totalRating = 0;
-    let totalCount = 0;
+    // حساب التقييم من التقييمات فقط
+    let averageRating = 0;
+    let totalRatings = 0;
     
-    // التقييمات المباشرة
     const reviewStats = await Review.aggregate([
-      { $match: { reviewedUser: user._id } },
+      { $match: { reviewedUser: targetUser._id } },
       {
         $group: {
           _id: null,
@@ -355,91 +365,35 @@ export const getUserProfile = async (req, res, next) => {
     ]);
     
     if (reviewStats && reviewStats.length > 0) {
-      totalRating += reviewStats[0].average * reviewStats[0].count;
-      totalCount += reviewStats[0].count;
+      averageRating = reviewStats[0].average;
+      totalRatings = reviewStats[0].count;
     }
-
-    // التقييم من المشاريع
-    let completedJobs = [];
-    let jobsWithRating = 0;
-    
-    try {
-      if (mongoose.models.Job) {
-        completedJobs = await mongoose.model('Job').find({
-          $or: [
-            { artisan: user._id, status: 'completed' },
-            { worker: user._id, status: 'completed' }
-          ]
-        })
-        .populate('client', 'username profileImage')
-        .populate({
-          path: 'review',
-          populate: {
-            path: 'reviewer',
-            select: 'username profileImage'
-          }
-        })
-        .sort({ completedAt: -1 })
-        .limit(20);
-
-        const jobRatingStats = await mongoose.model('Job').aggregate([
-          { 
-            $match: { 
-              $or: [
-                { artisan: user._id, status: 'completed' },
-                { worker: user._id, status: 'completed' }
-              ],
-              rating: { $exists: true, $ne: null }
-            } 
-          },
-          {
-            $group: {
-              _id: null,
-              average: { $avg: '$rating' },
-              count: { $sum: 1 }
-            }
-          }
-        ]);
-
-        if (jobRatingStats.length > 0) {
-          totalRating += jobRatingStats[0].average * jobRatingStats[0].count;
-          totalCount += jobRatingStats[0].count;
-          jobsWithRating = jobRatingStats[0].count;
-        }
-      }
-    } catch (jobError) {
-      console.log('Job model not available:', jobError);
-    }
-
-    const finalRating = totalCount > 0 ? totalRating / totalCount : 0;
 
     const userData = {
-      _id: user._id,
-      username: user.username,
-      email: user.privacy?.showEmail ? user.email : undefined,
-      phone: user.privacy?.showPhone ? user.phone : undefined,
-      profileImage: user.profileImage || '/uploads/profiles/default-avatar.png',
-      bio: user.bio || '',
-      role: user.role || 'client',
-      location: user.privacy?.showLocation ? user.location : undefined,
+      _id: targetUser._id,
+      username: targetUser.username,
+      email: targetUser.privacy?.showEmail ? targetUser.email : undefined,
+      phone: targetUser.privacy?.showPhone ? targetUser.phone : undefined,
+      profileImage: targetUser.profileImage || '/uploads/profiles/default-avatar.png',
+      bio: targetUser.bio || '',
+      role: targetUser.role || 'client',
+      location: targetUser.privacy?.showLocation ? targetUser.location : undefined,
       stats: {
         postsCount: postsCount || 0,
         reviewsCount: reviewsCount || 0,
-        rating: Number(finalRating).toFixed(1),
-        totalRatings: totalCount || 0,
-        completedJobs: completedJobs.length || 0
+        rating: Number(averageRating).toFixed(1),
+        totalRatings: totalRatings || 0
       },
-      professionalInfo: user.professionalInfo || {},
-      isOnline: user.privacy?.showOnlineStatus ? user.isOnline : false,
-      lastSeen: user.privacy?.showOnlineStatus ? user.lastSeen : null,
-      createdAt: user.createdAt,
-      privacy: user.privacy || {
+      professionalInfo: targetUser.professionalInfo || {},
+      isOnline: targetUser.privacy?.showOnlineStatus ? targetUser.isOnline : false,
+      lastSeen: targetUser.privacy?.showOnlineStatus ? targetUser.lastSeen : null,
+      createdAt: targetUser.createdAt,
+      privacy: targetUser.privacy || {
         showEmail: false,
         showPhone: false,
         showLocation: true,
         showOnlineStatus: true
-      },
-      recentJobs: completedJobs.slice(0, 5) // آخر 5 مشاريع
+      }
     };
 
     console.log(`✅ Sending profile data for ${username}`);
@@ -465,6 +419,7 @@ export const getUserProfile = async (req, res, next) => {
 export const getUserById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const currentUserId = req.user.id;
     
     if (id === 'me') {
       return getCurrentUser(req, res, next);
@@ -474,6 +429,19 @@ export const getUserById = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'معرف المستخدم غير صالح'
+      });
+    }
+    
+    // التحقق من عدم حظر المستخدم
+    const isBlocked = await Block.findOne({ 
+      blocker: currentUserId, 
+      blocked: id 
+    });
+    
+    if (isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message: 'لا يمكنك الوصول إلى هذا المستخدم'
       });
     }
     
@@ -490,20 +458,6 @@ export const getUserById = async (req, res, next) => {
     const postsCount = await Post.countDocuments({ author: user._id });
     const reviewsCount = await Review.countDocuments({ reviewedUser: user._id });
     
-    let completedJobs = 0;
-    try {
-      if (mongoose.models.Job) {
-        completedJobs = await mongoose.model('Job').countDocuments({
-          $or: [
-            { artisan: user._id, status: 'completed' },
-            { worker: user._id, status: 'completed' }
-          ]
-        });
-      }
-    } catch (jobError) {
-      console.log('Job model not available, skipping job count');
-    }
-
     const userData = {
       _id: user._id,
       username: user.username,
@@ -515,8 +469,7 @@ export const getUserById = async (req, res, next) => {
       location: user.privacy?.showLocation ? user.location : undefined,
       stats: {
         postsCount: postsCount || 0,
-        reviewsCount: reviewsCount || 0,
-        completedJobs: completedJobs || 0
+        reviewsCount: reviewsCount || 0
       },
       professionalInfo: user.professionalInfo || {},
       isOnline: user.privacy?.showOnlineStatus ? user.isOnline : false,
@@ -540,9 +493,6 @@ export const getUserById = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
 
 // @desc    حفظ منشور
 // @route   POST /api/users/save-post/:postId
@@ -591,14 +541,7 @@ export const savePost = async (req, res, next) => {
 // @access  Private
 export const getSavedPosts = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id)
-      .populate({
-        path: 'savedPosts',
-        populate: {
-          path: 'author',
-          select: 'username profileImage role'
-        }
-      });
+    const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({
@@ -607,9 +550,16 @@ export const getSavedPosts = async (req, res, next) => {
       });
     }
 
+    let savedPostsData = [];
+    if (user.savedPosts && user.savedPosts.length > 0) {
+      savedPostsData = await Post.find({ _id: { $in: user.savedPosts } })
+        .populate('author', 'username profileImage role')
+        .sort({ createdAt: -1 });
+    }
+
     res.status(200).json({
       success: true,
-      data: user.savedPosts || []
+      data: savedPostsData
     });
 
   } catch (error) {
@@ -623,10 +573,11 @@ export const getSavedPosts = async (req, res, next) => {
 // @access  Private
 export const updateProfile = async (req, res, next) => {
   try {
-    console.log('Updating profile for user:', req.user.id);
-    console.log('Update data:', req.body);
+    console.log('🔄 Updating profile for user:', req.user.id);
+    console.log('📦 Update data:', req.body);
 
     const {
+      username,
       email,
       phone,
       bio,
@@ -644,24 +595,59 @@ export const updateProfile = async (req, res, next) => {
       });
     }
 
-    // تحديث الحقول المسموح بها فقط
+    // ===== معالجة تغيير اسم المستخدم (username) =====
+    if (username && username !== user.username) {
+      // التحقق من صحة اسم المستخدم
+      const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+      if (!usernameRegex.test(username)) {
+        return res.status(400).json({
+          success: false,
+          message: 'اسم المستخدم يجب أن يحتوي على 3-30 حرفًا (أحرف إنجليزية، أرقام، شرطة سفلية فقط)'
+        });
+      }
+
+      // التحقق من عدم وجود اسم المستخدم مسبقًا
+      const existingUser = await User.findOne({ username, _id: { $ne: user._id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'اسم المستخدم مستخدم بالفعل'
+        });
+      }
+
+      // التحقق من فترة 15 يومًا (تطبق فقط إذا كان المستخدم قد غيّر اسمه من قبل)
+      const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+      const now = Date.now();
+
+      if (user.lastUsernameChange && (now - user.lastUsernameChange.getTime()) < FIFTEEN_DAYS) {
+        const daysRemaining = Math.ceil((FIFTEEN_DAYS - (now - user.lastUsernameChange.getTime())) / (24 * 60 * 60 * 1000));
+        return res.status(400).json({
+          success: false,
+          message: `لا يمكن تغيير اسم المستخدم إلا مرة كل 15 يومًا. يمكنك التغيير بعد ${daysRemaining} يومًا.`,
+          daysRemaining
+        });
+      }
+
+      // تحديث اسم المستخدم وتاريخ آخر تغيير
+      user.username = username;
+      user.lastUsernameChange = new Date();
+      console.log(`✅ Username changed to: ${username}`);
+    }
+
+    // ===== تحديث باقي الحقول =====
     if (email !== undefined) user.email = email;
     if (phone !== undefined) user.phone = phone;
     if (bio !== undefined) user.bio = bio;
-    
-    // تحديث الموقع - تأكد من أنه نص
-    if (location !== undefined) {
-      user.location = location || '';
-    }
+    if (location !== undefined) user.location = location || '';
 
     // تحديث المعلومات المهنية
     if (professionalInfo && user.role !== 'client') {
       user.professionalInfo = {
         ...user.professionalInfo,
-        craft: professionalInfo.craft || user.professionalInfo?.craft,
-        experience: professionalInfo.experience || user.professionalInfo?.experience,
-        dailyRate: professionalInfo.dailyRate || user.professionalInfo?.dailyRate,
-        skills: professionalInfo.skills || user.professionalInfo?.skills || []
+        craft: professionalInfo.craft !== undefined ? professionalInfo.craft : user.professionalInfo?.craft,
+        experience: professionalInfo.experience !== undefined ? professionalInfo.experience : user.professionalInfo?.experience,
+        dailyRate: professionalInfo.dailyRate !== undefined ? professionalInfo.dailyRate : user.professionalInfo?.dailyRate,
+        skills: professionalInfo.skills !== undefined ? professionalInfo.skills : user.professionalInfo?.skills || []
       };
     }
 
@@ -677,18 +663,32 @@ export const updateProfile = async (req, res, next) => {
 
     await user.save();
 
-    // جلب المستخدم المحدث بدون الحقول الحساسة
+    // جلب البيانات المحدثة بدون الحقول الحساسة
     const updatedUser = await User.findById(user._id)
       .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires');
+
+    // حساب أيام التبقي لتغيير الاسم (إذا كان هناك تغيير سابق)
+    let daysUntilUsernameChange = null;
+    if (updatedUser.lastUsernameChange) {
+      const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
+      const timeSinceLastChange = Date.now() - updatedUser.lastUsernameChange.getTime();
+      if (timeSinceLastChange < FIFTEEN_DAYS) {
+        daysUntilUsernameChange = Math.ceil((FIFTEEN_DAYS - timeSinceLastChange) / (24 * 60 * 60 * 1000));
+      }
+    }
+
+    // إضافة معلومات أيام التبقي إلى الاستجابة
+    const responseData = updatedUser.toObject();
+    responseData.daysUntilUsernameChange = daysUntilUsernameChange;
 
     res.status(200).json({
       success: true,
       message: 'تم تحديث الملف الشخصي بنجاح',
-      data: updatedUser
+      data: responseData
     });
 
   } catch (error) {
-    console.error('Error in updateProfile:', error);
+    console.error('❌ Error in updateProfile:', error);
     res.status(500).json({
       success: false,
       message: 'حدث خطأ في تحديث الملف الشخصي',
@@ -697,6 +697,9 @@ export const updateProfile = async (req, res, next) => {
   }
 };
 
+// @desc    رفع الصورة الشخصية
+// @route   POST /api/users/upload-avatar
+// @access  Private
 export const uploadAvatar = async (req, res, next) => {
   try {
     console.log('📸 Uploading avatar for user:', req.user.id);
@@ -728,7 +731,7 @@ export const uploadAvatar = async (req, res, next) => {
       folder: 'handymasters/avatars',
       public_id: `avatar-${req.user.id}-${Date.now()}`,
       transformation: [
-        { width: 500, height: 500, crop: 'limit' },
+        { width: 500, height:500, crop: 'limit' },
         { quality: 'auto' }
       ]
     });
@@ -738,7 +741,6 @@ export const uploadAvatar = async (req, res, next) => {
       secure_url: result.secure_url
     });
 
-    // تحديث المستخدم
     user.profileImage = result.secure_url;
     user.profileImagePublicId = result.public_id;
     await user.save();
@@ -776,13 +778,11 @@ export const removeAvatar = async (req, res, next) => {
       });
     }
 
-    // حذف الصورة من Cloudinary إذا وجدت
     if (user.profileImagePublicId) {
       await deleteFromCloudinary(user.profileImagePublicId);
       console.log('✅ Image deleted from Cloudinary:', user.profileImagePublicId);
     }
     
-    // تعيين الصورة الافتراضية
     const defaultImageUrl = `${req.protocol}://${req.get('host')}/uploads/profiles/default-avatar.png`;
     user.profileImage = defaultImageUrl;
     user.profileImagePublicId = null;
@@ -807,6 +807,9 @@ export const removeAvatar = async (req, res, next) => {
   }
 };
 
+// @desc    الحصول على منشورات المستخدم
+// @route   GET /api/users/:userId/posts
+// @access  Public
 export const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -821,7 +824,6 @@ export const getUserPosts = async (req, res) => {
       });
     }
     
-    // التحقق من صحة ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
@@ -860,6 +862,9 @@ export const getUserPosts = async (req, res) => {
   }
 };
 
+// @desc    الحصول على تقييمات المستخدم
+// @route   GET /api/users/:userId/reviews
+// @access  Public
 export const getUserReviews = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -873,45 +878,43 @@ export const getUserReviews = async (req, res) => {
       });
     }
     
-    const posts = await Post.find({
-      'ratings.reviewee': userId
-    })
+    const reviews = await Review.find({ reviewedUser: userId })
       .sort({ createdAt: -1 })
       .skip((parseInt(page) - 1) * parseInt(limit))
       .limit(parseInt(limit))
-      .populate('author', 'username profileImage')
-      .populate('ratings.reviewer', 'username profileImage');
+      .populate('reviewer', 'username profileImage role');
     
-    const reviews = [];
-    posts.forEach(post => {
-      post.ratings.forEach(rating => {
-        if (rating.reviewee.toString() === userId) {
-          reviews.push({
-            _id: rating._id,
-            reviewer: rating.reviewer,
-            rating: rating.rating,
-            comment: rating.comment,
-            createdAt: rating.createdAt,
-            post: {
-              _id: post._id,
-              title: post.title,
-              type: post.type
-            }
-          });
+    // حساب الإحصائيات
+    const stats = await Review.aggregate([
+      { $match: { reviewedUser: user._id } },
+      {
+        $group: {
+          _id: null,
+          average: { $avg: '$rating' },
+          count: { $sum: 1 },
+          distribution: {
+            $push: '$rating'
+          }
         }
-      });
-    });
+      }
+    ]);
     
-    const stats = {
-      average: user.stats.rating || 0,
-      count: user.stats.totalRatings || 0
-    };
+    let distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    if (stats.length > 0 && stats[0].distribution) {
+      stats[0].distribution.forEach(rating => {
+        if (distribution[rating]) distribution[rating]++;
+      });
+    }
     
     res.json({
       success: true,
-      data: reviews.slice(0, parseInt(limit)),
-      stats,
-      hasMore: reviews.length > parseInt(limit)
+      data: reviews,
+      stats: {
+        average: stats.length > 0 ? stats[0].average : 0,
+        count: stats.length > 0 ? stats[0].count : 0,
+        distribution
+      },
+      hasMore: reviews.length === parseInt(limit)
     });
     
   } catch (error) {
@@ -923,7 +926,9 @@ export const getUserReviews = async (req, res) => {
   }
 };
 
-
+// @desc    الحصول على إحصائيات المستخدم
+// @route   GET /api/users/:userId/stats
+// @access  Public
 export const getUserStats = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -937,7 +942,6 @@ export const getUserStats = async (req, res) => {
       });
     }
     
-    // التحقق من صحة ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
@@ -953,17 +957,27 @@ export const getUserStats = async (req, res) => {
       });
     }
     
-    // حساب عدد البوستات
     const postsCount = await Post.countDocuments({ author: userId });
+    const reviewsCount = await Review.countDocuments({ reviewedUser: userId });
+    
+    const reviewStats = await Review.aggregate([
+      { $match: { reviewedUser: user._id } },
+      {
+        $group: {
+          _id: null,
+          average: { $avg: '$rating' },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
     
     res.json({
       success: true,
       data: {
-        rating: user.stats?.rating || 0,
-        completedJobs: user.stats?.completedJobsCount || 0,
-        totalRatings: user.stats?.totalRatings || 0,
-        postsCount: postsCount || user.stats?.postsCount || 0,
-        totalEarnings: user.stats?.totalEarnings || 0
+        rating: reviewStats.length > 0 ? reviewStats[0].average : 0,
+        totalRatings: reviewStats.length > 0 ? reviewStats[0].count : 0,
+        postsCount: postsCount || 0,
+        reviewsCount: reviewsCount || 0
       }
     });
     

@@ -2,14 +2,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useStore } from '../store';
 import toast from 'react-hot-toast';
 import {
-  Briefcase, Wrench, DollarSign, MapPin, Clock,
-  Image, X, Plus, Trash2, Send, Loader, Upload,
+  Briefcase, Wrench, MapPin,
+  Image, Trash2, Send, Loader, Upload,
   ChevronLeft, ChevronRight, CheckCircle, AlertCircle,
-  Award, Star, Sparkles, FileText, User, Info
+  Sparkles, FileText, User
 } from 'lucide-react';
 
 const CreatePost = () => {
@@ -23,11 +23,11 @@ const CreatePost = () => {
     
     switch(user.role) {
       case 'client':
-        return 'service_request'; // عميل -> طلب خدمة
+        return 'service_request';
       case 'artisan':
-        return 'job_opportunity'; // حرفي -> فرصة عمل
+        return 'job_opportunity';
       case 'both':
-        return 'service_request'; // كليهما -> افتراضي طلب خدمة
+        return 'service_request';
       default:
         return 'service_request';
     }
@@ -37,60 +37,17 @@ const CreatePost = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: '',
     budget: '',
-    duration: 'one_day',
-    customDuration: '',
-    location: user?.location || '',
-    requiredSkills: []
+    location: user?.location || ''
   });
   
-  const [newSkill, setNewSkill] = useState('');
-  const [images, setImages] = useState([]);
-  const [imageFiles, setImageFiles] = useState([]);
+  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  
-  // التحقق مما إذا كان المستخدم يمكنه تغيير نوع البوست
-  const canChangePostType = () => {
-    return user?.role === 'both';
-  };
-  
-  const categories = {
-    service_request: [
-      { value: 'construction', label: 'بناء وتشطيب', icon: '🏗️', color: 'bg-orange-100 text-orange-700' },
-      { value: 'plumbing', label: 'سباكة', icon: '🚰', color: 'bg-blue-100 text-blue-700' },
-      { value: 'electrical', label: 'كهرباء', icon: '⚡', color: 'bg-yellow-100 text-yellow-700' },
-      { value: 'painting', label: 'دهان', icon: '🎨', color: 'bg-purple-100 text-purple-700' },
-      { value: 'carpentry', label: 'نجارة', icon: '🪵', color: 'bg-amber-100 text-amber-700' },
-      { value: 'ac_maintenance', label: 'تكييف وتبريد', icon: '❄️', color: 'bg-cyan-100 text-cyan-700' },
-      { value: 'cleaning', label: 'تنظيف', icon: '🧹', color: 'bg-emerald-100 text-emerald-700' },
-      { value: 'gardening', label: 'حدائق', icon: '🌿', color: 'bg-green-100 text-green-700' },
-      { value: 'moving', label: 'نقل أثاث', icon: '🚚', color: 'bg-indigo-100 text-indigo-700' },
-      { value: 'other', label: 'أخرى', icon: '📦', color: 'bg-gray-100 text-gray-700' }
-    ],
-    job_opportunity: [
-      { value: 'construction_worker', label: 'عامل بناء', icon: '👷', color: 'bg-orange-100 text-orange-700' },
-      { value: 'painter', label: 'دهان', icon: '🎨', color: 'bg-purple-100 text-purple-700' },
-      { value: 'plumber_assistant', label: 'مساعد سباك', icon: '🔧', color: 'bg-blue-100 text-blue-700' },
-      { value: 'electrician_assistant', label: 'مساعد كهربائي', icon: '⚡', color: 'bg-yellow-100 text-yellow-700' },
-      { value: 'cleaner', label: 'عامل نظافة', icon: '🧼', color: 'bg-emerald-100 text-emerald-700' },
-      { value: 'gardener', label: 'بستاني', icon: '🌱', color: 'bg-green-100 text-green-700' },
-      { value: 'mover', label: 'عامل نقل', icon: '📦', color: 'bg-indigo-100 text-indigo-700' },
-      { value: 'general_labor', label: 'عامل عام', icon: '🛠️', color: 'bg-gray-100 text-gray-700' },
-      { value: 'other', label: 'أخرى', icon: '📌', color: 'bg-gray-100 text-gray-700' }
-    ]
-  };
-  
-  const durations = [
-    { value: 'one_day', label: 'يوم واحد', icon: '☀️' },
-    { value: 'one_week', label: 'أسبوع', icon: '📅' },
-    { value: 'one_month', label: 'شهر', icon: '📆' },
-    { value: 'custom', label: 'مدة مخصصة', icon: '⚙️' }
-  ];
   
   // تحديث الموقع تلقائياً من بيانات المستخدم
   useEffect(() => {
@@ -125,10 +82,6 @@ const CreatePost = () => {
     }
     
     if (currentStep === 2) {
-      if (!formData.category) {
-        newErrors.category = 'الرجاء اختيار الفئة';
-      }
-      
       if (!formData.budget || parseFloat(formData.budget) <= 0) {
         newErrors.budget = 'الميزانية غير صالحة';
       } else if (parseFloat(formData.budget) < 1000) {
@@ -164,55 +117,37 @@ const CreatePost = () => {
     }
   };
   
-  const handleAddSkill = () => {
-    if (newSkill.trim() && !formData.requiredSkills.includes(newSkill.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        requiredSkills: [...prev.requiredSkills, newSkill.trim()]
-      }));
-      setNewSkill('');
-    }
-  };
-  
-  const handleRemoveSkill = (skill) => {
-    setFormData(prev => ({
-      ...prev,
-      requiredSkills: prev.requiredSkills.filter(s => s !== skill)
-    }));
-  };
-  
   const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files);
-    if (imageFiles.length + files.length > 5) {
-      toast.error('يمكنك رفع 5 صور كحد أقصى');
+    const file = e.target.files[0];
+    
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('يرجى اختيار ملف صورة فقط');
       return;
     }
     
-    files.forEach(file => {
-      if (!file.type.startsWith('image/')) {
-        toast.error('يرجى اختيار ملفات صور فقط');
-        return;
-      }
-      
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('حجم الصورة كبير جداً. الحد الأقصى 5MB');
-        return;
-      }
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages(prev => [...prev, reader.result]);
-        setImageFiles(prev => [...prev, file]);
-      };
-      reader.readAsDataURL(file);
-    });
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('حجم الصورة كبير جداً. الحد الأقصى 5MB');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImage(reader.result);
+      setImageFile(file);
+    };
+    reader.readAsDataURL(file);
     
     e.target.value = '';
   };
   
-  const handleRemoveImage = (index) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveImage = () => {
+    setImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
   
   const handleSubmit = async () => {
@@ -226,12 +161,14 @@ const CreatePost = () => {
     
     try {
       const postData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
         budget: parseFloat(formData.budget),
+        location: formData.location,
         type: postType
       };
       
-      const result = await createPost(postData, imageFiles);
+      const result = await createPost(postData, imageFile);
       
       if (result.success) {
         toast.success('تم إنشاء البوست بنجاح!');
@@ -245,12 +182,6 @@ const CreatePost = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-  
-  const getCategoryIcon = (categoryValue) => {
-    const allCategories = [...categories.service_request, ...categories.job_opportunity];
-    const cat = allCategories.find(c => c.value === categoryValue);
-    return cat?.icon || '📌';
   };
   
   const getUserRoleText = () => {
@@ -342,7 +273,7 @@ const CreatePost = () => {
         <div className="flex justify-between mt-2 text-sm">
           <span className="text-gray-600 dark:text-gray-400">المعلومات الأساسية</span>
           <span className="text-gray-600 dark:text-gray-400">تفاصيل العمل</span>
-          <span className="text-gray-600 dark:text-gray-400">الصور والمهارات</span>
+          <span className="text-gray-600 dark:text-gray-400">الصورة</span>
         </div>
       </div>
       
@@ -354,57 +285,6 @@ const CreatePost = () => {
         transition={{ duration: 0.3 }}
         className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
       >
-        {/* Type Selection - Only show if user can change post type */}
-        {canChangePostType() && (
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              اختر نوع البوست
-            </label>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setPostType('service_request')}
-                className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                  postType === 'service_request'
-                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg scale-105'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
-                }`}
-              >
-                <Briefcase className="w-5 h-5" />
-                <span>طلب خدمة</span>
-              </button>
-              <button
-                onClick={() => setPostType('job_opportunity')}
-                className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                  postType === 'job_opportunity'
-                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg scale-105'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600'
-                }`}
-              >
-                <Wrench className="w-5 h-5" />
-                <span>فرصة عمل</span>
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* Show post type indicator if user cannot change type */}
-        {!canChangePostType() && (
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                <PostTypeIcon className="w-8 h-8 text-primary-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {postTypeInfo.title}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {postTypeInfo.description}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
         
         {/* Step 1: Basic Info */}
         {currentStep === 1 && (
@@ -459,50 +339,20 @@ const CreatePost = () => {
                 </p>
               )}
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                {formData.description.length} / 2000 حرف
+                {formData.description.length} / 2000
               </p>
             </div>
           </div>
         )}
         
-        {/* Step 2: Job Details */}
+        {/* Step 2: Job Details - فقط الميزانية والموقع */}
         {currentStep === 2 && (
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  الفئة *
-                </label>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-                  {categories[postType].map(cat => (
-                    <button
-                      key={cat.value}
-                      type="button"
-                      onClick={() => {
-                        setFormData(prev => ({ ...prev, category: cat.value }));
-                        setErrors(prev => ({ ...prev, category: '' }));
-                      }}
-                      className={`p-3 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
-                        formData.category === cat.value
-                          ? `${cat.color} ring-2 ring-primary-500 scale-105`
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      <span className="text-lg">{cat.icon}</span>
-                      <span>{cat.label}</span>
-                    </button>
-                  ))}
-                </div>
-                {errors.category && (
-                  <p className="mt-1 text-sm text-red-500">{errors.category}</p>
-                )}
-              </div>
               
               {/* Budget */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <DollarSign className="w-4 h-4 inline ml-1" />
                   الميزانية (دج) *
                 </label>
                 <input
@@ -517,42 +367,6 @@ const CreatePost = () => {
                 />
                 {errors.budget && (
                   <p className="mt-1 text-sm text-red-500">{errors.budget}</p>
-                )}
-              </div>
-              
-              {/* Duration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Clock className="w-4 h-4 inline ml-1" />
-                  المدة *
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {durations.map(dur => (
-                    <button
-                      key={dur.value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, duration: dur.value }))}
-                      className={`p-2 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1 ${
-                        formData.duration === dur.value
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      <span>{dur.icon}</span>
-                      <span>{dur.label}</span>
-                    </button>
-                  ))}
-                </div>
-                
-                {formData.duration === 'custom' && (
-                  <input
-                    type="text"
-                    name="customDuration"
-                    value={formData.customDuration}
-                    onChange={handleInputChange}
-                    placeholder="مثال: 3 أيام، أسبوعين..."
-                    className="mt-2 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  />
                 )}
               </div>
               
@@ -580,66 +394,19 @@ const CreatePost = () => {
           </div>
         )}
         
-        {/* Step 3: Images & Skills */}
+        {/* Step 3: Image فقط */}
         {currentStep === 3 && (
           <div className="p-6 space-y-6">
-            {/* Skills */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                <Award className="w-4 h-4 inline ml-1" />
-                المهارات المطلوبة
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">(اختياري)</span>
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
-                  placeholder="أضف مهارة مطلوبة"
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddSkill}
-                  className="px-4 py-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </div>
-              
-              {formData.requiredSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.requiredSkills.map(skill => (
-                    <span
-                      key={skill}
-                      className="px-3 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-full text-sm flex items-center gap-1"
-                    >
-                      <Star className="w-3 h-3" />
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSkill(skill)}
-                        className="hover:text-red-500 ml-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Images */}
+            {/* Image - صورة واحدة فقط */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <Image className="w-4 h-4 inline ml-1" />
-                الصور
+                الصورة
                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">(اختياري)</span>
               </label>
               <div 
                 className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                  images.length > 0 
+                  image 
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
                     : 'border-gray-300 dark:border-gray-600 hover:border-primary-500'
                 }`}
@@ -649,39 +416,37 @@ const CreatePost = () => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  multiple
                   onChange={handleImageSelect}
                   className="hidden"
                 />
                 <Upload className={`w-12 h-12 mx-auto mb-3 ${
-                  images.length > 0 ? 'text-primary-500' : 'text-gray-400'
+                  image ? 'text-primary-500' : 'text-gray-400'
                 }`} />
                 <p className="text-gray-600 dark:text-gray-400">
-                  {images.length > 0 ? `${images.length} صورة مرفوعة` : 'انقر لرفع الصور أو اسحبها هنا'}
+                  {image ? 'صورة مرفوعة' : 'انقر لرفع الصورة أو اسحبها هنا'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                  يمكنك رفع 5 صور كحد أقصى، حجم كل صورة لا يتجاوز 5MB
+                  يمكنك رفع صورة واحدة فقط، حجم الصورة لا يتجاوز 5MB
                 </p>
               </div>
               
-              {images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                  {images.map((img, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={img}
-                        alt={`Upload ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-xl shadow-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+              {/* عرض الصورة المرفوعة */}
+              {image && (
+                <div className="mt-4">
+                  <div className="relative group inline-block">
+                    <img
+                      src={image}
+                      alt="Uploaded"
+                      className="w-48 h-48 object-cover rounded-xl shadow-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -758,10 +523,9 @@ const CreatePost = () => {
             </div>
             <h4 className="font-bold text-gray-900 dark:text-white mb-2">{formData.title}</h4>
             <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{formData.description}</p>
-            {formData.category && (
-              <div className="mt-3 flex items-center gap-2">
-                <span className="text-lg">{getCategoryIcon(formData.category)}</span>
-                <span className="text-xs text-gray-500">{formData.category}</span>
+            {image && (
+              <div className="mt-3">
+                <img src={image} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
               </div>
             )}
           </div>

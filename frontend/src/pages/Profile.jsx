@@ -8,20 +8,19 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
   User, Mail, Phone, MapPin, Calendar, Briefcase, Star,
-  MessageCircle, Share2, Award, Clock, ThumbsUp, Grid, FileText,
-  Facebook, Twitter, Linkedin, Globe, DollarSign, Wrench, AlertCircle,
-  UserPlus, Loader, Edit, CheckCircle, X, ChevronLeft, ChevronRight,
-  Eye, EyeOff, AtSign, Link as LinkIcon, Heart, Bookmark, Send, MoreHorizontal,
-  Instagram, Youtube, Shield, Verified, Info, Settings, LogOut, PlusCircle
+  MessageCircle, Share2, Award, Clock, FileText,
+  DollarSign, Wrench, AlertCircle,
+  Loader, Edit, CheckCircle, X, ChevronLeft, ChevronRight,
+  AtSign, Link as LinkIcon, Heart, Bookmark,
+  Info, PlusCircle, Eye, MoreHorizontal, Ban, Flag
 } from 'lucide-react';
 
-// استيراد الصورة الافتراضية
 import defaultImgProfile from '../assets/images/default-avatar.png';
+import AddReviewModal from '../components/reviews/AddReviewModal';
+import ReviewCard from '../components/reviews/ReviewCard';
+import PostCard from '../components/PostCard';
 
-// Skeleton Component
 const ProfileSkeleton = () => {
-  const { t } = useTranslation();
-  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -44,266 +43,159 @@ const ProfileSkeleton = () => {
   );
 };
 
-// Post Card Component
-const PostCard = ({ post, onLike, onSave }) => {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { user, savePost } = useStore();
-  
-  const [saving, setSaving] = useState(false);
-  const [isSaved, setIsSaved] = useState(post.isSaved || false);
-  const [isLiked, setIsLiked] = useState(post.isLiked || false);
-  const [likesCount, setLikesCount] = useState(post.stats?.likesCount || 0);
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  
-  const isOwner = user?._id === post.author?._id;
-  
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return 'اليوم';
-    if (diff === 1) return 'أمس';
-    if (diff < 7) return `منذ ${diff} أيام`;
-    return date.toLocaleDateString('ar-DZ');
-  };
-  
-  const formatCurrency = (amount) => {
-    if (!amount) return '';
-    return new Intl.NumberFormat('ar-DZ').format(amount) + ' دج';
-  };
-  
-  const handleLike = async (e) => {
-    e.stopPropagation();
-    try {
-      const response = await api.post(`/posts/${post._id}/like`);
-      if (response.data.success) {
-        setIsLiked(response.data.data.liked);
-        setLikesCount(response.data.data.likesCount);
-        if (onLike) onLike(post._id, response.data.data.liked);
-      }
-    } catch (error) {
-      console.error('Error liking post:', error);
-      toast.error('حدث خطأ');
-    }
-  };
-  
-  const handleSave = async (e) => {
-    e.stopPropagation();
-    if (saving) return;
-    setSaving(true);
-    try {
-      const result = await savePost(post._id);
-      if (result.success) {
-        setIsSaved(result.data.saved);
-        if (onSave) onSave(post._id, result.data.saved);
-        toast.success(result.data.saved ? 'تم الحفظ' : 'تم الإزالة');
-      }
-    } catch (error) {
-      toast.error(error.message || 'حدث خطأ');
-    } finally {
-      setSaving(false);
-    }
-  };
-  
-  const handleMessage = async (e) => {
-    e.stopPropagation();
-    if (!user) {
-      toast.error('يجب تسجيل الدخول أولاً');
-      navigate('/login');
-      return;
-    }
-    
-    const loadingToast = toast.loading('جاري التحقق...');
-    
-    try {
-      const { checkMessagingPermission, createConversation } = useStore.getState();
-      const permission = await checkMessagingPermission(post.author._id);
-      
-      toast.dismiss(loadingToast);
-      
-      if (permission?.allowed) {
-        const postUrl = `${window.location.origin}/post/${post._id}`;
-        const messageText = `مرحباً، أنا مهتم بمنشورك: "${post.title}"\n\nرابط المنشور: ${postUrl}\n\nهل يمكننا مناقشة التفاصيل؟`;
-        
-        const result = await createConversation(post.author._id, messageText);
-        
-        if (result?.conversation?._id) {
-          navigate(`/messages/${result.conversation._id}`);
-        } else if (result?._id) {
-          navigate(`/messages/${result._id}`);
-        }
-      } else {
-        toast.error(permission?.reason || 'لا يمكنك مراسلة صاحب هذا المنشور');
-      }
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      toast.error(error.message || 'حدث خطأ');
-    }
-  };
-  
-  const handleShare = async (e) => {
-    e.stopPropagation();
-    const url = window.location.href;
-    navigator.clipboard.writeText(url);
-    toast.success('تم نسخ الرابط');
-    setShowShareMenu(false);
-  };
-  
+// مكون Popup التأكيد المخصص
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
+  if (!isOpen) return null;
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all">
-      {/* Header - Author */}
-      <div className="p-4 pb-2">
-        <div className="flex items-center gap-3">
-          <Link to={`/profile/${post.author?.username}`} onClick={(e) => e.stopPropagation()}>
-            <img
-              src={post.author?.profileImage || defaultImgProfile}
-              alt={post.author?.username}
-              className="w-10 h-10 rounded-full object-cover border-2 border-primary-200 dark:border-primary-800"
-              onError={(e) => { e.target.src = defaultImgProfile; }}
-            />
-          </Link>
-          <div className="flex-1">
-            <Link to={`/profile/${post.author?.username}`} className="font-semibold text-gray-900 dark:text-white hover:text-primary-600">
-              {post.author?.username}
-            </Link>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <Clock className="w-3 h-3" />
-              <span>{formatDate(post.createdAt)}</span>
-              <span>•</span>
-              <span>{post.type === 'service_request' ? 'طلب خدمة' : 'فرصة عمل'}</span>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden"
+      >
+        <div className="p-6">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            isDanger ? 'bg-red-100 dark:bg-red-900/30' : 'bg-gray-100 dark:bg-gray-700'
+          }`}>
+            {isDanger ? (
+              <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            ) : (
+              <Ban className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+            )}
           </div>
           
-          {/* Share Menu */}
-          <div className="relative">
+          <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-2">
+            {title}
+          </h3>
+          
+          <p className="text-center text-gray-600 dark:text-gray-400 mb-6 whitespace-pre-line">
+            {message}
+          </p>
+          
+          <div className="flex gap-3">
             <button
-              onClick={(e) => { e.stopPropagation(); setShowShareMenu(!showShareMenu); }}
-              className="p-2 text-gray-500 hover:text-primary-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
             >
-              <Share2 className="w-4 h-4" />
+              {cancelText || 'إلغاء'}
             </button>
-            {showShareMenu && (
-              <div className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-10">
-                <button
-                  onClick={handleShare}
-                  className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center gap-2"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                  نسخ الرابط
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {/* Content */}
-      <div className="px-4 pb-2">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-          {post.title}
-        </h3>
-        
-        <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4" />
-            <span>{post.location}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4" />
-            <span>{formatCurrency(post.budget)}</span>
-          </div>
-        </div>
-        
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-3">
-          {post.description}
-        </p>
-        
-        {/* Tags */}
-        {post.requiredSkills && post.requiredSkills.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {post.requiredSkills.slice(0, 3).map(skill => (
-              <span key={skill} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs text-gray-600 dark:text-gray-400">
-                {skill}
-              </span>
-            ))}
-            {post.requiredSkills.length > 3 && (
-              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs text-gray-600 dark:text-gray-400">
-                +{post.requiredSkills.length - 3}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-      
-      {/* Images */}
-      {post.images && post.images.length > 0 && (
-        <div className="relative h-56 mt-2">
-          <img
-            src={post.images[0].url}
-            alt={post.title}
-            className="w-full h-full object-cover"
-          />
-          {post.images.length > 1 && (
-            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-lg">
-              +{post.images.length}
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Actions */}
-      <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
             <button
-              onClick={handleLike}
-              className={`flex items-center gap-1.5 transition-colors ${
-                isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+              onClick={onConfirm}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                isDanger
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-gray-600 hover:bg-gray-700 text-white'
               }`}
             >
-              <Heart className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} />
-              <span className="text-sm">{likesCount}</span>
+              {confirmText || 'تأكيد'}
             </button>
-            
-            {!isOwner && (
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className={`flex items-center gap-1.5 transition-colors ${
-                  isSaved ? 'text-yellow-500' : 'text-gray-500 hover:text-yellow-500'
-                }`}
-              >
-                <Bookmark className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} />
-              </button>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {!isOwner && (
-              <>
-                <button
-                  onClick={handleMessage}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-all flex items-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  مراسلة
-                </button>
-              </>
-            )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-// Main Profile Component
+// مكون القائمة المنسدلة المنفصل
+const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport, isRTL, blockingUser }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      // منع التمرير في الخلفية
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* خلفية شفافة للإغلاق */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      
+      <motion.div
+        ref={menuRef}
+        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden`}
+        style={{ top: '100%' }}
+      >
+        <div className="py-1">
+          {/* نسخ الرابط */}
+          <button
+            onClick={() => {
+              onShare();
+              onClose();
+            }}
+            className="w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-right rtl:text-right"
+          >
+            <LinkIcon className="w-4 h-4 flex-shrink-0" />
+            <span>نسخ الرابط</span>
+          </button>
+          
+          {/* حظر / إلغاء حظر المستخدم */}
+          <button
+            onClick={() => {
+              onBlockToggle();
+              onClose();
+            }}
+            disabled={blockingUser}
+            className={`w-full px-4 py-3 text-sm transition-colors flex items-center gap-3 text-right rtl:text-right ${
+              isBlocked
+                ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20'
+                : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+            }`}
+          >
+            <Ban className="w-4 h-4 flex-shrink-0" />
+            <span>{isBlocked ? 'إلغاء حظر المستخدم' : 'حظر المستخدم'}</span>
+          </button>
+          
+          {/* الإبلاغ عن المستخدم */}
+          <button
+            onClick={() => {
+              onReport();
+              onClose();
+            }}
+            className="w-full px-4 py-3 text-sm text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20 transition-colors flex items-center gap-3 text-right rtl:text-right border-t border-gray-200 dark:border-gray-700"
+          >
+            <Flag className="w-4 h-4 flex-shrink-0" />
+            <span>الإبلاغ عن المستخدم</span>
+          </button>
+        </div>
+      </motion.div>
+    </>
+  );
+};
+
 const Profile = () => {
-  const { t } = useTranslation();
   const { username } = useParams();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   
   const { 
     user: currentUser, 
@@ -329,15 +221,27 @@ const Profile = () => {
     incrementReviewsPage,
     setActiveTab,
     clearProfileError,
-    savePost
+    deleteReview,
+    updateReview,
+    fetchBlockedUsers,
+    blockUser,
+    unblockUser
   } = useStore();
 
-  const [showContactInfo, setShowContactInfo] = useState(true);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-  const postsContainerRef = useRef(null);
+  const [showAddReviewModal, setShowAddReviewModal] = useState(false);
+  const [userExistingReview, setUserExistingReview] = useState(null);
+  const [blockingUser, setBlockingUser] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  
+  // State للـ Popup التأكيد
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'block', 'unblock'
   
   const isOwnProfile = useMemo(() => {
     if (!profileData || !currentUser) return false;
@@ -352,33 +256,64 @@ const Profile = () => {
     return profileData?.role === 'client' || profileData?.role === 'artisan';
   }, [profileData?.role]);
   
-  const isDataReady = useMemo(() => {
-    if (username) {
-      return !profileLoading && profileData !== null;
+  const isRTL = i18n.language === 'ar' || document.dir === 'rtl';
+
+  const displayRating = useMemo(() => {
+    const rating = profileData?.stats?.rating;
+    if (typeof rating === 'number') return rating.toFixed(1);
+    if (typeof rating === 'string') return parseFloat(rating).toFixed(1);
+    return '0.0';
+  }, [profileData?.stats?.rating]);
+
+  // جلب قائمة المحظورين
+  const loadBlockedUsers = useCallback(async () => {
+    if (!currentUser) return;
+    try {
+      const blocked = await fetchBlockedUsers();
+      setBlockedUsers(blocked || []);
+    } catch (error) {
+      console.error('Error loading blocked users:', error);
     }
-    return currentUser !== null;
-  }, [username, profileLoading, profileData, currentUser]);
+  }, [fetchBlockedUsers, currentUser]);
 
-  const isRTL = document.dir === 'rtl';
+  // التحقق من حالة الحظر
+  useEffect(() => {
+    if (profileData && currentUser && !isOwnProfile) {
+      const isUserBlocked = blockedUsers.some(blocked => blocked._id === profileData._id);
+      setIsBlocked(isUserBlocked);
+    }
+  }, [profileData, currentUser, blockedUsers, isOwnProfile]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 1) return t('time.today');
-    if (diffDays === 1) return t('time.yesterday');
-    if (diffDays < 7) return t('time.daysAgo', { count: diffDays });
-    if (diffDays < 30) return t('time.weeksAgo', { count: Math.floor(diffDays / 7) });
-    return date.toLocaleDateString('ar-DZ');
-  };
+  useEffect(() => {
+    if (currentUser && profileData && !isOwnProfile && reviews.length > 0) {
+      const existingReview = reviews.find(r => r.reviewer?._id === currentUser._id);
+      setUserExistingReview(existingReview || null);
+    } else {
+      setUserExistingReview(null);
+    }
+  }, [currentUser, profileData, reviews, isOwnProfile]);
+
+  const loadReviews = useCallback(async (reset = true) => {
+    if (profileData?._id) {
+      await fetchUserReviews(profileData._id, 1, reset);
+    }
+  }, [profileData?._id, fetchUserReviews]);
+
+  const loadPosts = useCallback(async (reset = true) => {
+    if (profileData?._id && showPostsTab) {
+      await fetchUserPosts(profileData._id, reset);
+    }
+  }, [profileData?._id, showPostsTab, fetchUserPosts]);
 
   const handleMessage = async () => {
     if (!isAuthenticated) {
-      toast.error(t('profile.errors.loginRequired'));
+      toast.error('يجب تسجيل الدخول أولاً');
       navigate('/login');
+      return;
+    }
+    
+    if (isBlocked) {
+      toast.error('لا يمكنك مراسلة هذا المستخدم لأنه محظور');
       return;
     }
     
@@ -429,8 +364,53 @@ const Profile = () => {
   const handleShare = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url);
-    toast.success(t('profile.linkCopied'));    
-    setShowShareMenu(false);
+    toast.success('تم نسخ الرابط');
+  };
+
+  // فتح Popup التأكيد للحظر
+  const openBlockConfirm = () => {
+    setConfirmAction(isBlocked ? 'unblock' : 'block');
+    setShowConfirmModal(true);
+  };
+
+  // تنفيذ الحظر أو إلغاء الحظر بعد التأكيد
+  const executeBlockAction = async () => {
+    if (!profileData) return;
+    
+    setBlockingUser(true);
+    try {
+      if (confirmAction === 'unblock') {
+        // إلغاء الحظر
+        const response = await api.delete(`/users/block/${profileData._id}`);
+        if (response.data.success) {
+          toast.success(`تم إلغاء حظر المستخدم ${profileData.username}`);
+          await loadBlockedUsers();
+          setIsBlocked(false);
+        } else {
+          toast.error(response.data.message || 'فشل إلغاء الحظر');
+        }
+      } else {
+        // حظر المستخدم
+        const response = await api.post(`/users/block/${profileData._id}`);
+        if (response.data.success) {
+          toast.success(`تم حظر المستخدم ${profileData.username} بنجاح`);
+          await loadBlockedUsers();
+          setIsBlocked(true);
+        } else {
+          toast.error(response.data.message || 'فشل حظر المستخدم');
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء معالجة الحظر');
+    } finally {
+      setBlockingUser(false);
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+    }
+  };
+
+  const handleReportUser = () => {
+    toast.info('سيتم إضافة خاصية الإبلاغ قريباً');
   };
 
   const handleImageClick = (image) => {
@@ -438,36 +418,65 @@ const Profile = () => {
     setShowImageModal(true);
   };
 
-  const loadMorePosts = () => {
-    if (!hasMorePosts || postsLoading) return;
-    incrementPostsPage();
-    if (profileData?._id) {
-      fetchUserPosts(profileData._id, false);
-    }
+  // دالة معالجة حذف البوست
+  const handlePostDelete = (deletedPostId) => {
+    // إعادة تحميل البوستات بعد الحذف
+    loadPosts(true);
+    toast.success('تم حذف المنشور');
   };
 
-  const loadMoreReviews = () => {
-    if (!hasMoreReviews || reviewsLoading) return;
-    incrementReviewsPage();
-    if (profileData?._id) {
-      fetchUserReviews(profileData._id, false);
-    }
+  // إغلاق قائمة المزيد
+  const closeMoreMenu = () => {
+    setShowMoreMenu(false);
   };
 
-  // Handle scroll for infinite scroll
-  const handleScroll = useCallback(() => {
-    if (!postsContainerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = postsContainerRef.current;
-    if (scrollTop + clientHeight >= scrollHeight - 100) {
-      if (activeTab === 'posts' && hasMorePosts && !postsLoading) {
-        loadMorePosts();
-      } else if (activeTab === 'reviews' && hasMoreReviews && !reviewsLoading) {
-        loadMoreReviews();
-      }
-    }
-  }, [activeTab, hasMorePosts, hasMoreReviews, postsLoading, reviewsLoading, loadMorePosts, loadMoreReviews]);
+  // استخدام Intersection Observer للـ Infinite Scroll
+  useEffect(() => {
+    if (!hasMorePosts || postsLoading || activeTab !== 'posts') return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMorePosts && !postsLoading) {
+          incrementPostsPage();
+          if (profileData?._id) {
+            fetchUserPosts(profileData._id, false);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    const sentinel = document.getElementById('posts-sentinel');
+    if (sentinel) observer.observe(sentinel);
+    
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [hasMorePosts, postsLoading, activeTab, profileData?._id, incrementPostsPage, fetchUserPosts]);
 
-  // Fetch profile data
+  useEffect(() => {
+    if (!hasMoreReviews || reviewsLoading || activeTab !== 'reviews') return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMoreReviews && !reviewsLoading) {
+          incrementReviewsPage();
+          if (profileData?._id) {
+            fetchUserReviews(profileData._id, reviews.length / 10 + 1, false);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    const sentinel = document.getElementById('reviews-sentinel');
+    if (sentinel) observer.observe(sentinel);
+    
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [hasMoreReviews, reviewsLoading, activeTab, profileData?._id, reviews.length, incrementReviewsPage, fetchUserReviews]);
+
   useEffect(() => {
     const loadProfile = async () => {
       clearProfileError();
@@ -491,30 +500,27 @@ const Profile = () => {
     };
     
     loadProfile();
+    loadBlockedUsers();
   }, [username, currentUser?._id, navigate]);
 
-  // Fetch posts when tab changes
   useEffect(() => {
     if (activeTab === 'posts' && profileData?._id && showPostsTab && initialLoadComplete) {
-      fetchUserPosts(profileData._id, true);
+      loadPosts(true);
     }
-  }, [activeTab, profileData?._id, showPostsTab, initialLoadComplete]);
+  }, [activeTab, profileData?._id, showPostsTab, initialLoadComplete, loadPosts]);
 
-  // Fetch reviews when tab changes
   useEffect(() => {
     if (activeTab === 'reviews' && profileData?._id && initialLoadComplete) {
-      fetchUserReviews(profileData._id, true);
+      loadReviews(true);
     }
-  }, [activeTab, profileData?._id, initialLoadComplete]);
+  }, [activeTab, profileData?._id, initialLoadComplete, loadReviews]);
 
-  // Show error
   useEffect(() => {
     if (profileError) {
       toast.error(profileError);
     }
   }, [profileError]);
 
-  // Show loading skeleton
   if (profileLoading && !profileData) {
     return <ProfileSkeleton />;
   }
@@ -534,16 +540,16 @@ const Profile = () => {
         <div className="text-center max-w-md mx-auto p-6">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('profile.errors.notFound')}
+            المستخدم غير موجود
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {t('profile.errors.userNotFound')}
+            عذراً، لم نتمكن من العثور على المستخدم المطلوب
           </p>
           <button
             onClick={() => navigate('/')}
             className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
-            {t('common.goHome')}
+            العودة للرئيسية
           </button>
         </div>
       </div>
@@ -555,8 +561,7 @@ const Profile = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          {/* Cover Image */}
-          <div className="h-32 relative bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
+          <div className="h-32 relative">
             <button
               onClick={() => navigate(-1)}
               className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-white/30 transition-colors"
@@ -566,7 +571,6 @@ const Profile = () => {
           </div>
 
           <div className="relative px-6 pb-6">
-            {/* Profile Image */}
             <div className="flex flex-col sm:flex-row items-start sm:items-end -mt-16 mb-4">
               <div className="relative mb-4 sm:mb-0 sm:ml-6 rtl:sm:mr-6">
                 <img
@@ -598,19 +602,14 @@ const Profile = () => {
                     </h1>
                     
                     <div className="flex flex-wrap items-center gap-3 mt-2">
-                      {/* Role Badge */}
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
                         ${profileData.role === 'artisan' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : ''}
                         ${profileData.role === 'worker' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}
                         ${profileData.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : ''}
                       `}>
-                        {profileData.role === 'artisan' && <Briefcase className="w-3 h-3 ml-1 rtl:mr-1" />}
-                        {profileData.role === 'worker' && <Wrench className="w-3 h-3 ml-1 rtl:mr-1" />}
-                        {profileData.role === 'client' && <User className="w-3 h-3 ml-1 rtl:mr-1" />}
-                        {t(`roles.${profileData.role}`)}
+                        {profileData.role === 'artisan' ? 'حرفي' : profileData.role === 'worker' ? 'عامل' : 'عميل'}
                       </span>
                       
-                      {/* Location */}
                       {profileData.location && (
                         <span className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
                           <MapPin className="w-4 h-4 ml-1 rtl:mr-1" />
@@ -618,7 +617,6 @@ const Profile = () => {
                         </span>
                       )}
                       
-                      {/* Join Date */}
                       <span className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
                         <Calendar className="w-4 h-4 ml-1 rtl:mr-1" />
                         {new Date(profileData.createdAt).toLocaleDateString('ar-DZ')}
@@ -626,63 +624,84 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex items-center gap-2">
                     {!isOwnProfile ? (
-                      <button
-                        onClick={handleMessage}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{t('profile.message')}</span>
-                      </button>
+                      <>
+                        <button
+                          onClick={handleMessage}
+                          disabled={isBlocked}
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                            isBlocked
+                              ? 'bg-gray-400 cursor-not-allowed text-white'
+                              : 'bg-primary-600 hover:bg-primary-700 text-white'
+                          }`}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{isBlocked ? 'محظور' : 'مراسلة'}</span>
+                        </button>
+                        
+                        {userExistingReview ? (
+                          <button
+                            onClick={() => setActiveTab('reviews')}
+                            className="px-4 py-2 bg-gray-500 text-white rounded-xl text-sm font-medium hover:bg-gray-600 transition-colors flex items-center gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span>عرض تقييمك</span>
+                          </button>
+                        ) : (
+                          !isBlocked && (
+                            <button
+                              onClick={() => setShowAddReviewModal(true)}
+                              className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-sm font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                            >
+                              <Star className="w-4 h-4" />
+                              <span>تقييم</span>
+                            </button>
+                          )
+                        )}
+                      </>
                     ) : (
                       <button
                         onClick={handleEditProfile}
                         className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        <span>{t('profile.editProfile')}</span>
+                        <span>تعديل الملف</span>
                       </button>
                     )}
                     
-                    {/* Share Button */}
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowShareMenu(!showShareMenu)}
-                        className="p-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                      >
-                        <Share2 className="w-5 h-5" />
-                      </button>
-                      
-                      {showShareMenu && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                          className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50`}
+                    {/* زر النقاط (القائمة المنسدلة) */}
+                    {!isOwnProfile && (
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowMoreMenu(!showMoreMenu)}
+                          className="p-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          disabled={blockingUser}
                         >
-                          <button
-                            onClick={handleShare}
-                            className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex items-center gap-2"
-                          >
-                            <LinkIcon className="w-4 h-4" />
-                            {t('profile.copyLink')}
-                          </button>
-                        </motion.div>
-                      )}
-                    </div>
+                          <MoreHorizontal className="w-5 h-5" />
+                        </button>
+                        
+                        <MoreMenu
+                          isOpen={showMoreMenu}
+                          onClose={closeMoreMenu}
+                          onShare={handleShare}
+                          onBlockToggle={openBlockConfirm}
+                          isBlocked={isBlocked}
+                          onReport={handleReportUser}
+                          isRTL={isRTL}
+                          blockingUser={blockingUser}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Bio */}
                 {profileData.bio && (
                   <p className="mt-4 text-gray-700 dark:text-gray-300 max-w-2xl">
                     {profileData.bio}
                   </p>
                 )}
 
-                {/* Stats */}
                 <div className="flex flex-wrap items-center gap-8 mt-6">
                   {showPostsTab && (
                     <button 
@@ -693,73 +712,44 @@ const Profile = () => {
                         {profileData.stats?.postsCount || 0}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('profile.stats.posts')}
+                        منشورات
                       </div>
                     </button>
                   )}
                   
-                  <div className="text-center">
+                  <button 
+                    onClick={() => setActiveTab('reviews')}
+                    className="text-center hover:opacity-80 transition-opacity"
+                  >
                     <div className="text-xl font-bold text-gray-900 dark:text-white">
-                      {profileData.stats?.rating || 0}
+                      {profileData.stats?.totalRatings || 0}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                       <Star className="w-3 h-3 text-yellow-500" />
-                      {t('profile.stats.rating')}
+                      تقييمات
                     </div>
-                  </div>
+                  </button>
                 </div>
 
-                {/* Contact Info */}
-                <AnimatePresence>
-                  {(showContactInfo || !isOwnProfile) && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-4 space-y-2 overflow-hidden"
-                    >
-                      {profileData.email && (isOwnProfile || profileData.privacy?.showEmail) && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="w-4 h-4 text-gray-500" />
-                          <a href={`mailto:${profileData.email}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
-                            {profileData.email}
-                          </a>
-                        </div>
-                      )}
-                      
-                      {profileData.phone && (isOwnProfile || profileData.privacy?.showPhone) && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="w-4 h-4 text-gray-500" />
-                          <a href={`tel:${profileData.phone}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
-                            {profileData.phone}
-                          </a>
-                        </div>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Professional Info */}
                 {profileData.role !== 'client' && profileData.professionalInfo && (
                   <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                     <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                       <Briefcase className="w-4 h-4" />
-                      {t('profile.professionalInfo')}
+                      المعلومات المهنية
                     </h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {profileData.role === 'artisan' && (
                         <>
                           <div className="flex items-center gap-2">
-                            <Wrench className="w-4 h-4 text-gray-500" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {t(`crafts.${profileData.professionalInfo.craft}`)}
+                              الحرفة: {profileData.professionalInfo.craft}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-gray-500" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {t('profile.experience')}: {t(`professional.experience.options.${profileData.professionalInfo.experience}`)}
+                              الخبرة: {profileData.professionalInfo.experience}
                             </span>
                           </div>
                         </>
@@ -770,13 +760,13 @@ const Profile = () => {
                           <div className="flex items-center gap-2">
                             <DollarSign className="w-4 h-4 text-gray-500" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {t('profile.dailyRate')}: {profileData.professionalInfo.dailyRate?.toLocaleString()} DZD
+                              السعر اليومي: {profileData.professionalInfo.dailyRate?.toLocaleString()} دج
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Award className="w-4 h-4 text-gray-500" />
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {t('profile.skillsCount', { count: profileData.professionalInfo.skills?.length || 0 })}
+                              {profileData.professionalInfo.skills?.length || 0} مهارة
                             </span>
                           </div>
                         </>
@@ -805,7 +795,7 @@ const Profile = () => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sticky top-0 bg-gray-50 dark:bg-gray-900 z-10">
           <nav className="flex space-x-8 rtl:space-x-reverse overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('about')}
@@ -816,7 +806,7 @@ const Profile = () => {
               }`}
             >
               <Info className="w-4 h-4" />
-              <span>{t('profile.tabs.about')}</span>
+              <span>نبذة</span>
             </button>
             
             {showPostsTab && (
@@ -829,7 +819,7 @@ const Profile = () => {
                 }`}
               >
                 <FileText className="w-4 h-4" />
-                <span>{t('profile.tabs.posts')}</span>
+                <span>المنشورات</span>
               </button>
             )}
             
@@ -842,206 +832,201 @@ const Profile = () => {
               }`}
             >
               <Star className="w-4 h-4" />
-              <span>{t('profile.tabs.reviews')}</span>
+              <span>التقييمات</span>
             </button>
           </nav>
         </div>
 
         {/* Tab Content */}
-        <div 
-          ref={postsContainerRef}
-          onScroll={handleScroll}
-          className="overflow-y-auto max-h-[calc(100vh-400px)]"
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* About Tab */}
-              {activeTab === 'about' && (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    {t('profile.about.title')}
-                  </h3>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* About Tab */}
+            {activeTab === 'about' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  نبذة عن المستخدم
+                </h3>
+                
+                <div className="space-y-6">
+                  {profileData.bio && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">السيرة الذاتية</h4>
+                      <p className="text-gray-700 dark:text-gray-300">{profileData.bio}</p>
+                    </div>
+                  )}
                   
-                  <div className="space-y-6">
-                    {profileData.bio && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('profile.about.bio')}</h4>
-                        <p className="text-gray-700 dark:text-gray-300">{profileData.bio}</p>
+                  {(profileData.email || profileData.phone || profileData.location) && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">معلومات الاتصال</h4>
+                      <div className="space-y-2">
+                        {profileData.email && (isOwnProfile || profileData.privacy?.showEmail) && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <a href={`mailto:${profileData.email}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
+                              {profileData.email}
+                            </a>
+                          </div>
+                        )}
+                        
+                        {profileData.phone && (isOwnProfile || profileData.privacy?.showPhone) && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <a href={`tel:${profileData.phone}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
+                              {profileData.phone}
+                            </a>
+                          </div>
+                        )}
+                        
+                        {profileData.location && (isOwnProfile || profileData.privacy?.showLocation) && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-700 dark:text-gray-300">{profileData.location}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    
-                    {(profileData.email || profileData.phone || profileData.location) && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('profile.about.contact')}</h4>
-                        <div className="space-y-2">
-                          {profileData.email && (isOwnProfile || profileData.privacy?.showEmail) && (
+                    </div>
+                  )}
+                  
+                  {profileData.role !== 'client' && profileData.professionalInfo && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">المعلومات المهنية</h4>
+                      <div className="space-y-2">
+                        {profileData.role === 'artisan' && (
+                          <>
                             <div className="flex items-center gap-2">
-                              <Mail className="w-4 h-4 text-gray-400" />
-                              <a href={`mailto:${profileData.email}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
-                                {profileData.email}
-                              </a>
+                              <Briefcase className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700 dark:text-gray-300">
+                                الحرفة: {profileData.professionalInfo.craft}
+                              </span>
                             </div>
-                          )}
-                          
-                          {profileData.phone && (isOwnProfile || profileData.privacy?.showPhone) && (
                             <div className="flex items-center gap-2">
-                              <Phone className="w-4 h-4 text-gray-400" />
-                              <a href={`tel:${profileData.phone}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
-                                {profileData.phone}
-                              </a>
+                              <Clock className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700 dark:text-gray-300">
+                                الخبرة: {profileData.professionalInfo.experience}
+                              </span>
                             </div>
-                          )}
-                          
-                          {profileData.location && (isOwnProfile || profileData.privacy?.showLocation) && (
+                          </>
+                        )}
+                        {profileData.role === 'worker' && (
+                          <>
                             <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700 dark:text-gray-300">{profileData.location}</span>
+                              <DollarSign className="w-4 h-4 text-gray-400" />
+                              <span className="text-gray-700 dark:text-gray-300">
+                                السعر اليومي: {profileData.professionalInfo.dailyRate?.toLocaleString()} دج
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {profileData.role !== 'client' && profileData.professionalInfo && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('profile.about.professional')}</h4>
-                        <div className="space-y-2">
-                          {profileData.role === 'artisan' && (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <Briefcase className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700 dark:text-gray-300">
-                                  {t('profile.about.craft')}: {t(`crafts.${profileData.professionalInfo.craft}`)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700 dark:text-gray-300">
-                                  {t('profile.about.experience')}: {t(`professional.experience.options.${profileData.professionalInfo.experience}`)}
-                                </span>
-                              </div>
-                            </>
-                          )}
-                          {profileData.role === 'worker' && (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4 text-gray-400" />
-                                <span className="text-gray-700 dark:text-gray-300">
-                                  {t('profile.about.dailyRate')}: {profileData.professionalInfo.dailyRate?.toLocaleString()} DZD
-                                </span>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <Wrench className="w-4 h-4 text-gray-400 mt-1" />
-                                <div>
-                                  <span className="text-gray-700 dark:text-gray-300 block mb-1">{t('profile.about.skills')}:</span>
-                                  <div className="flex flex-wrap gap-2">
-                                    {profileData.professionalInfo.skills?.map(skill => (
-                                      <span key={skill} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
-                                        {skill}
-                                      </span>
-                                    ))}
-                                  </div>
+                            <div className="flex items-start gap-2">
+                              <Wrench className="w-4 h-4 text-gray-400 mt-1" />
+                              <div>
+                                <span className="text-gray-700 dark:text-gray-300 block mb-1">المهارات:</span>
+                                <div className="flex flex-wrap gap-2">
+                                  {profileData.professionalInfo.skills?.map(skill => (
+                                    <span key={skill} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
+                                      {skill}
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
-                            </>
-                          )}
-                        </div>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t('profile.about.account')}</h4>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <AtSign className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-700 dark:text-gray-300">@{profileData.username}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {t('profile.joined', { date: new Date(profileData.createdAt).toLocaleDateString('ar-DZ') })}
-                          </span>
-                        </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">معلومات الحساب</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-700 dark:text-gray-300">
+                          انضم في {new Date(profileData.createdAt).toLocaleDateString('ar-DZ')}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Posts Tab */}
-              {activeTab === 'posts' && showPostsTab && (
-                <div className="space-y-4">
-                  {posts.length === 0 && !postsLoading && (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        {t('profile.posts.noPosts')}
-                      </h3>
-                      {isOwnProfile && canCreatePost && (
-                        <button
-                          onClick={handleCreatePost}
-                          className="mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
-                        >
-                          <PlusCircle className="w-5 h-5" />
-                          <span>{t('profile.posts.createFirst')}</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
+            {/* Posts Tab */}
+            {activeTab === 'posts' && showPostsTab && (
+              <div className="space-y-4">
+                {posts.length === 0 && !postsLoading && (
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
+                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      لا توجد منشورات
+                    </h3>
+                    {isOwnProfile && canCreatePost && (
+                      <button
+                        onClick={handleCreatePost}
+                        className="mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
+                      >
+                        <PlusCircle className="w-5 h-5" />
+                        <span>أنشئ منشورك الأول</span>
+                      </button>
+                    )}
+                  </div>
+                )}
 
-                  {postsLoading && posts.length === 0 && (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 animate-pulse">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                            <div className="flex-1">
-                              <div className="h-4 w-32 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
-                              <div className="h-3 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                            </div>
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            <div className="h-3 w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
-                            <div className="h-3 w-5/6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                {postsLoading && posts.length === 0 && (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 animate-pulse">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                          <div className="flex-1">
+                            <div className="h-4 w-32 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+                            <div className="h-3 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {posts.map(post => (
-                    <PostCard 
-                      key={post._id} 
-                      post={post} 
-                      onSave={() => {}}
-                      onLike={() => {}}
-                    />
-                  ))}
-                  
-                  {hasMorePosts && posts.length > 0 && (
-                    <div className="text-center py-4">
-                      <div className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">جاري التحميل...</span>
+                        <div className="mt-3 space-y-2">
+                          <div className="h-3 w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
+                          <div className="h-3 w-5/6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
 
-              {/* Reviews Tab */}
-              {activeTab === 'reviews' && (
-                <div className="space-y-6">
-                  {/* Stats */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-                    <div className="flex items-center gap-4">
+                {posts.map(post => (
+                  <PostCard 
+                    key={post._id} 
+                    post={post}
+                    onDelete={handlePostDelete}
+                  />
+                ))}
+                
+                <div id="posts-sentinel" className="h-10" />
+                
+                {postsLoading && posts.length > 0 && (
+                  <div className="text-center py-4">
+                    <Loader className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                  </div>
+                )}
+                
+                {!hasMorePosts && posts.length > 0 && (
+                  <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                    لقد وصلت إلى نهاية المنشورات
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reviews Tab */}
+            {activeTab === 'reviews' && (
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-4xl font-bold text-gray-900 dark:text-white">
                           {reviewsStats.average?.toFixed(1) || 0}
@@ -1050,93 +1035,105 @@ const Profile = () => {
                           {[1, 2, 3, 4, 5].map(star => (
                             <Star key={star} className={`w-4 h-4 ${
                               star <= Math.round(reviewsStats.average || 0)
-                                ? 'text-yellow-400 fill-current'
+                                ? 'text-yellow-500 fill-current'
                                 : 'text-gray-300 dark:text-gray-600'
                             }`} />
                           ))}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          ({reviewsStats.count || 0} تقييم)
+                          {reviewsStats.count || 0} تقييم
                         </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        {[5, 4, 3, 2, 1].map(rating => {
+                          const count = reviewsStats.distribution?.[rating] || 0;
+                          const percentage = reviewsStats.count > 0 
+                            ? (count / reviewsStats.count) * 100 
+                            : 0;
+                          return (
+                            <div key={rating} className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 dark:text-gray-400 w-6">
+                                {rating} ★
+                              </span>
+                              <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-yellow-500 rounded-full"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-500 w-8">
+                                {count}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
-
-                  {reviews.length === 0 && !reviewsLoading ? (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
-                      <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                        لا توجد تقييمات
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {isOwnProfile 
-                          ? 'لم يتم تقييمك بعد'
-                          : 'لا توجد تقييمات لهذا المستخدم'}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {reviews.map(review => (
-                        <div key={review._id} className="bg-white dark:bg-gray-800 rounded-xl shadow p-5">
-                          <div className="flex items-start gap-3">
-                            <Link to={`/profile/${review.reviewer?.username}`}>
-                              <img
-                                src={review.reviewer?.profileImage || defaultImgProfile}
-                                alt={review.reviewer?.username}
-                                className="w-10 h-10 rounded-full object-cover"
-                                onError={(e) => { e.target.src = defaultImgProfile; }}
-                              />
-                            </Link>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div>
-                                  <Link to={`/profile/${review.reviewer?.username}`} className="font-medium text-gray-900 dark:text-white hover:text-primary-600">
-                                    {review.reviewer?.username}
-                                  </Link>
-                                  <div className="flex items-center gap-1 mt-1">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                      <Star key={star} className={`w-3 h-3 ${
-                                        star <= review.rating
-                                          ? 'text-yellow-400 fill-current'
-                                          : 'text-gray-300 dark:text-gray-600'
-                                      }`} />
-                                    ))}
-                                  </div>
-                                </div>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(review.createdAt).toLocaleDateString('ar-DZ')}
-                                </span>
-                              </div>
-                              {review.comment && (
-                                <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
-                                  {review.comment}
-                                </p>
-                              )}
-                              {review.post && (
-                                <Link to={`/post/${review.post._id}`} className="mt-2 inline-block text-xs text-primary-600 hover:underline">
-                                  عرض المنشور
-                                </Link>
-                              )}
-                            </div>
+                </div>
+                
+                {reviewsLoading && reviews.length === 0 ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 animate-pulse">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                          <div className="flex-1">
+                            <div className="h-4 w-32 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+                            <div className="h-3 w-24 bg-gray-300 dark:bg-gray-600 rounded"></div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {hasMoreReviews && reviews.length > 0 && (
-                    <div className="text-center py-4">
-                      <div className="inline-flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <Loader className="w-4 h-4 animate-spin" />
-                        <span className="text-sm">جاري التحميل...</span>
+                        <div className="mt-3 space-y-2">
+                          <div className="h-3 w-full bg-gray-300 dark:bg-gray-600 rounded"></div>
+                          <div className="h-3 w-5/6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+                    ))}
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
+                    <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                      لا توجد تقييمات
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {isOwnProfile 
+                        ? 'لم يتم تقييمك بعد'
+                        : 'لا توجد تقييمات لهذا المستخدم'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map(review => (
+                      <div key={review._id} id={`review-${review._id}`}>
+                        <ReviewCard
+                          review={review}
+                          onDelete={deleteReview}
+                          onUpdate={updateReview}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div id="reviews-sentinel" className="h-10" />
+                
+                {reviewsLoading && reviews.length > 0 && (
+                  <div className="text-center py-4">
+                    <Loader className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                  </div>
+                )}
+                
+                {!hasMoreReviews && reviews.length > 0 && (
+                  <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                    لقد وصلت إلى نهاية التقييمات
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Image Modal */}
@@ -1175,6 +1172,36 @@ const Profile = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add Review Modal */}
+      <AddReviewModal
+        isOpen={showAddReviewModal}
+        onClose={() => {
+          setShowAddReviewModal(false);
+          loadReviews(true);
+        }}
+        reviewedUserId={profileData?._id}
+        reviewedUserName={profileData?.username}
+      />
+
+      {/* Confirmation Modal للحظر/إلغاء الحظر */}
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setConfirmAction(null);
+        }}
+        onConfirm={executeBlockAction}
+        title={confirmAction === 'block' ? 'حظر المستخدم' : 'إلغاء حظر المستخدم'}
+        message={
+          confirmAction === 'block'
+            ? `هل أنت متأكد من رغبتك في حظر المستخدم ${profileData?.username}؟\n\nبعد الحظر، لن تتمكن من رؤية منشوراته أو مراسلته.`
+            : `هل أنت متأكد من رغبتك في إلغاء حظر المستخدم ${profileData?.username}؟`
+        }
+        confirmText={confirmAction === 'block' ? 'حظر' : 'إلغاء الحظر'}
+        cancelText="إلغاء"
+        isDanger={confirmAction === 'block'}
+      />
     </div>
   );
 };

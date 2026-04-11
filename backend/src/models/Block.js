@@ -18,8 +18,9 @@ const blockSchema = new mongoose.Schema({
   }
 });
 
-// منع تكرار الحظر
+// فهرس مركب لمنع التكرار
 blockSchema.index({ blocker: 1, blocked: 1 }, { unique: true });
 
 const Block = mongoose.model('Block', blockSchema);
+
 export default Block;
