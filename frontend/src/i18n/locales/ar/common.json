@@ -8,7 +8,61 @@
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
-    "edit": "تعديل"
+    "edit": "تعديل",
+    "confirm": "تأكيد",
+    "saving": "جاري الحفظ...",
+    "goHome": "العودة للرئيسية",
+    "settings": "الإعدادات"
+  },
+  "time": {
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "daysAgo": "منذ {{count}} أيام",
+    "daysAgo_plural": "منذ {{count}} يوماً"
+  },
+  "currency": {
+    "dzd": "دج"
+  },
+  "postTypes": {
+    "serviceRequest": "طلب خدمة",
+    "jobOpportunity": "فرصة عمل"
+  },
+  "actions": {
+    "message": "مراسلة",
+    "deletePost": "حذف المنشور",
+    "goHome": "العودة للرئيسية"
+  },
+  "messages": {
+    "saved": "تم الحفظ",
+    "unsaved": "تم الإزالة",
+    "checking": "جاري التحقق...",
+    "interestInPost": "اهتمام بمنشورك",
+    "welcomeDetails": "نرحب بالتفاصيل",
+    "cannotMessage": "لا يمكنك مراسلة صاحب هذا المنشور",
+    "cannotShareWithSelf": "لا يمكنك مشاركة البوست مع نفسك",
+    "sharedPost": "شارك معك منشوراً",
+    "sharingWith": "جاري المشاركة مع {{name}}...",
+    "shareSuccess": "تمت المشاركة مع {{name}} بنجاح",
+    "shareFailed": "فشل في إرسال المشاركة",
+    "shareError": "حدث خطأ أثناء المشاركة",
+    "linkCopied": "تم نسخ رابط المنشور",
+    "copyLinkFailed": "فشل نسخ الرابط",
+    "deletingPost": "جاري حذف المنشور...",
+    "postDeleted": "تم حذف المنشور بنجاح",
+    "deleteFailed": "فشل حذف المنشور",
+    "deleteError": "حدث خطأ أثناء حذف المنشور",
+    "loadingPost": "جاري تحميل المنشور...",
+    "loadingConversations": "جاري تحميل المحادثات..."
+  },
+  "modals": {
+    "deletePostTitle": "حذف المنشور",
+    "deletePostMessage": "هل أنت متأكد من حذف المنشور \"{{title}}\"?\n\nلا يمكن التراجع عن هذا الإجراء.",
+    "delete": "حذف",
+    "sharePostTitle": "مشاركة المنشور",
+    "sharePostDescription": "اختر شخصاً لمشاركة المنشور معه",
+    "sendAsMessage": "أرسل كرسالة",
+    "noConversations": "لا توجد محادثات للمشاركة",
+    "copyLink": "نسخ رابط المنشور"
   },
   "nav": {
     "home": "الرئيسية",
@@ -22,32 +76,56 @@
     "logout": "تسجيل الخروج",
     "suggestedUsers": "مستخدمون مقترحون",
     "viewProfile": "عرض الملف الشخصي",
-    "createPost": "إنشاء منشور"
+    "createPost": "إنشاء منشور",
+    "security": "الأمان",
+    "privacy": "الخصوصية",
+    "appearance": "المظهر",
+    "language": "اللغة",
+    "blocked": "المستخدمون المحظورون"
   },
   "roles": {
     "client": "عميل",
     "artisan": "حرفي",
-    "worker": "عامل"
+    "worker": "عامل",
+    "both": "عميل وحرفي"
   },
   "suggestions": {
     "noUsers": "لا يوجد مستخدمون مقترحون"
   },
-  "messages": {
-    "title": "الرسائل",
-    "noConversations": "لا توجد محادثات",
-    "typeMessage": "اكتب رسالة...",
-    "online": "متصل",
-    "offline": "غير متصل",
-    "you": "أنت",
-    "errors": {
-      "fetchFailed": "فشل في جلب المحادثات",
-      "fetchMessagesFailed": "فشل في جلب الرسائل",
-      "sendFailed": "فشل في إرسال الرسالة",
-      "noConnection": "لا يوجد اتصال بالخادم"
-    }
+  "search": {
+    "defaultLocation": "الجزائر"
   },
-  "time": {
-    "yesterday": "أمس",
-    "today": "اليوم"
+  "loading": {
+    "loading": "جاري التحميل..."
+  },
+  "otp": {
+    "digitLabel": "رقم",
+    "of": "من",
+    "inputPlaceholder": "أدخل رمز التحقق المكون من {{length}} أرقام"
+  },
+  "languages": {
+    "arabic": "العربية",
+    "english": "الإنجليزية",
+    "french": "الفرنسية"
+  },
+  "errors": {
+    "blockedFetchError": "فشل في تحميل المستخدمين المحظورين",
+    "privacyUpdateError": "فشل في تحديث إعدادات الخصوصية",
+    "unblockError": "فشل في إلغاء حظر المستخدم",
+    "currentPasswordRequired": "كلمة المرور الحالية مطلوبة",
+    "passwordChangeError": "فشل في تغيير كلمة المرور",
+    "general": "حدث خطأ",
+    "loginRequired": "يجب تسجيل الدخول أولاً",
+    "loadPostFailed": "فشل في تحميل البوست",
+    "loadPostError": "حدث خطأ في تحميل البوست",
+    "loadConversations": "فشل في تحميل المحادثات",
+    "somethingWrong": "عذراً!",
+    "postNotFound": "المنشور غير موجود أو تم حذفه"
+  },
+  "success": {
+    "privacyUpdated": "تم تحديث إعدادات الخصوصية",
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+    "userUnblocked": "تم إلغاء حظر {{username}}",
+    "languageChanged": "تم تغيير اللغة إلى {{language}}"
   }
 }

@@ -84,6 +84,14 @@ style.textContent = `
     overflow-y: auto !important;
   }
 
+  .language-transition {
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .language-transition * {
+    transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out, padding 0.3s ease-in-out;
+  }
+
   .fade-enter {
     opacity: 0;
   }
@@ -106,34 +114,64 @@ style.textContent = `
     --tw-space-x-reverse: 1;
   }
 
+  /* إصلاحات RTL المحسنة للـ Inputs */
+  [dir="rtl"] .input-with-icon-left {
+    padding-right: 2.75rem !important;
+    padding-left: 1rem !important;
+  }
+  
+  [dir="rtl"] .input-with-icon-right {
+    padding-left: 2.75rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  [dir="ltr"] .input-with-icon-left {
+    padding-left: 2.75rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  [dir="ltr"] .input-with-icon-right {
+    padding-right: 2.75rem !important;
+    padding-left: 1rem !important;
+  }
+  
+  /* مواضع الأيقونات في RTL/LTR */
   [dir="rtl"] .icon-left {
-    right: 0.75rem;
+    right: 0.875rem;
     left: auto;
   }
   
   [dir="rtl"] .icon-right {
-    left: 0.75rem;
+    left: 0.875rem;
     right: auto;
   }
   
   [dir="ltr"] .icon-left {
-    left: 0.75rem;
+    left: 0.875rem;
     right: auto;
   }
   
   [dir="ltr"] .icon-right {
-    right: 0.75rem;
+    right: 0.875rem;
     left: auto;
   }
-
-  .input-with-icon-left {
-    padding-left: 2.5rem !important;
-    padding-right: 1rem !important;
+  
+  /* توجيه النص في الحقول */
+  [dir="rtl"] input {
+    text-align: right;
   }
   
-  [dir="rtl"] .input-with-icon-left {
-    padding-right: 2.5rem !important;
-    padding-left: 1rem !important;
+  [dir="ltr"] input {
+    text-align: left;
+  }
+  
+  input {
+    text-overflow: ellipsis;
+  }
+  
+  input::placeholder {
+    opacity: 0.7;
+    font-size: 0.875rem;
   }
 `;
 document.head.appendChild(style);
@@ -142,7 +180,7 @@ const Login = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
-  // ✅ استخدام Zustand store
+  // استخدام Zustand store
   const { 
     login, 
     isLoading, 
@@ -150,17 +188,16 @@ const Login = () => {
     lockTimeRemaining,
     loginAttempts,
     isAuthenticated,
-    user,
-    isRTL, 
-    isTransitioning, 
-    direction, 
-    changeLanguage 
+    user
   } = useStore();
 
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isRTL, setIsRTL] = useState(i18n.language === 'ar');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -178,14 +215,14 @@ const Login = () => {
   const passwordInputRef = useRef(null);
   const formRef = useRef(null);
 
-  // ✅ توجيه المستخدم إذا كان مسجل الدخول بالفعل
+  // توجيه المستخدم إذا كان مسجل الدخول بالفعل
   useEffect(() => {
     if (isAuthenticated && user) {
       navigate('/');
     }
   }, [isAuthenticated, user, navigate]);
 
-  // ✅ إظهار تأثير النجاح عند نجاح تسجيل الدخول
+  // إظهار تأثير النجاح عند نجاح تسجيل الدخول
   useEffect(() => {
     if (isAuthenticated) {
       setShowSuccessAnimation(true);
@@ -198,9 +235,28 @@ const Login = () => {
     }
   }, [isAuthenticated]);
 
+  // معالجة تغيير اللغة
   useEffect(() => {
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-  }, [isRTL]);
+    const handleLanguageChange = () => {
+      const newIsRTL = i18n.language === 'ar';
+      if (newIsRTL !== isRTL) {
+        setIsTransitioning(true);
+        setIsRTL(newIsRTL);
+        
+        document.documentElement.dir = newIsRTL ? 'rtl' : 'ltr';
+        document.documentElement.lang = i18n.language;
+        
+        document.body.classList.add('language-transition');
+        
+        setTimeout(() => {
+          document.body.classList.remove('language-transition');
+          setIsTransitioning(false);
+        }, 300);
+      }
+    };
+
+    handleLanguageChange();
+  }, [i18n.language, isRTL]);
 
   useEffect(() => {
     if (emailInputRef.current) {
@@ -306,21 +362,19 @@ const Login = () => {
       return;
     }
     
-    // ✅ إخفاء animation قبل البدء
+    // إخفاء animation قبل البدء
     setShowSuccessAnimation(false);
     
-    // ✅ استدعاء دالة login
+    // استدعاء دالة login
     const result = await login(formData.email, formData.password);
     
     if (!result?.success) {
       // التحقق من نوع الخطأ
       const error = result?.error || '';
-      console.log('Login error:', error); // للتأكد من وصول الخطأ
+      console.log('Login error:', error);
       
-      // محاكاة أخطاء مختلفة للتجربة (يمكن إزالتها في الإنتاج)
-      // للاختبار: إذا كان البريد الإلكتروني "test@test.com" نعرض خطأ في البريد
+      // محاكاة أخطاء مختلفة للتجربة
       if (formData.email === 'test@test.com' || error.includes('email') || error.includes('بريد')) {
-        // خطأ في البريد الإلكتروني - نطهر الحقل ونظهر الخطأ تحته
         setLoginError({ 
           field: 'email', 
           message: t('login.errors.emailNotFound') || 'البريد الإلكتروني غير صحيح أو غير موجود'
@@ -330,9 +384,7 @@ const Login = () => {
           emailInputRef.current.focus();
         }
       } 
-      // للاختبار: إذا كانت كلمة المرور "wrong" نعرض خطأ في كلمة المرور
       else if (formData.password === 'wrong' || error.includes('password') || error.includes('كلمة المرور')) {
-        // خطأ في كلمة المرور - نطهر الحقل ونظهر الخطأ تحته
         setLoginError({ 
           field: 'password', 
           message: t('login.errors.invalidPassword') || 'كلمة المرور غير صحيحة'
@@ -342,7 +394,6 @@ const Login = () => {
           passwordInputRef.current.focus();
         }
       } else {
-        // خطأ عام
         setErrorMessage(error || t('login.errors.invalidCredentials'));
       }
     }
@@ -354,17 +405,30 @@ const Login = () => {
     { code: 'ar', name: 'العربية' }
   ];
 
-  const changeLanguageWithAnimation = (lng) => {
+  const changeLanguage = (lng) => {
     if (lng === i18n.language) return;
     
-    const langOrder = ['en', 'fr', 'ar'];
+    setIsTransitioning(true);
+    
+    const langOrder = ['ar', 'fr', 'en'];
     const currentIndex = langOrder.indexOf(i18n.language);
     const newIndex = langOrder.indexOf(lng);
-    const newDirection = newIndex > currentIndex ? 1 : -1;
+    setDirection(newIndex > currentIndex ? 1 : -1);
     
     setShowLanguageMenu(false);
     
-    changeLanguage(lng, newDirection);
+    setTimeout(() => {
+      i18n.changeLanguage(lng);
+      localStorage.setItem('i18nextLng', lng);
+      
+      const langButton = document.querySelector('.language-button');
+      if (langButton) {
+        langButton.classList.add('scale-110');
+        setTimeout(() => {
+          langButton.classList.remove('scale-110');
+        }, 200);
+      }
+    }, 50);
   };
 
   const languageSwitchVariants = {
@@ -423,7 +487,7 @@ const Login = () => {
       dir={isRTL ? 'rtl' : 'ltr'}
       lang={i18n.language}
     >
-      {/* Language Switcher - مطابق لتصميم صفحة Register */}
+      {/* Language Switcher - مطابق تماماً لصفحة Register */}
       <div 
         ref={languageButtonRef}
         className={`fixed top-4 z-50 ${isRTL ? 'left-4' : 'right-4'}`}
@@ -458,7 +522,7 @@ const Login = () => {
                 {languages.map((lang) => (
                   <motion.button
                     key={lang.code}
-                    onClick={() => changeLanguageWithAnimation(lang.code)}
+                    onClick={() => changeLanguage(lang.code)}
                     className={`w-full text-left rtl:text-right px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 rtl:space-x-reverse ${
                       i18n.language === lang.code ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-200'
                     }`}
@@ -481,7 +545,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Error Notification تحت - للأخطاء العامة فقط */}
+      {/* Error Notification - للأخطاء العامة فقط */}
       <AnimatePresence>
         {showError && (
           <motion.div
@@ -547,22 +611,24 @@ const Login = () => {
                   exit="exit"
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Header */}
+                  {/* Header with Logo and App Name */}
                   <div className="text-center mb-8">
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="inline-flex p-3 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl mb-4"
+                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                      className="flex flex-col items-center justify-center"
                     >
-                      <User className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+                      <img 
+                        src="/logo.jpg" 
+                        alt="Handys Logo" 
+                        className="w-20 h-20 object-cover rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
+                      />
+                      
+                      <h1 className="mt-3 text-3xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent dark:from-primary-400 dark:to-primary-600">
+                        Handys
+                      </h1>
                     </motion.div>
-                    
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                      {t('login.title')}
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {t('login.subtitle')}
-                    </p>
                   </div>
 
                   {/* Lock Warning */}
@@ -606,7 +672,7 @@ const Login = () => {
                           value={formData.email}
                           onChange={handleChange}
                           onKeyDown={handleKeyDown}
-                          className={`w-full input-with-icon-left py-3 text-gray-100 text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
+                          className={`w-full input-with-icon-left py-3 text-gray-900 dark:text-white text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
                             ${validationErrors.email || loginError.field === 'email'
                               ? 'border-red-500 focus:border-red-500' 
                               : formData.email && !validationErrors.email && loginError.field !== 'email'
@@ -636,7 +702,7 @@ const Login = () => {
                           value={formData.password}
                           onChange={handleChange}
                           onKeyDown={handleKeyDown}
-                          className={`w-full input-with-icon-left py-3 text-gray-100 text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
+                          className={`w-full input-with-icon-left py-3 text-gray-900 dark:text-white text-base bg-white dark:bg-gray-700 border rounded-lg outline-none transition-colors
                             ${validationErrors.password || loginError.field === 'password'
                               ? 'border-red-500 focus:border-red-500' 
                               : formData.password && !validationErrors.password && loginError.field !== 'password'
@@ -689,7 +755,7 @@ const Login = () => {
                       </label>
                       
                       <Link
-                        to="/forgot-password"
+                        to="/password-reset"
                         className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
                       >
                         {t('login.buttons.forgotPassword')}

@@ -52,11 +52,10 @@ const ReviewCard = ({ review, onDelete, onUpdate }) => {
   };
   
   const handleDelete = async () => {
-    if (window.confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
-      const result = await onDelete(review._id);
-      if (result.success) {
-        toast.success('تم حذف التقييم');
-      }
+    // استدعاء onDelete مباشرة بدون confirm أو popup
+    const result = await onDelete(review._id);
+    if (result?.success) {
+      toast.success('تم حذف التقييم');
     }
   };
   

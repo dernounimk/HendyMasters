@@ -1,0 +1,47 @@
+{
+  "notifications": {
+    "title": "الإشعارات",
+    "unreadCount": "{{count}} إشعار غير مقروء",
+    "unreadCount_plural": "{{count}} إشعارات غير مقروءة",
+    "markAllAsRead": "تعليم الكل كمقروء",
+    "loadingMore": "جاري تحميل المزيد...",
+    "endOfList": "لقد وصلت إلى نهاية الإشعارات",
+    "filter": {
+      "all": "جميع الإشعارات",
+      "unread": "غير المقروءة"
+    },
+    "empty": {
+      "noNotifications": "لا توجد إشعارات",
+      "noUnread": "لا توجد إشعارات غير مقروءة",
+      "description": "ستظهر الإشعارات هنا عندما يتفاعل معك أحدهم",
+      "noUnreadDescription": "ليس لديك إشعارات غير مقروءة حالياً"
+    },
+    "time": {
+      "justNow": "الآن",
+      "minutesAgo": "منذ {{count}} دقيقة",
+      "minutesAgo_plural": "منذ {{count}} دقائق",
+      "hoursAgo": "منذ {{count}} ساعة",
+      "hoursAgo_plural": "منذ {{count}} ساعات",
+      "yesterday": "أمس",
+      "daysAgo": "منذ {{count}} يوم",
+      "daysAgo_plural": "منذ {{count}} أيام"
+    },
+    "actions": {
+      "markAsRead": "تعليم كمقروء",
+      "delete": "حذف",
+      "viewDetails": "عرض التفاصيل"
+    },
+    "toasts": {
+      "markedAsRead": "تم تعليم الإشعار كمقروء",
+      "allMarkedAsRead": "تم تعليم جميع الإشعارات كمقروءة",
+      "deleted": "تم حذف الإشعار",
+      "noUnread": "لا توجد إشعارات غير مقروءة"
+    },
+    "errors": {
+      "fetchFailed": "فشل في تحميل الإشعارات",
+      "markAsReadFailed": "فشل في تعليم الإشعار كمقروء",
+      "markAllFailed": "فشل في تعليم الإشعارات كمقروءة",
+      "deleteFailed": "فشل في حذف الإشعار"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "createPost": {
+    "title": "عنوان البوست",
+    "description": "وصف العمل",
+    "budget": "الميزانية",
+    "location": "الموقع",
+    "image": "الصورة",
+    "optional": "(اختياري)",
+    "preview": "معاينة البوست",
+    "previewAlt": "معاينة البوست",
+    "uploadedImageAlt": "الصورة المرفوعة",
+    "imageUploaded": "صورة مرفوعة",
+    "clickToUpload": "انقر لرفع الصورة أو اسحبها هنا",
+    "imageRequirements": "يمكنك رفع صورة واحدة فقط، حجم الصورة لا يتجاوز 5MB",
+    "postingAs": "أنت تقوم بالنشر كـ",
+    "success": "تم إنشاء البوست بنجاح!",
+    "postTypes": {
+      "serviceRequest": "طلب خدمة",
+      "serviceRequestDesc": "أنت تبحث عن حرفي لتنفيذ خدمة معينة",
+      "jobOpportunity": "فرصة عمل",
+      "jobOpportunityDesc": "أنت تبحث عن عمال أو مساعدين للعمل معك"
+    },
+    "roleDescription": {
+      "client": "يمكنك فقط إنشاء طلبات خدمة",
+      "artisan": "يمكنك فقط إنشاء فرص عمل",
+      "both": "يمكنك إنشاء طلبات خدمة وفرص عمل"
+    },
+    "steps": {
+      "basicInfo": "المعلومات الأساسية",
+      "jobDetails": "تفاصيل العمل",
+      "image": "الصورة"
+    },
+    "placeholders": {
+      "titleService": "مثال: أحتاج كهربائي لتركيب أسلاك المنزل",
+      "titleJob": "مثال: مطلوب عمال مساعدين لمشروع بناء",
+      "description": "صف العمل المطلوب بالتفصيل... (الموقع، الوقت، المتطلبات)",
+      "budget": "المبلغ بالدينار الجزائري",
+      "location": "الولاية أو المدينة"
+    },
+    "errors": {
+      "titleRequired": "العنوان مطلوب",
+      "titleMinLength": "العنوان يجب أن يكون 5 أحرف على الأقل",
+      "descriptionRequired": "الوصف مطلوب",
+      "descriptionMinLength": "الوصف يجب أن يكون 20 حرفاً على الأقل",
+      "budgetInvalid": "الميزانية غير صالحة",
+      "budgetMin": "الميزانية يجب أن تكون 1000 دج على الأقل",
+      "locationRequired": "الموقع مطلوب",
+      "invalidImageType": "يرجى اختيار ملف صورة فقط",
+      "imageTooLarge": "حجم الصورة كبير جداً. الحد الأقصى 5MB",
+      "fillAllFields": "يرجى إكمال جميع الحقول المطلوبة",
+      "failed": "فشل إنشاء البوست"
+    }
+  },
+  "createStep": {
+    "previous": "السابق",
+    "next": "التالي",
+    "posting": "جاري النشر...",
+    "publish": "نشر البوست"
+  }
+}

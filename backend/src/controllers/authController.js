@@ -1,4 +1,3 @@
-// backend/src/controllers/authController.js
 import crypto from 'crypto';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
@@ -12,7 +11,62 @@ const generateToken = (id) => {
   });
 };
 
-// ============== دوال إعادة تعيين كلمة المرور بالرمز ==============
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'كلمة المرور الحالية والجديدة مطلوبة'
+      });
+    }
+    
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل'
+      });
+    }
+    
+    const user = await User.findById(req.user.id).select('+password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'المستخدم غير موجود'
+      });
+    }
+    
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'كلمة المرور الحالية غير صحيحة'
+      });
+    }
+    
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    user.password = hashedPassword;
+    user.passwordChangedAt = Date.now();
+    await user.save({ validateBeforeSave: false });
+    
+    res.status(200).json({
+      success: true,
+      message: 'تم تغيير كلمة المرور بنجاح'
+    });
+    
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'حدث خطأ في تغيير كلمة المرور'
+    });
+  }
+};
+
 export const requestResetCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -29,33 +83,39 @@ export const requestResetCode = async (req, res) => {
     const user = await User.findOne({ email, isActive: true });
     
     if (!user) {
-      console.log(`⚠️ Reset code requested for non-existent email: ${email}`);
+      // لأسباب أمنية، لا نخبر المستخدم أن البريد غير موجود
       return res.status(200).json({
         success: true,
         message: 'إذا كان البريد الإلكتروني موجوداً، سيتم إرسال رمز التحقق'
       });
     }
     
-    // إنشاء رمز جديد
+    // إنشاء رمز جديد باستخدام دالة النموذج
     const code = user.createResetCode();
-    
-    // حفظ المستخدم مع تجنب تشغيل middleware
     await user.save({ validateBeforeSave: false });
     
-    // عرض الرمز في الكونسول للتطوير
     console.log(`💡 [DEV] Reset code for ${user.email}: ${code}`);
+    console.log(`⏰ Expires at: ${user.resetCodeExpires}`);
     
-    // إرسال الرمز عبر البريد
+    // محاولة إرسال البريد الإلكتروني (اختياري)
+    let emailSent = false;
     try {
       await sendResetCode(user.email, user.username, code);
-      console.log(`✅ Reset code sent to: ${user.email}`);
+      emailSent = true;
+      console.log(`✅ Email sent to: ${user.email}`);
     } catch (emailError) {
-      console.error('❌ Error sending email:', emailError);
+      console.error('❌ Email sending failed:', emailError.message);
     }
+    
+    // ✅ في بيئة التطوير، نرسل الرمز في الرد لتسهيل الاختبار
+    const isDevelopment = process.env.NODE_ENV === 'development';
     
     res.status(200).json({
       success: true,
-      message: 'إذا كان البريد الإلكتروني موجوداً، سيتم إرسال رمز التحقق'
+      message: emailSent 
+        ? 'تم إرسال رمز التحقق إلى بريدك الإلكتروني'
+        : 'تم إنشاء رمز التحقق (تحقق من وحدة التحكم)',
+      ...(isDevelopment && { devCode: code }) // إرسال الرمز في الرد للتطوير فقط
     });
     
   } catch (error) {
@@ -107,7 +167,6 @@ export const verifyResetCode = async (req, res) => {
       });
     }
     
-    // ✅ لا تمسح الرمز هنا، فقط تحقق من صحته
     res.status(200).json({
       success: true,
       valid: true,
@@ -141,8 +200,7 @@ export const resetPasswordWithCode = async (req, res) => {
       });
     }
     
-    // ✅ استرجاع المستخدم مع الرمز
-    const user = await User.findOne({ email, isActive: true }).select('+resetCode +resetCodeExpires');
+    const user = await User.findOne({ email, isActive: true }).select('+resetCode +resetCodeExpires +password');
     
     if (!user) {
       return res.status(400).json({
@@ -161,7 +219,7 @@ export const resetPasswordWithCode = async (req, res) => {
       });
     }
     
-    // ✅ تشفير كلمة المرور يدوياً
+    // تشفير كلمة المرور الجديدة
     const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
     
@@ -213,7 +271,7 @@ export const login = async (req, res) => {
       });
     }
     
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.comparePassword(password);
     
     if (!isMatch) {
       return res.status(401).json({
@@ -230,17 +288,11 @@ export const login = async (req, res) => {
     }
     
     // تحديث آخر تسجيل دخول
-    await User.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          loginAttempts: 0,
-          lockUntil: null,
-          isOnline: true,
-          lastSeen: new Date()
-        }
-      }
-    );
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    user.isOnline = true;
+    user.lastSeen = new Date();
+    await user.save({ validateBeforeSave: false });
     
     const token = generateToken(user._id);
     
@@ -253,7 +305,8 @@ export const login = async (req, res) => {
           email: user.email,
           role: user.role,
           profileImage: user.profileImage,
-          isOnline: true
+          isOnline: true,
+          stats: user.stats
         },
         token
       }
@@ -358,7 +411,7 @@ export const getMe = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: { user }
+      data: user
     });
   } catch (error) {
     res.status(500).json({
@@ -384,40 +437,7 @@ export const updateProfile = async (req, res) => {
     
     res.status(200).json({
       success: true,
-      data: { user }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
-
-export const changePassword = async (req, res) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    
-    const user = await User.findById(req.user.id).select('+password');
-    
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'كلمة المرور الحالية غير صحيحة'
-      });
-    }
-    
-    const salt = await bcrypt.genSalt(12);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
-    user.password = hashedPassword;
-    user.passwordChangedAt = Date.now();
-    await user.save({ validateBeforeSave: false });
-    
-    res.status(200).json({
-      success: true,
-      message: 'تم تغيير كلمة المرور بنجاح'
+      data: user
     });
   } catch (error) {
     res.status(500).json({
@@ -501,8 +521,6 @@ export const forgotPassword = async (req, res) => {
     user.passwordResetToken = resetToken;
     user.passwordResetExpires = Date.now() + 3600000;
     await user.save({ validateBeforeSave: false });
-    
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
     
     res.status(200).json({
       success: true,

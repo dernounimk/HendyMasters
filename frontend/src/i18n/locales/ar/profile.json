@@ -1,0 +1,92 @@
+{
+  "profile": {
+    "title": "الملف الشخصي",
+    "edit": {
+      "title": "تعديل الملف الشخصي",
+      "clickToChangeAvatar": "اضغط لتغيير الصورة الشخصية",
+      "username": "اسم المستخدم",
+      "usernamePlaceholder": "أدخل اسم المستخدم",
+      "usernameChangeAvailable": "يمكنك تغيير اسم المستخدم الآن",
+      "usernameChangeNote": "يمكنك تغيير اسم المستخدم مرة واحدة كل 15 يوماً",
+      "usernameChangeWait": "يمكنك تغيير اسم المستخدم بعد {{days}} يوماً",
+      "usernameRequired": "اسم المستخدم مطلوب",
+      "usernameLength": "اسم المستخدم يجب أن يكون بين 3 و 30 حرفاً",
+      "usernameInvalidChars": "اسم المستخدم يمكن أن يحتوي فقط على أحرف وأرقام وشرطة سفلية",
+      "email": "البريد الإلكتروني",
+      "emailNote": "لن يتم عرض بريدك الإلكتروني للآخرين إلا إذا سمحت بذلك في إعدادات الخصوصية",
+      "phone": "رقم الهاتف",
+      "phoneRequired": "رقم الهاتف مطلوب",
+      "phoneNote": "لن يتم عرض رقم هاتفك للآخرين إلا إذا سمحت بذلك في إعدادات الخصوصية",
+      "bio": "السيرة الذاتية",
+      "bioPlaceholder": "اكتب نبذة عن نفسك...",
+      "location": "الموقع",
+      "privacy": "إعدادات الخصوصية",
+      "showEmail": "عرض البريد الإلكتروني للآخرين",
+      "showPhone": "عرض رقم الهاتف للآخرين",
+      "showLocation": "عرض الموقع للآخرين",
+      "showOnlineStatus": "عرض حالة الاتصال",
+      "avatarTooLarge": "حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت",
+      "invalidImageType": "نوع الملف غير صالح. يرجى اختيار صورة",
+      "avatarRemoved": "تم حذف الصورة الشخصية بنجاح",
+      "confirmRemoveAvatarTitle": "حذف الصورة الشخصية",
+      "confirmRemoveAvatarMessage": "هل أنت متأكد من حذف الصورة الشخصية؟",
+      "confirmCancelTitle": "إلغاء التعديلات",
+      "confirmCancelMessage": "هل أنت متأكد من إلغاء التعديلات؟ سيتم فقدان جميع التغييرات غير المحفوظة.",
+      "success": "تم تحديث الملف الشخصي بنجاح",
+      "error": "حدث خطأ أثناء تحديث الملف الشخصي",
+      "noChanges": "لا توجد تغييرات لحفظها"
+    },
+    "tabs": {
+      "about": "نبذة",
+      "posts": "المنشورات",
+      "reviews": "التقييمات"
+    },
+    "about": {
+      "title": "نبذة عن المستخدم",
+      "bio": "السيرة الذاتية",
+      "contactInfo": "معلومات الاتصال",
+      "professionalInfo": "المعلومات المهنية",
+      "accountInfo": "معلومات الحساب",
+      "joinedAt": "انضم في {{date}}",
+      "craft": "الحرفة",
+      "experience": "الخبرة",
+      "dailyRate": "السعر اليومي",
+      "skills": "المهارات",
+      "noBio": "لا توجد سيرة ذاتية",
+      "noContactInfo": "لا توجد معلومات اتصال متاحة"
+    },
+    "posts": {
+      "noPosts": "لا توجد منشورات",
+      "createFirst": "أنشئ منشورك الأول",
+      "endOfPosts": "لقد وصلت إلى نهاية المنشورات"
+    },
+    "reviews": {
+      "noReviews": "لا توجد تقييمات",
+      "noReviewsForUser": "لا توجد تقييمات لهذا المستخدم",
+      "notRatedYet": "لم يتم تقييمك بعد",
+      "endOfReviews": "لقد وصلت إلى نهاية التقييمات",
+      "averageRating": "متوسط التقييم",
+      "totalReviews": "تقييم",
+      "totalReviews_plural": "تقييمات",
+      "distribution": "توزيع التقييمات"
+    },
+    "actions": {
+      "message": "مراسلة",
+      "blocked": "محظور",
+      "viewYourReview": "عرض تقييمك",
+      "rate": "تقييم",
+      "editProfile": "تعديل الملف",
+      "shareProfile": "مشاركة الملف الشخصي",
+      "copyLink": "نسخ الرابط",
+      "linkCopied": "تم نسخ الرابط",
+      "blockUser": "حظر المستخدم",
+      "unblockUser": "إلغاء حظر المستخدم",
+      "reportUser": "الإبلاغ عن المستخدم",
+      "reportSoon": "سيتم إضافة خاصية الإبلاغ قريباً"
+    },
+    "errors": {
+      "notFound": "الملف الشخصي غير موجود",
+      "fetchFailed": "فشل في تحميل الملف الشخصي"
+    }
+  }
+}

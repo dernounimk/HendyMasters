@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "إدارة حسابك وتفضيلاتك الشخصية",
+    "tabs": {
+      "profile": "الملف الشخصي",
+      "security": "الأمان",
+      "privacy": "الخصوصية",
+      "appearance": "المظهر",
+      "language": "اللغة",
+      "blocked": "المستخدمون المحظورون"
+    },
+    "security": {
+      "changePassword": "تغيير كلمة المرور",
+      "currentPassword": "كلمة المرور الحالية",
+      "newPassword": "كلمة المرور الجديدة",
+      "confirmPassword": "تأكيد كلمة المرور الجديدة",
+      "changePasswordBtn": "تغيير كلمة المرور",
+      "passwordMismatch": "كلمة المرور الجديدة غير متطابقة",
+      "passwordTooShort": "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+      "currentPasswordRequired": "كلمة المرور الحالية مطلوبة",
+      "passwordChangeSuccess": "تم تغيير كلمة المرور بنجاح",
+      "passwordChangeError": "فشل تغيير كلمة المرور"
+    },
+    "privacy": {
+      "title": "إعدادات الخصوصية",
+      "showEmail": "إظهار البريد الإلكتروني",
+      "showEmailDesc": "عرض بريدك الإلكتروني في الملف الشخصي",
+      "showPhone": "إظهار رقم الهاتف",
+      "showPhoneDesc": "عرض رقم هاتفك في الملف الشخصي",
+      "showLocation": "إظهار الموقع",
+      "showLocationDesc": "عرض موقعك في الملف الشخصي",
+      "showOnlineStatus": "إظهار حالة الاتصال",
+      "showOnlineStatusDesc": "عرض ما إذا كنت متصلاً أم لا",
+      "save": "حفظ الإعدادات",
+      "updateSuccess": "تم تحديث إعدادات الخصوصية",
+      "updateError": "فشل تحديث الخصوصية"
+    },
+    "appearance": {
+      "title": "المظهر",
+      "light": "فاتح",
+      "lightDesc": "وضع النهار",
+      "dark": "داكن",
+      "darkDesc": "وضع الليل"
+    },
+    "language": {
+      "title": "اللغة",
+      "changed": "تم تغيير اللغة إلى العربية"
+    },
+    "blocked": {
+      "title": "المستخدمون المحظورون",
+      "noUsers": "لا يوجد مستخدمون محظورون",
+      "noUsersDesc": "عند حظر مستخدم، سيظهر هنا",
+      "unblock": "إلغاء الحظر",
+      "unblockSuccess": "تم إلغاء حظر {username}",
+      "unblockError": "فشل إلغاء الحظر",
+      "fetchError": "فشل في جلب قائمة المحظورين"
+    }
+  }
+}

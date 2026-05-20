@@ -1,3 +1,4 @@
+// frontend/src/pages/Messages.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -12,8 +13,210 @@ import {
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
 
-// مكون Popup التأكيد المخصص
+// إضافة CSS مخصص لصفحة الرسائل
+const messagesStyle = document.createElement('style');
+messagesStyle.textContent = `
+  /* ==================== الوضع الفاتح ==================== */
+  .messages-glass-container {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+  
+  .messages-conversation-item {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(203, 213, 225, 0.4);
+    transition: all 0.3s ease;
+    border-radius: 16px;
+  }
+  
+  .messages-conversation-item:hover {
+    background: rgba(255, 255, 255, 1) !important;
+    border-color: #2563eb !important;
+    transform: translateX(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+  }
+  
+  .messages-conversation-active {
+    background: rgba(59, 130, 246, 0.12) !important;
+    border-left: 3px solid #2563eb !important;
+  }
+  
+  .messages-chat-header {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(203, 213, 225, 0.6);
+  }
+  
+  .messages-bubble-sent {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  }
+  
+  .messages-bubble-received {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(203, 213, 225, 0.6);
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  
+  .messages-input-container {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(203, 213, 225, 0.6);
+  }
+  
+  .messages-input {
+    background: rgba(243, 244, 246, 0.8) !important;
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    border-radius: 24px;
+    transition: all 0.3s ease;
+  }
+  
+  .messages-input:focus {
+    background: rgba(255, 255, 255, 1) !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  .messages-send-btn {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+  }
+  
+  .messages-send-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  
+  .messages-glass-container *,
+  .messages-conversation-item * {
+    color: #000000 !important;
+  }
+  
+  .messages-bubble-received,
+  .messages-bubble-received * {
+    color: #000000 !important;
+  }
+  
+  .messages-bubble-sent,
+  .messages-bubble-sent * {
+    color: #ffffff !important;
+  }
+  
+  .messages-bubble-sent .text-xs {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  .messages-conversation-item .text-gray-500,
+  .messages-conversation-item .text-xs {
+    color: #4b5563 !important;
+  }
+  
+  /* ==================== الوضع المظلم ==================== */
+  .dark .messages-glass-container {
+    background: rgba(17, 24, 39, 0.75) !important;
+    border-color: rgba(75, 85, 99, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark .messages-conversation-item {
+    background: rgba(31, 41, 55, 0.6) !important;
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+  
+  .dark .messages-conversation-item:hover {
+    background: rgba(31, 41, 55, 0.85) !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .dark .messages-conversation-active {
+    background: rgba(59, 130, 246, 0.2) !important;
+    border-left-color: #3b82f6 !important;
+  }
+  
+  .dark .messages-chat-header {
+    background: rgba(31, 41, 55, 0.85) !important;
+    border-bottom-color: rgba(75, 85, 99, 0.4);
+  }
+  
+  .dark .messages-bubble-sent {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  }
+  
+  .dark .messages-bubble-received {
+    background: rgba(55, 65, 81, 0.9) !important;
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+  
+  .dark .messages-bubble-received,
+  .dark .messages-bubble-received * {
+    color: #ffffff !important;
+  }
+  
+  .dark .messages-input-container {
+    background: rgba(31, 41, 55, 0.85) !important;
+    border-top-color: rgba(75, 85, 99, 0.4);
+  }
+  
+  .dark .messages-input {
+    background: rgba(55, 65, 81, 0.8) !important;
+    border-color: rgba(75, 85, 99, 0.5);
+    color: #ffffff !important;
+  }
+  
+  .dark .messages-input:focus {
+    background: rgba(55, 65, 81, 1) !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .dark .messages-glass-container * {
+    color: #ffffff !important;
+  }
+  
+  .dark .messages-conversation-item .text-gray-500,
+  .dark .messages-conversation-item .text-xs {
+    color: #9ca3af !important;
+  }
+  
+  /* سكرول مخصص */
+  .messages-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .messages-scroll::-webkit-scrollbar-track {
+    background: rgba(203, 213, 225, 0.2);
+    border-radius: 10px;
+  }
+  
+  .messages-scroll::-webkit-scrollbar-thumb {
+    background: rgba(37, 99, 235, 0.4);
+    border-radius: 10px;
+  }
+  
+  .messages-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(37, 99, 235, 0.6);
+  }
+  
+  .dark .messages-scroll::-webkit-scrollbar-track {
+    background: rgba(75, 85, 99, 0.2);
+  }
+  
+  .dark .messages-scroll::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.4);
+  }
+`;
+document.head.appendChild(messagesStyle);
+
+// مكون Popup التأكيد
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -48,7 +251,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
               onClick={onClose}
               className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
             >
-              {cancelText || 'إلغاء'}
+              {cancelText || t('common.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -58,7 +261,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
                   : 'bg-gray-600 hover:bg-gray-700 text-white'
               }`}
             >
-              {confirmText || 'تأكيد'}
+              {confirmText || t('common.confirm')}
             </button>
           </div>
         </div>
@@ -68,10 +271,12 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
 };
 
 const Messages = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { conversationId } = useParams();
   const navigate = useNavigate();
   const { user, token, isAuthenticated, fetchBlockedUsers } = useStore();
+  
+  const isRTL = i18n.language === 'ar';
   
   // State
   const [conversations, setConversations] = useState([]);
@@ -90,10 +295,8 @@ const Messages = () => {
   const [deletingConversation, setDeletingConversation] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [isBlocked, setIsBlocked] = useState(false);
-  
-  // State للـ Popup التأكيد
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'delete', 'block', 'unblock'
+  const [confirmAction, setConfirmAction] = useState(null);
   
   // Refs
   const messagesContainerRef = useRef(null);
@@ -102,7 +305,6 @@ const Messages = () => {
   const inputRef = useRef(null);
   const isInitialLoadRef = useRef(true);
   
-  // تعريف otherUser
   const otherUser = currentConversation?.participants?.find(p => p._id !== user?._id);
   const isUserOnline = onlineUsers.some(u => u.id === otherUser?._id);
   const isTyping = Object.values(typingUsers).length > 0;
@@ -133,23 +335,14 @@ const Messages = () => {
   
   // جلب المحادثات
   const fetchConversations = useCallback(async () => {
-    if (!isSocketConnected) {
-      console.log('Socket not connected, waiting...');
-      return;
-    }
-    
-    console.log('📋 Fetching conversations...');
+    if (!isSocketConnected) return;
     
     socketService.emit('conversations:fetch', { page: 1, limit: 50 }, (response) => {
-      console.log('📋 Conversations response:', response);
-      
       if (response?.success) {
         let conversationsList = response.data || [];
-        
         const filteredConversations = conversationsList.filter(conv => {
           const other = conv.participants?.find(p => p._id !== user?._id);
           if (!other) return false;
-          if (other._id === user?._id) return false;
           return !blockedUsers.some(blocked => blocked._id === other._id);
         });
         
@@ -159,8 +352,6 @@ const Messages = () => {
           const conv = filteredConversations.find(c => c._id === conversationId);
           if (conv) selectConversation(conv);
         }
-      } else {
-        console.error('Error fetching conversations:', response?.message);
       }
     });
   }, [isSocketConnected, user, blockedUsers, conversationId, currentConversation]);
@@ -209,11 +400,11 @@ const Messages = () => {
       }
     } catch (error) {
       if (error.response?.status === 403) {
-        toast.error('غير مصرح لك بالوصول إلى هذه المحادثة');
+        toast.error(t('messages.errors.unauthorized'));
         setConversations(prev => prev.filter(conv => conv._id !== convId));
         navigate('/messages');
       } else {
-        toast.error('فشل في جلب الرسائل');
+        toast.error(t('messages.errors.fetchMessagesFailed'));
       }
     } finally {
       setLoading(false);
@@ -222,14 +413,13 @@ const Messages = () => {
     }
   };
   
-  // دالة التمرير للأسفل
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   };
   
-  // دالة عرض محتوى الرسالة مع زر قابل للنقر
+  // عرض محتوى الرسالة
   const renderMessageContent = (content) => {
     if (!content) return null;
     
@@ -254,7 +444,7 @@ const Messages = () => {
             <Link
               key={`link-${idx}`}
               to={`/post/${postId}`}
-              className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-[#0095f6] hover:bg-[#0081d6] text-white text-sm font-semibold rounded-lg transition-all duration-200"
+              className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-all duration-200"
               onClick={(e) => e.stopPropagation()}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -262,7 +452,7 @@ const Messages = () => {
                 <polyline points="15 3 21 3 21 9"/>
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
-              عرض المنشور
+              {t('messages.actions.viewPost')}
             </Link>
           );
         } else {
@@ -272,14 +462,14 @@ const Messages = () => {
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-[#0095f6] hover:bg-[#0081d6] text-white text-sm font-semibold rounded-lg transition-all duration-200"
+              className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-all duration-200"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                 <polyline points="15 3 21 3 21 9"/>
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
-              فتح الرابط
+              {t('messages.actions.openLink')}
             </a>
           );
         }
@@ -315,12 +505,12 @@ const Messages = () => {
   // إرسال رسالة
   const sendMessage = async () => {
     if (!newMessage.trim() || sending || !isSocketConnected) {
-      if (!isSocketConnected) toast.error('لا يوجد اتصال بالخادم');
+      if (!isSocketConnected) toast.error(t('messages.errors.noConnection'));
       return;
     }
     
     if (isBlocked) {
-      toast.error('لا يمكنك إرسال رسالة لمستخدم محظور');
+      toast.error(t('messages.errors.cannotMessageBlocked'));
       return;
     }
     
@@ -355,26 +545,23 @@ const Messages = () => {
         ));
       } else {
         setMessages(prev => prev.filter(msg => msg._id !== tempId));
-        toast.error(response?.message || 'فشل في إرسال الرسالة');
+        toast.error(response?.message || t('messages.errors.sendFailed'));
         setNewMessage(content);
       }
       setSending(false);
     });
   };
   
-  // التمرير للأعلى لتحميل المزيد
   const handleScroll = useCallback(() => {
     if (!messagesContainerRef.current) return;
     
     const { scrollTop } = messagesContainerRef.current;
     
     if (scrollTop <= 50 && !loadingMore && hasMore && !loading && currentConversation && !isInitialLoadRef.current) {
-      console.log('📋 Loading more messages, page:', page);
       fetchMessages(currentConversation._id, false, page);
     }
   }, [loadingMore, hasMore, loading, currentConversation, page, fetchMessages]);
   
-  // حدث الكتابة
   const handleTyping = () => {
     if (!currentConversation || !isSocketConnected || isBlocked) return;
     if (!otherUser) return;
@@ -395,25 +582,20 @@ const Messages = () => {
     }, 2000);
   };
   
-  // فتح Popup تأكيد حذف المحادثة
   const openDeleteConfirm = () => {
     setConfirmAction('delete');
     setShowConfirmModal(true);
   };
   
-  // فتح Popup تأكيد حظر المستخدم
   const openBlockConfirm = () => {
     setConfirmAction(isBlocked ? 'unblock' : 'block');
     setShowConfirmModal(true);
   };
   
-  // اختيار محادثة
   const selectConversation = (conversation) => {
-    console.log('📨 Selecting conversation:', conversation._id);
-    
     const other = conversation.participants?.find(p => p._id !== user?._id);
     if (other && blockedUsers.some(blocked => blocked._id === other._id)) {
-      toast.error('لا يمكنك الوصول إلى هذه المحادثة، المستخدم محظور');
+      toast.error(t('messages.errors.conversationBlocked'));
       setConversations(prev => prev.filter(conv => conv._id !== conversation._id));
       return;
     }
@@ -427,7 +609,6 @@ const Messages = () => {
     navigate(`/messages/${conversation._id}`);
   };
   
-  // حذف المحادثة بعد التأكيد
   const executeDeleteConversation = async () => {
     if (!currentConversation) return;
     
@@ -435,15 +616,15 @@ const Messages = () => {
     try {
       const response = await api.delete(`/messages/conversations/${currentConversation._id}`);
       if (response.data.success) {
-        toast.success('تم حذف المحادثة بنجاح');
+        toast.success(t('messages.toasts.conversationDeleted'));
         setConversations(prev => prev.filter(conv => conv._id !== currentConversation._id));
         setCurrentConversation(null);
         navigate('/messages');
       } else {
-        toast.error(response.data.message || 'فشل حذف المحادثة');
+        toast.error(response.data.message || t('messages.errors.deleteFailed'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حذف المحادثة');
+      toast.error(error.response?.data?.message || t('messages.errors.deleteFailed'));
     } finally {
       setDeletingConversation(false);
       setShowConfirmModal(false);
@@ -451,39 +632,36 @@ const Messages = () => {
     }
   };
   
-  // حظر مستخدم بعد التأكيد
   const executeBlockUser = async () => {
     if (!otherUser) return;
     
     setBlockingUser(true);
     try {
       if (confirmAction === 'unblock') {
-        // إلغاء الحظر
         const response = await api.delete(`/users/block/${otherUser._id}`);
         if (response.data.success) {
-          toast.success(`تم إلغاء حظر المستخدم ${otherUser.username}`);
+          toast.success(t('messages.toasts.userUnblocked', { username: otherUser.username }));
           await loadBlockedUsers();
           setIsBlocked(false);
           await fetchConversations();
         } else {
-          toast.error(response.data.message || 'فشل إلغاء الحظر');
+          toast.error(response.data.message || t('messages.errors.unblockFailed'));
         }
       } else {
-        // حظر المستخدم
         const response = await api.post(`/users/block/${otherUser._id}`);
         if (response.data.success) {
-          toast.success(`تم حظر المستخدم ${otherUser.username} بنجاح`);
+          toast.success(t('messages.toasts.userBlocked', { username: otherUser.username }));
           await loadBlockedUsers();
           setConversations(prev => prev.filter(conv => conv._id !== currentConversation._id));
           setCurrentConversation(null);
           setIsBlocked(true);
           navigate('/messages');
         } else {
-          toast.error(response.data.message || 'فشل حظر المستخدم');
+          toast.error(response.data.message || t('messages.errors.blockFailed'));
         }
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء معالجة الحظر');
+      toast.error(error.response?.data?.message || t('messages.errors.blockFailed'));
     } finally {
       setBlockingUser(false);
       setShowConfirmModal(false);
@@ -491,7 +669,6 @@ const Messages = () => {
     }
   };
   
-  // تنفيذ الإجراء حسب نوع التأكيد
   const handleConfirmAction = () => {
     if (confirmAction === 'delete') {
       executeDeleteConversation();
@@ -500,41 +677,38 @@ const Messages = () => {
     }
   };
   
-  // الحصول على نص رسالة التأكيد
   const getConfirmModalProps = () => {
     if (confirmAction === 'delete') {
       return {
-        title: 'حذف المحادثة',
-        message: `هل أنت متأكد من رغبتك في حذف هذه المحادثة؟\n\nسيتم حذف جميع الرسائل ولا يمكن استعادتها.`,
-        confirmText: 'حذف',
+        title: t('messages.modals.deleteTitle'),
+        message: t('messages.modals.deleteMessage'),
+        confirmText: t('messages.modals.delete'),
         isDanger: true
       };
     } else if (confirmAction === 'block') {
       return {
-        title: 'حظر المستخدم',
-        message: `هل أنت متأكد من رغبتك في حظر المستخدم ${otherUser?.username}؟\n\nبعد الحظر، لن تتمكن من رؤية منشوراته أو مراسلته.`,
-        confirmText: 'حظر',
+        title: t('messages.modals.blockTitle'),
+        message: t('messages.modals.blockMessage', { username: otherUser?.username }),
+        confirmText: t('messages.modals.block'),
         isDanger: true
       };
     } else if (confirmAction === 'unblock') {
       return {
-        title: 'إلغاء حظر المستخدم',
-        message: `هل أنت متأكد من رغبتك في إلغاء حظر المستخدم ${otherUser?.username}؟`,
-        confirmText: 'إلغاء الحظر',
+        title: t('messages.modals.unblockTitle'),
+        message: t('messages.modals.unblockMessage', { username: otherUser?.username }),
+        confirmText: t('messages.modals.unblock'),
         isDanger: false
       };
     }
     return {};
   };
   
-  // التمرير عند إضافة رسائل جديدة
   useEffect(() => {
     if (!loading && !loadingMore && messages.length > 0 && !isInitialLoadRef.current) {
       scrollToBottom();
     }
   }, [messages, loading, loadingMore]);
   
-  // تأثيرات Socket
   useEffect(() => {
     const handleNewMessage = (data) => {
       if (isBlocked) return;
@@ -603,16 +777,19 @@ const Messages = () => {
     }
   }, [isSocketConnected]);
   
-  // دوال مساعدة
   const formatTime = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
     const diff = now - date;
     const hours = diff / (1000 * 60 * 60);
-    if (hours < 24) return date.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
-    if (hours < 48) return 'أمس';
-    return date.toLocaleDateString('ar-DZ');
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (hours < 24) return date.toLocaleTimeString(isRTL ? 'ar-DZ' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+    if (date.toDateString() === yesterday.toDateString()) return t('messages.time.yesterday');
+    return date.toLocaleDateString(isRTL ? 'ar-DZ' : 'en-US');
   };
   
   const getReadStatus = (message) => {
@@ -626,207 +803,329 @@ const Messages = () => {
   const modalProps = getConfirmModalProps();
   
   return (
-    <div style={{ height: '100%', display: 'flex', padding: '0' }} className="bg-gray-50 dark:bg-gray-900">
-      {/* قائمة المحادثات */}
-      <div className={`w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col ${currentConversation ? 'hidden sm:flex' : 'flex'}`}>
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" /> الرسائل
-            </h2>
-            {isSocketConnected ? <Wifi className="w-4 h-4 text-green-500" /> : <WifiOff className="w-4 h-4 text-red-500" />}
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-              <MessageCircle className="w-12 h-12 text-gray-400 mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">لا توجد محادثات</p>
-              <Link to="/explore" className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700">ابحث عن أشخاص</Link>
-            </div>
-          ) : (
-            conversations.map(conv => {
-              const other = conv.participants?.find(p => p._id !== user?._id);
-              if (!other) return null;
-              const isOnline = onlineUsers.some(u => u.id === other._id);
-              const lastMessage = conv.lastMessage;
-              const unread = conv.unreadCount || 0;
-              return (
-                <div key={conv._id} onClick={() => selectConversation(conv)} className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors ${currentConversation?._id === conv._id ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}>
-                  <div className="flex items-center gap-3">
-                    <div className="relative flex-shrink-0">
-                      <img src={other.profileImage || defaultImgProfile} alt={other.username} className="w-12 h-12 rounded-full object-cover" onError={(e) => e.target.src = defaultImgProfile} />
-                      {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">{other.username}</p>
-                        {lastMessage && <span className="text-xs text-gray-500">{formatTime(lastMessage.createdAt)}</span>}
-                      </div>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-sm text-gray-500 truncate">{lastMessage?.sender?._id === user?._id ? 'أنت: ' : ''}{lastMessage?.content?.substring(0, 50) || 'لا توجد رسائل'}</p>
-                        {unread > 0 && <span className="bg-primary-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center px-1.5">{unread > 99 ? '99+' : unread}</span>}
-                      </div>
-                    </div>
+    <div className="h-full">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="messages-glass-container h-full"
+      >
+        <div className="flex h-full">
+          {/* قائمة المحادثات */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`w-80 border-l border-gray-200 dark:border-gray-700 flex flex-col ${currentConversation ? 'hidden sm:flex' : 'flex'}`}
+          >
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <MessageCircle className="w-5 h-5 text-white" />
                   </div>
+                  <h2 className="text-lg font-semibold">{t('messages.title')}</h2>
                 </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-      
-      {/* نافذة المحادثة */}
-      <div className={`flex-1 flex flex-col bg-white dark:bg-gray-800 ${!currentConversation ? 'hidden sm:flex' : 'flex'}`}>
-        {currentConversation && otherUser ? (
-          <>
-            {/* رأس المحادثة */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <button onClick={() => navigate('/messages')} className="sm:hidden p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft className="w-5 h-5" /></button>
-                <div className="flex items-center gap-3">
-                  <img src={otherUser.profileImage || defaultImgProfile} alt={otherUser.username} className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{otherUser.username}</p>
-                    <p className="text-xs text-gray-500">{isUserOnline ? 'متصل' : 'غير متصل'}</p>
+                {isSocketConnected ? (
+                  <div className="flex items-center gap-1 text-green-500">
+                    <Wifi className="w-4 h-4" />
+                    <span className="text-xs hidden sm:inline">{t('messages.status.online')}</span>
                   </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={openDeleteConfirm} disabled={deletingConversation} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600" title="حذف المحادثة">
-                  <Trash2 className="w-5 h-5" />
-                </button>
-                {isBlocked ? (
-                  <button onClick={openBlockConfirm} disabled={blockingUser} className="p-2 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors text-green-600" title="إلغاء الحظر">
-                    <Ban className="w-5 h-5" />
-                  </button>
                 ) : (
-                  <button onClick={openBlockConfirm} disabled={blockingUser} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600" title="حظر المستخدم">
-                    <Ban className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1 text-red-500">
+                    <WifiOff className="w-4 h-4" />
+                    <span className="text-xs hidden sm:inline">{t('messages.status.offline')}</span>
+                  </div>
                 )}
               </div>
             </div>
             
-            {/* رسالة الحظر */}
-            {isBlocked && (
-              <div className="bg-red-50 dark:bg-red-900/20 p-4 text-center border-b border-red-200 dark:border-red-800 flex-shrink-0">
-                <ShieldAlert className="w-6 h-6 text-red-500 mx-auto mb-2" />
-                <p className="text-red-600 dark:text-red-400 font-medium">لقد قمت بحظر هذا المستخدم</p>
-                <p className="text-red-500 dark:text-red-300 text-sm mt-1">لا يمكنك إرسال أو استقبال رسائل من هذا المستخدم</p>
-              </div>
-            )}
-            
-            {/* حاوية الرسائل - مع minHeight: 0 لإصلاح السكرول */}
-            <div 
-              ref={messagesContainerRef}
-              onScroll={handleScroll}
-              className="flex-1"
-              style={{ 
-                overflowY: 'auto',
-                padding: '1rem',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                minHeight: 0
-              }}
-            >
-              {loadingMore && (
-                <div className="flex justify-center py-2">
-                  <Loader className="w-5 h-5 animate-spin text-gray-400" />
-                  <span className="text-xs text-gray-400 mr-2">جاري تحميل المزيد...</span>
-                </div>
-              )}
-              
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <Loader className="w-8 h-8 animate-spin text-primary-500" />
-                </div>
-              ) : messages.length === 0 ? (
-                <div className="flex justify-center py-8 text-gray-500">
-                  <p>لا توجد رسائل بعد، ابدأ المحادثة</p>
+            <div className="flex-1 overflow-y-auto messages-scroll p-2">
+              {conversations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full flex items-center justify-center mb-4">
+                    <MessageCircle className="w-10 h-10 text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">{t('messages.empty.noConversations')}</p>
+                  <Link 
+                    to="/explore" 
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-300"
+                  >
+                    {t('messages.empty.findPeople')}
+                  </Link>
                 </div>
               ) : (
-                <>
-                  {messages.map((message, index) => {
-                    const isOwn = message.sender?._id === user?._id;
-                    const showAvatar = index === 0 || messages[index - 1]?.sender?._id !== message.sender?._id;
-                    return (
-                      <div key={message._id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`flex ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[75%]`}>
-                          {!isOwn && showAvatar && (
-                            <img 
-                              src={message.sender?.profileImage || defaultImgProfile} 
-                              alt="" 
-                              className="w-8 h-8 rounded-full object-cover flex-shrink-0" 
-                            />
+                conversations.map((conv, index) => {
+                  const other = conv.participants?.find(p => p._id !== user?._id);
+                  if (!other) return null;
+                  const isOnline = onlineUsers.some(u => u.id === other._id);
+                  const lastMessage = conv.lastMessage;
+                  const unread = conv.unreadCount || 0;
+                  return (
+                    <motion.div
+                      key={conv._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      onClick={() => selectConversation(conv)} 
+                      className={`messages-conversation-item p-3 mb-2 cursor-pointer transition-all duration-300 ${
+                        currentConversation?._id === conv._id ? 'messages-conversation-active' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-shrink-0">
+                          <img 
+                            src={other.profileImage || defaultImgProfile} 
+                            alt={other.username} 
+                            className="w-12 h-12 rounded-full object-cover border-2 border-blue-200 dark:border-blue-800"
+                            onError={(e) => e.target.src = defaultImgProfile} 
+                          />
+                          {isOnline && (
+                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
                           )}
-                          {!isOwn && !showAvatar && <div className="w-8 flex-shrink-0" />}
-                          <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-full`}>
-                            <div className={`px-4 py-2 rounded-2xl break-words max-w-full ${isOwn ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'}`}>
-                              {renderMessageContent(message.content)}
-                            </div>
-                            <div className={`flex items-center gap-1 mt-1 text-xs text-gray-500 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                              <span>{formatTime(message.createdAt)}</span>
-                              {isOwn && getReadStatus(message)}
-                            </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold truncate">{other.username}</p>
+                            {lastMessage && (
+                              <span className="text-xs opacity-70">{formatTime(lastMessage.createdAt)}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-sm opacity-70 truncate">
+                              {lastMessage?.sender?._id === user?._id ? `${t('messages.you')}: ` : ''}
+                              {lastMessage?.content?.substring(0, 50) || t('messages.empty.noMessages')}
+                            </p>
+                            {unread > 0 && (
+                              <span className="bg-blue-500 text-white text-xs font-medium min-w-[20px] h-5 rounded-full flex items-center justify-center px-1.5">
+                                {unread > 99 ? '99+' : unread}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
-                  {isTyping && !isBlocked && (
-                    <div className="flex justify-start">
-                      <div className="flex items-end gap-2">
-                        <img src={otherUser.profileImage || defaultImgProfile} alt="" className="w-8 h-8 rounded-full object-cover" />
-                        <div className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-2xl">
-                          <div className="flex gap-1">
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </>
+                    </motion.div>
+                  );
+                })
               )}
             </div>
-            
-            {/* حقل إدخال الرسالة */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <input 
-                  ref={inputRef}
-                  type="text" 
-                  value={newMessage} 
-                  onChange={(e) => setNewMessage(e.target.value)} 
-                  onKeyPress={(e) => e.key === 'Enter' && !isBlocked && sendMessage()} 
-                  onKeyUp={isBlocked ? undefined : handleTyping} 
-                  placeholder={isBlocked ? "لا يمكنك إرسال رسائل لمستخدم محظور" : "اكتب رسالة..."} 
-                  disabled={isBlocked}
-                  className="flex-1 py-2 px-4 bg-gray-100 dark:bg-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
-                />
-                <button 
-                  onClick={sendMessage} 
-                  disabled={!newMessage.trim() || sending || !isSocketConnected || isBlocked} 
-                  className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          </motion.div>
+          
+          {/* نافذة المحادثة */}
+          <div className={`flex-1 flex flex-col ${!currentConversation ? 'hidden sm:flex' : 'flex'}`}>
+            {currentConversation && otherUser ? (
+              <>
+                {/* رأس المحادثة */}
+                <div className="messages-chat-header p-4 flex items-center justify-between flex-shrink-0">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => navigate('/messages')} 
+                      className="sm:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-300"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <Link 
+                      to={`/profile/${otherUser.username}`} 
+                      className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-300"
+                    >
+                      <div className="relative">
+                        <img 
+                          src={otherUser.profileImage || defaultImgProfile} 
+                          alt={otherUser.username} 
+                          className="w-11 h-11 rounded-full object-cover border-2 border-blue-500"
+                          onError={(e) => e.target.src = defaultImgProfile} 
+                        />
+                        {isUserOnline && (
+                          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold hover:text-blue-600 transition-colors">
+                          {otherUser.username}
+                        </p>
+                        <p className="text-xs opacity-70">
+                          {isUserOnline ? t('messages.status.online') : t('messages.status.offline')}
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={openDeleteConfirm} 
+                      disabled={deletingConversation} 
+                      className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300 text-red-600"
+                      title={t('messages.actions.deleteConversation')}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    
+                    {isBlocked ? (
+                      <button 
+                        onClick={openBlockConfirm} 
+                        disabled={blockingUser} 
+                        className="p-2.5 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-xl transition-all duration-300 text-green-600"
+                        title={t('messages.actions.unblockUser')}
+                      >
+                        <Ban className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={openBlockConfirm} 
+                        disabled={blockingUser} 
+                        className="p-2.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-300 text-red-600"
+                        title={t('messages.actions.blockUser')}
+                      >
+                        <Ban className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                {/* رسالة الحظر */}
+                <AnimatePresence>
+                  {isBlocked && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="bg-red-50 dark:bg-red-900/20 p-4 text-center border-b border-red-200 dark:border-red-800 flex-shrink-0"
+                    >
+                      <ShieldAlert className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                      <p className="text-red-600 dark:text-red-400 font-medium">{t('messages.blocked.title')}</p>
+                      <p className="text-red-500 dark:text-red-300 text-sm mt-1">{t('messages.blocked.description')}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                {/* حاوية الرسائل */}
+                <div 
+                  ref={messagesContainerRef}
+                  onScroll={handleScroll}
+                  className="flex-1 messages-scroll"
+                  style={{ 
+                    overflowY: 'auto',
+                    padding: '1rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    minHeight: 0
+                  }}
                 >
-                  <Send className="w-5 h-5" />
-                </button>
+                  {loadingMore && (
+                    <div className="flex justify-center py-2">
+                      <div className="w-6 h-6 border-2 border-blue-200 dark:border-blue-800 border-t-blue-600 rounded-full animate-spin" />
+                      <span className="text-xs mr-2 opacity-70">{t('messages.loadingMore')}</span>
+                    </div>
+                  )}
+                  
+                  {loading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="w-10 h-10 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 rounded-full animate-spin" />
+                    </div>
+                  ) : messages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-center opacity-70">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full flex items-center justify-center mb-4">
+                        <MessageCircle className="w-8 h-8 text-blue-500" />
+                      </div>
+                      <p>{t('messages.empty.startConversation')}</p>
+                    </div>
+                  ) : (
+                    <>
+                      {messages.map((message, index) => {
+                        const isOwn = message.sender?._id === user?._id;
+                        const showAvatar = index === 0 || messages[index - 1]?.sender?._id !== message.sender?._id;
+                        return (
+                          <div key={message._id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`flex ${isOwn ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[80%]`}>
+                              {!isOwn && showAvatar && (
+                                <img 
+                                  src={message.sender?.profileImage || defaultImgProfile} 
+                                  alt="" 
+                                  className="w-8 h-8 rounded-full object-cover border border-blue-200 dark:border-blue-800 flex-shrink-0" 
+                                  onError={(e) => e.target.src = defaultImgProfile}
+                                />
+                              )}
+                              {!isOwn && !showAvatar && <div className="w-8 flex-shrink-0" />}
+                              <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-full`}>
+                                <div className={`px-4 py-2.5 break-words max-w-full ${
+                                  isOwn ? 'messages-bubble-sent text-white' : 'messages-bubble-received'
+                                }`}>
+                                  {renderMessageContent(message.content)}
+                                </div>
+                                <div className={`flex items-center gap-1 mt-1 text-xs opacity-60 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                                  <span>{formatTime(message.createdAt)}</span>
+                                  {isOwn && getReadStatus(message)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {isTyping && !isBlocked && (
+                        <div className="flex justify-start">
+                          <div className="flex items-end gap-2">
+                            <img 
+                              src={otherUser.profileImage || defaultImgProfile} 
+                              alt="" 
+                              className="w-8 h-8 rounded-full object-cover" 
+                              onError={(e) => e.target.src = defaultImgProfile}
+                            />
+                            <div className="messages-bubble-received px-4 py-2.5">
+                              <div className="flex gap-1">
+                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </>
+                  )}
+                </div>
+                
+                {/* حقل إدخال الرسالة */}
+                <div className="messages-input-container p-4 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      ref={inputRef}
+                      type="text" 
+                      value={newMessage} 
+                      onChange={(e) => setNewMessage(e.target.value)} 
+                      onKeyPress={(e) => e.key === 'Enter' && !isBlocked && sendMessage()} 
+                      onKeyUp={isBlocked ? undefined : handleTyping} 
+                      placeholder={isBlocked ? t('messages.input.blockedPlaceholder') : t('messages.input.placeholder')} 
+                      disabled={isBlocked}
+                      className="messages-input flex-1 py-3 px-5 text-sm focus:outline-none transition-all duration-300 disabled:opacity-50"
+                    />
+                    <button 
+                      onClick={sendMessage} 
+                      disabled={!newMessage.trim() || sending || !isSocketConnected || isBlocked} 
+                      className="messages-send-btn p-3 text-white disabled:opacity-50 transition-all duration-300"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {!isSocketConnected && (
+                    <p className="text-xs text-red-500 mt-2 text-center">
+                      ⚠️ {t('messages.errors.noConnection')}
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30 rounded-full flex items-center justify-center mb-5">
+                  <MessageCircle className="w-12 h-12 text-blue-500 dark:text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{t('messages.empty.selectConversation')}</h3>
+                <p className="opacity-70">{t('messages.empty.selectDescription')}</p>
               </div>
-              {!isSocketConnected && <p className="text-xs text-red-500 mt-2 text-center">لا يوجد اتصال بالخادم</p>}
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <MessageCircle className="w-16 h-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">اختر محادثة</h3>
-            <p className="text-gray-500">اختر محادثة من القائمة للبدء في المراسلة</p>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </motion.div>
       
       {/* Confirmation Modal */}
       <ConfirmationModal
@@ -839,7 +1138,7 @@ const Messages = () => {
         title={modalProps.title}
         message={modalProps.message}
         confirmText={modalProps.confirmText}
-        cancelText="إلغاء"
+        cancelText={t('common.cancel')}
         isDanger={modalProps.isDanger}
       />
     </div>

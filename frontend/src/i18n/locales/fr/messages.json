@@ -1,0 +1,64 @@
+{
+  "messages": {
+    "title": "Messages",
+    "you": "Vous",
+    "loadingMore": "Chargement...",
+    "time": {
+      "yesterday": "Hier"
+    },
+    "status": {
+      "online": "En ligne",
+      "offline": "Hors ligne"
+    },
+    "input": {
+      "placeholder": "Écrivez un message...",
+      "blockedPlaceholder": "Vous ne pouvez pas envoyer de messages à un utilisateur bloqué"
+    },
+    "empty": {
+      "noConversations": "Aucune conversation",
+      "noMessages": "Aucun message",
+      "startConversation": "Pas encore de messages, commencez la conversation",
+      "findPeople": "Trouver des personnes",
+      "selectConversation": "Sélectionner une conversation",
+      "selectDescription": "Sélectionnez une conversation dans la liste pour commencer à discuter"
+    },
+    "blocked": {
+      "title": "Vous avez bloqué cet utilisateur",
+      "description": "Vous ne pouvez pas envoyer ou recevoir de messages de cet utilisateur"
+    },
+    "actions": {
+      "viewPost": "Voir la publication",
+      "openLink": "Ouvrir le lien",
+      "deleteConversation": "Supprimer la conversation",
+      "blockUser": "Bloquer l'utilisateur",
+      "unblockUser": "Débloquer l'utilisateur"
+    },
+    "modals": {
+      "deleteTitle": "Supprimer la conversation",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer cette conversation ?\n\nTous les messages seront supprimés et ne pourront pas être récupérés.",
+      "delete": "Supprimer",
+      "blockTitle": "Bloquer l'utilisateur",
+      "blockMessage": "Êtes-vous sûr de vouloir bloquer {{username}} ?\n\nAprès le blocage, vous ne pourrez plus voir ses publications ni lui envoyer de messages.",
+      "block": "Bloquer",
+      "unblockTitle": "Débloquer l'utilisateur",
+      "unblockMessage": "Êtes-vous sûr de vouloir débloquer {{username}} ?",
+      "unblock": "Débloquer"
+    },
+    "toasts": {
+      "conversationDeleted": "Conversation supprimée",
+      "userBlocked": "L'utilisateur {{username}} a été bloqué",
+      "userUnblocked": "L'utilisateur {{username}} a été débloqué"
+    },
+    "errors": {
+      "unauthorized": "Vous n'êtes pas autorisé à accéder à cette conversation",
+      "fetchMessagesFailed": "Échec du chargement des messages",
+      "sendFailed": "Échec de l'envoi du message",
+      "noConnection": "Pas de connexion au serveur",
+      "cannotMessageBlocked": "Vous ne pouvez pas envoyer de message à un utilisateur bloqué",
+      "conversationBlocked": "Vous ne pouvez pas accéder à cette conversation, l'utilisateur est bloqué",
+      "deleteFailed": "Échec de la suppression de la conversation",
+      "blockFailed": "Échec du blocage de l'utilisateur",
+      "unblockFailed": "Échec du déblocage de l'utilisateur"
+    }
+  }
+}

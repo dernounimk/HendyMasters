@@ -1,0 +1,27 @@
+{
+  "home": {
+    "title": "Dernières offres",
+    "subtitle": "Parcourez les dernières demandes de services et opportunités d'emploi",
+    "filter": {
+      "button": "Filtrer",
+      "title": "Options de filtre",
+      "location": "Emplacement",
+      "locationPlaceholder": "État ou Ville",
+      "postType": "Type de publication",
+      "allTypes": "Tous les types",
+      "serviceRequest": "Demandes de service",
+      "jobOpportunity": "Opportunités d'emploi",
+      "minBudget": "Budget minimum (DZD)",
+      "maxBudget": "Budget maximum (DZD)",
+      "budgetPlaceholder": "Exemple: 10000",
+      "apply": "Appliquer les filtres",
+      "clearAll": "Tout effacer"
+    },
+    "empty": {
+      "title": "Aucune publication",
+      "description": "Soyez le premier à publier une offre sur la plateforme !",
+      "createPost": "Créer une publication"
+    },
+    "endOfList": "Fin de la liste"
+  }
+}

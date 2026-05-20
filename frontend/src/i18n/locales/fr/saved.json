@@ -1,0 +1,20 @@
+{
+  "saved": {
+    "title": "Enregistrés",
+    "postsCount": "publication enregistrée",
+    "postsCount_plural": "publications enregistrées",
+    "loadingMore": "Chargement...",
+    "endOfList": "🏁 Vous avez atteint la fin ({total} publications)",
+    "empty": {
+      "title": "Aucune publication enregistrée",
+      "description": "Enregistrez les publications que vous aimez et elles apparaîtront ici",
+      "exploreButton": "Explorer les publications"
+    },
+    "errors": {
+      "fetchFailed": "Échec du chargement des publications enregistrées"
+    },
+    "messages": {
+      "unsaved": "Publication retirée des enregistrements"
+    }
+  }
+}

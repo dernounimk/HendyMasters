@@ -1,0 +1,20 @@
+{
+  "saved": {
+    "title": "Saved",
+    "postsCount": "saved post",
+    "postsCount_plural": "saved posts",
+    "loadingMore": "Loading more...",
+    "endOfList": "🏁 You've reached the end ({total} posts)",
+    "empty": {
+      "title": "No saved posts",
+      "description": "Save posts you like and they will appear here",
+      "exploreButton": "Explore Posts"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load saved posts"
+    },
+    "messages": {
+      "unsaved": "Post removed from saved"
+    }
+  }
+}

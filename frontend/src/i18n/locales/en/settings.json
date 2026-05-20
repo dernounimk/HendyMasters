@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and personal preferences",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "privacy": "Privacy",
+      "appearance": "Appearance",
+      "language": "Language",
+      "blocked": "Blocked Users"
+    },
+    "security": {
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "changePasswordBtn": "Change Password",
+      "passwordMismatch": "New passwords do not match",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "currentPasswordRequired": "Current password is required",
+      "passwordChangeSuccess": "Password changed successfully",
+      "passwordChangeError": "Failed to change password"
+    },
+    "privacy": {
+      "title": "Privacy Settings",
+      "showEmail": "Show Email",
+      "showEmailDesc": "Display your email on your profile",
+      "showPhone": "Show Phone Number",
+      "showPhoneDesc": "Display your phone number on your profile",
+      "showLocation": "Show Location",
+      "showLocationDesc": "Display your location on your profile",
+      "showOnlineStatus": "Show Online Status",
+      "showOnlineStatusDesc": "Show whether you are online or not",
+      "save": "Save Settings",
+      "updateSuccess": "Privacy settings updated",
+      "updateError": "Failed to update privacy"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "light": "Light",
+      "lightDesc": "Day mode",
+      "dark": "Dark",
+      "darkDesc": "Night mode"
+    },
+    "language": {
+      "title": "Language",
+      "changed": "Language changed to English"
+    },
+    "blocked": {
+      "title": "Blocked Users",
+      "noUsers": "No blocked users",
+      "noUsersDesc": "Blocked users will appear here",
+      "unblock": "Unblock",
+      "unblockSuccess": "Unblocked {username}",
+      "unblockError": "Failed to unblock user",
+      "fetchError": "Failed to fetch blocked users"
+    }
+  }
+}

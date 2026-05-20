@@ -11,13 +11,87 @@ import {
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
 
+// إضافة CSS مخصص لبطاقة البوست
+const postCardStyle = document.createElement('style');
+postCardStyle.textContent = `
+  /* ==================== بطاقة البوست ==================== */
+  .post-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark .post-card {
+    background: rgba(17, 24, 39, 0.7) !important;
+    border-color: rgba(75, 85, 99, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .post-card:hover {
+    border-color: #2563eb !important;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .dark .post-card:hover {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
+  }
+  
+  /* النصوص في البطاقة */
+  .post-card .post-title {
+    color: #1f2937 !important;
+  }
+  
+  .dark .post-card .post-title {
+    color: #f3f4f6 !important;
+  }
+  
+  .post-card .post-description {
+    color: #4b5563 !important;
+  }
+  
+  .dark .post-card .post-description {
+    color: #d1d5db !important;
+  }
+  
+  .post-card .post-meta {
+    color: #6b7280 !important;
+  }
+  
+  .dark .post-card .post-meta {
+    color: #9ca3af !important;
+  }
+  
+  .post-card .username {
+    color: #1f2937 !important;
+  }
+  
+  .dark .post-card .username {
+    color: #f3f4f6 !important;
+  }
+  
+  .post-card .username:hover {
+    color: #2563eb !important;
+  }
+  
+  .dark .post-card .username:hover {
+    color: #3b82f6 !important;
+  }
+`;
+document.head.appendChild(postCardStyle);
+
 // مكون ConfirmationModal
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="p-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
             isDanger ? 'bg-red-100 dark:bg-red-900/30' : 'bg-gray-100 dark:bg-gray-700'
@@ -42,7 +116,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
               onClick={onClose}
               className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
             >
-              {cancelText || 'إلغاء'}
+              {cancelText || t('common.cancel')}
             </button>
             <button
               onClick={onConfirm}
@@ -52,7 +126,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
                   : 'bg-gray-600 hover:bg-gray-700 text-white'
               }`}
             >
-              {confirmText || 'تأكيد'}
+              {confirmText || t('common.confirm')}
             </button>
           </div>
         </div>
@@ -62,7 +136,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
 };
 
 const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, savePost } = useStore();
   
@@ -87,15 +161,27 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
     const date = new Date(dateString);
     const now = new Date();
     const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    if (diff === 0) return 'اليوم';
-    if (diff === 1) return 'أمس';
-    if (diff < 7) return `منذ ${diff} أيام`;
-    return date.toLocaleDateString('ar-DZ');
+    
+    const currentLang = i18n.language;
+    const isRTL = currentLang === 'ar';
+    
+    if (diff === 0) return t('time.today');
+    if (diff === 1) return t('time.yesterday');
+    if (diff < 7) return t('time.daysAgo', { count: diff });
+    
+    const locale = isRTL ? 'ar-DZ' : (currentLang === 'fr' ? 'fr-FR' : 'en-US');
+    return date.toLocaleDateString(locale);
   };
   
   const formatCurrency = (amount) => {
     if (!amount) return '';
-    return new Intl.NumberFormat('ar-DZ').format(amount) + ' دج';
+    const currentLang = i18n.language;
+    const locale = currentLang === 'ar' ? 'ar-DZ' : (currentLang === 'fr' ? 'fr-FR' : 'en-US');
+    return new Intl.NumberFormat(locale).format(amount) + ' ' + t('currency.dzd');
+  };
+  
+  const getPostTypeText = () => {
+    return post.type === 'service_request' ? t('postTypes.serviceRequest') : t('postTypes.jobOpportunity');
   };
   
   const handleLike = async (e) => {
@@ -109,7 +195,7 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
       }
     } catch (error) {
       console.error('Error liking post:', error);
-      toast.error('حدث خطأ');
+      toast.error(t('errors.general'));
     }
   };
   
@@ -123,10 +209,10 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
         setIsSaved(result.data.saved);
         setSavesCount(result.data.savesCount);
         if (onSave) onSave(post._id, result.data.saved);
-        toast.success(result.data.saved ? 'تم الحفظ' : 'تم الإزالة');
+        toast.success(result.data.saved ? t('messages.saved') : t('messages.unsaved'));
       }
     } catch (error) {
-      toast.error(error.message || 'حدث خطأ');
+      toast.error(error.message || t('errors.general'));
     } finally {
       setSaving(false);
     }
@@ -136,12 +222,12 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
     e.stopPropagation();
     
     if (!user) {
-      toast.error('يجب تسجيل الدخول أولاً');
+      toast.error(t('errors.loginRequired'));
       navigate('/login');
       return;
     }
     
-    const loadingToast = toast.loading('جاري التحقق...');
+    const loadingToast = toast.loading(t('messages.checking'));
     
     try {
       const { checkMessagingPermission, createConversation } = useStore.getState();
@@ -153,14 +239,14 @@ const PostCard = ({ post, onLike, onSave, onShare, onDelete }) => {
         const postUrl = `${window.location.origin}/post/${post._id}`;
         
         const messageText = `${user?.username}
-اهتمام بمنشورك
+${t('messages.interestInPost')}
 
 ${post.title}
 ${formatCurrency(post.budget)} · ${post.location}
 
 ${postUrl}
 
-نرحب بالتفاصيل`;
+${t('messages.welcomeDetails')}`;
         
         const result = await createConversation(post.author._id, messageText);
         
@@ -170,11 +256,11 @@ ${postUrl}
           navigate(`/messages/${result._id}`);
         }
       } else {
-        toast.error(permission?.reason || 'لا يمكنك مراسلة صاحب هذا المنشور');
+        toast.error(permission?.reason || t('messages.cannotMessage'));
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error.message || 'حدث خطأ');
+      toast.error(error.message || t('errors.general'));
     }
   };
   
@@ -193,7 +279,7 @@ ${postUrl}
       }
     } catch (error) {
       console.error('Error loading conversations for sharing:', error);
-      toast.error('فشل في تحميل المحادثات');
+      toast.error(t('errors.loadConversations'));
       setConversations([]);
     } finally {
       setLoadingConversations(false);
@@ -204,7 +290,7 @@ ${postUrl}
     e.stopPropagation();
     
     if (recipientId === user?._id) {
-      toast.error('لا يمكنك مشاركة البوست مع نفسك');
+      toast.error(t('messages.cannotShareWithSelf'));
       setShowShareModal(false);
       return;
     }
@@ -212,12 +298,12 @@ ${postUrl}
     if (sharing) return;
     
     setSharing(true);
-    const loadingToast = toast.loading(`جاري المشاركة مع ${recipientName}...`);
+    const loadingToast = toast.loading(t('messages.sharingWith', { name: recipientName }));
     
     try {
       const postUrl = `${window.location.origin}/post/${post._id}`;
       
-      const shareMessage = `${user?.username} شارك معك منشوراً
+      const shareMessage = `${user?.username} ${t('messages.sharedPost')}
 
 ${post.title}
 ${formatCurrency(post.budget)} · ${post.location}
@@ -230,7 +316,7 @@ ${postUrl}`;
       toast.dismiss(loadingToast);
       
       if (result?.conversation?._id || result?._id) {
-        toast.success(`تمت المشاركة مع ${recipientName} بنجاح`);
+        toast.success(t('messages.shareSuccess', { name: recipientName }));
         setShowShareModal(false);
         
         try {
@@ -245,12 +331,12 @@ ${postUrl}`;
           console.error('Error updating share count:', shareError);
         }
       } else {
-        toast.error('فشل في إرسال المشاركة');
+        toast.error(t('messages.shareFailed'));
       }
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error('Error sharing with user:', error);
-      toast.error(error.message || 'حدث خطأ أثناء المشاركة');
+      toast.error(error.message || t('messages.shareError'));
     } finally {
       setSharing(false);
     }
@@ -261,7 +347,7 @@ ${postUrl}`;
     const url = `${window.location.origin}/post/${post._id}`;
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('تم نسخ رابط المنشور');
+      toast.success(t('messages.linkCopied'));
       
       try {
         const shareResponse = await api.post(`/posts/${post._id}/share`, {
@@ -275,7 +361,7 @@ ${postUrl}`;
         console.error('Error updating share count:', shareError);
       }
     } catch (error) {
-      toast.error('فشل نسخ الرابط');
+      toast.error(t('messages.copyLinkFailed'));
     }
   };
   
@@ -283,23 +369,23 @@ ${postUrl}`;
     if (deleting) return;
     
     setDeleting(true);
-    const loadingToast = toast.loading('جاري حذف المنشور...');
+    const loadingToast = toast.loading(t('messages.deletingPost'));
     
     try {
       const response = await api.delete(`/posts/${post._id}`);
       if (response.data.success) {
         toast.dismiss(loadingToast);
-        toast.success('تم حذف المنشور بنجاح');
+        toast.success(t('messages.postDeleted'));
         if (onDelete) {
           onDelete(post._id);
         }
       } else {
-        throw new Error(response.data.message || 'فشل حذف المنشور');
+        throw new Error(response.data.message || t('messages.deleteFailed'));
       }
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error('Error deleting post:', error);
-      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حذف المنشور');
+      toast.error(error.response?.data?.message || t('messages.deleteError'));
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -308,7 +394,7 @@ ${postUrl}`;
   
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all">
+      <div className="post-card overflow-hidden">
         <div className="p-4 pb-2">
           <div className="flex items-center gap-3">
             <Link to={`/profile/${post.author?.username}`} onClick={(e) => e.stopPropagation()}>
@@ -320,14 +406,17 @@ ${postUrl}`;
               />
             </Link>
             <div className="flex-1">
-              <Link to={`/profile/${post.author?.username}`} className="font-semibold text-gray-900 dark:text-white hover:text-primary-600">
+              <Link 
+                to={`/profile/${post.author?.username}`} 
+                className="username font-semibold hover:text-primary-600 transition-colors"
+              >
                 {post.author?.username}
               </Link>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="post-meta flex items-center gap-2 text-xs">
                 <Clock className="w-3 h-3" />
                 <span>{formatDate(post.createdAt)}</span>
                 <span>•</span>
-                <span>{post.type === 'service_request' ? 'طلب خدمة' : 'فرصة عمل'}</span>
+                <span>{getPostTypeText()}</span>
               </div>
             </div>
             
@@ -341,7 +430,7 @@ ${postUrl}`;
                   }}
                   className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                 >
-                  <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                   </svg>
                 </button>
@@ -358,7 +447,7 @@ ${postUrl}`;
                       className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>حذف المنشور</span>
+                      <span>{t('actions.deletePost')}</span>
                     </button>
                   </div>
                 )}
@@ -369,11 +458,11 @@ ${postUrl}`;
         
         <div className="cursor-pointer" onClick={() => navigate(`/post/${post._id}`)}>
           <div className="px-4 pb-2">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            <h3 className="post-title text-lg font-bold mb-2">
               {post.title}
             </h3>
             
-            <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-500">
+            <div className="post-meta flex flex-wrap gap-3 mb-3 text-sm">
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
                 <span>{post.location}</span>
@@ -383,7 +472,7 @@ ${postUrl}`;
               </div>
             </div>
             
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-3">
+            <p className="post-description text-sm mb-3 line-clamp-3">
               {post.description}
             </p>
           </div>
@@ -404,13 +493,13 @@ ${postUrl}`;
           )}
         </div>
         
-        <div className="p-4 pt-2 border-t border-gray-100 dark:border-gray-700">
+        <div className="p-4 pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleLike}
                 className={`flex items-center gap-1.5 transition-colors ${
-                  isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'
+                  isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500 dark:text-gray-400'
                 }`}
               >
                 <Heart className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} />
@@ -422,7 +511,7 @@ ${postUrl}`;
                   onClick={handleSave}
                   disabled={saving}
                   className={`flex items-center gap-1.5 transition-colors ${
-                    isSaved ? 'text-yellow-500' : 'text-gray-500 hover:text-yellow-500'
+                    isSaved ? 'text-yellow-500' : 'text-gray-500 hover:text-yellow-500 dark:text-gray-400'
                   }`}
                 >
                   <Bookmark className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} />
@@ -432,7 +521,7 @@ ${postUrl}`;
               
               <button
                 onClick={handleShareClick}
-                className="flex items-center gap-1.5 text-gray-500 hover:text-primary-600 transition-colors"
+                className="flex items-center gap-1.5 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
               >
                 <Share2 className="w-5 h-5" />
                 <span className="text-sm">{sharesCount}</span>
@@ -443,10 +532,10 @@ ${postUrl}`;
               {!isOwner && (
                 <button
                   onClick={handleMessage}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-all flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  مراسلة
+                  {t('actions.message')}
                 </button>
               )}
             </div>
@@ -459,31 +548,31 @@ ${postUrl}`;
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="حذف المنشور"
-        message={`هل أنت متأكد من حذف المنشور "${post.title}"؟\n\nلا يمكن التراجع عن هذا الإجراء.`}
-        confirmText="حذف"
-        cancelText="إلغاء"
+        title={t('modals.deletePostTitle')}
+        message={t('modals.deletePostMessage', { title: post.title })}
+        confirmText={t('modals.delete')}
+        cancelText={t('common.cancel')}
         isDanger={true}
       />
       
       {/* Modal المشاركة */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowShareModal(false)}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="p-5 border-b dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden border border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">مشاركة البوست</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('modals.sharePostTitle')}</h3>
                 <button onClick={() => setShowShareModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                   <XCircle className="w-6 h-6" />
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">اختر شخصاً لمشاركة البوست معه</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('modals.sharePostDescription')}</p>
             </div>
             <div className="p-4 overflow-y-auto max-h-96">
               {loadingConversations ? (
                 <div className="text-center py-8">
                   <Loader className="w-8 h-8 animate-spin mx-auto text-primary-500" />
-                  <p className="text-gray-500 mt-2">جاري تحميل المحادثات...</p>
+                  <p className="text-gray-500 dark:text-gray-400 mt-2">{t('messages.loadingConversations')}</p>
                 </div>
               ) : conversations.length > 0 ? (
                 <div className="space-y-2">
@@ -502,25 +591,25 @@ ${postUrl}`;
                       />
                       <div className="flex-1 text-left">
                         <p className="font-semibold text-gray-900 dark:text-white">{conv.username}</p>
-                        <p className="text-xs text-gray-500">أرسل كرسالة</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t('modals.sendAsMessage')}</p>
                       </div>
                       {sharing ? (
                         <Loader className="w-4 h-4 animate-spin text-primary-500" />
                       ) : (
-                        <Send className="w-4 h-4 text-primary-600" />
+                        <Send className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                       )}
                     </button>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500">لا توجد محادثات للمشاركة</p>
+                  <MessageCircle className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400">{t('modals.noConversations')}</p>
                   <button
                     onClick={handleCopyLink}
-                    className="mt-3 text-primary-600 hover:text-primary-700 text-sm font-medium"
+                    className="mt-3 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 text-sm font-medium"
                   >
-                    نسخ رابط المنشور
+                    {t('modals.copyLink')}
                   </button>
                 </div>
               )}

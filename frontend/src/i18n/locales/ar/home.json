@@ -1,0 +1,27 @@
+{
+  "home": {
+    "title": "آخر العروض",
+    "subtitle": "استعرض أحدث طلبات الخدمات وفرص العمل",
+    "filter": {
+      "button": "فلترة",
+      "title": "خيارات الفلترة",
+      "location": "الموقع",
+      "locationPlaceholder": "الولاية أو المدينة",
+      "postType": "نوع البوست",
+      "allTypes": "جميع الأنواع",
+      "serviceRequest": "طلبات خدمة",
+      "jobOpportunity": "فرص عمل",
+      "minBudget": "الحد الأدنى للميزانية (دج)",
+      "maxBudget": "الحد الأقصى للميزانية (دج)",
+      "budgetPlaceholder": "مثال: 10000",
+      "apply": "تطبيق الفلترة",
+      "clearAll": "مسح الكل"
+    },
+    "empty": {
+      "title": "لا توجد بوستات",
+      "description": "كن أول من ينشر عرضاً في المنصة!",
+      "createPost": "أنشئ بوست جديد"
+    },
+    "endOfList": "لقد وصلت إلى نهاية القائمة"
+  }
+}

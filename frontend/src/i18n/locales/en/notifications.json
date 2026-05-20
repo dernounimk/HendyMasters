@@ -1,0 +1,47 @@
+{
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{{count}} unread notification",
+    "unreadCount_plural": "{{count}} unread notifications",
+    "markAllAsRead": "Mark all as read",
+    "loadingMore": "Loading more...",
+    "endOfList": "You've reached the end of notifications",
+    "filter": {
+      "all": "All notifications",
+      "unread": "Unread"
+    },
+    "empty": {
+      "noNotifications": "No notifications",
+      "noUnread": "No unread notifications",
+      "description": "Notifications will appear here when someone interacts with you",
+      "noUnreadDescription": "You have no unread notifications at the moment"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minute ago",
+      "minutesAgo_plural": "{{count}} minutes ago",
+      "hoursAgo": "{{count}} hour ago",
+      "hoursAgo_plural": "{{count}} hours ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}} day ago",
+      "daysAgo_plural": "{{count}} days ago"
+    },
+    "actions": {
+      "markAsRead": "Mark as read",
+      "delete": "Delete",
+      "viewDetails": "View Details"
+    },
+    "toasts": {
+      "markedAsRead": "Notification marked as read",
+      "allMarkedAsRead": "All notifications marked as read",
+      "deleted": "Notification deleted",
+      "noUnread": "No unread notifications"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load notifications",
+      "markAsReadFailed": "Failed to mark notification as read",
+      "markAllFailed": "Failed to mark all notifications as read",
+      "deleteFailed": "Failed to delete notification"
+    }
+  }
+}

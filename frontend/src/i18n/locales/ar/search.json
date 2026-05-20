@@ -1,0 +1,19 @@
+{
+  "search": {
+    "placeholder": "ابحث باسم المستخدم...",
+    "results": "نتائج البحث",
+    "searching": "جاري البحث...",
+    "noResults": "لا توجد نتائج",
+    "noResultsQuery": "لم نجد أي مستخدمين باسم \"{{query}}\"",
+    "defaultLocation": "الجزائر",
+    "empty": {
+      "title": "ابحث عن مستخدمين",
+      "description": "اكتب اسم المستخدم الذي تبحث عنه في شريط البحث للبدء",
+      "suggestions": {
+        "searchArtisans": "ابحث عن حرفيين",
+        "connect": "تواصل مع عملاء جدد",
+        "viewReviews": "شاهد التقييمات"
+      }
+    }
+  }
+}

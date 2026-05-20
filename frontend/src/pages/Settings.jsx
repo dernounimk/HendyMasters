@@ -1,5 +1,5 @@
 // frontend/src/pages/Settings.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
@@ -8,9 +8,231 @@ import {
   Settings as SettingsIcon,
   User, Lock, Globe, Moon, Sun, Ban, Shield,
   ChevronRight, Eye, EyeOff, CheckCircle, Loader,
-  Save, Key, Mail, MapPin, LogOut, RefreshCw
+  Save, Key, Mail, MapPin, LogOut, RefreshCw,
+  Languages, Phone, Award, Star, Wrench
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
+
+// إضافة CSS مخصص بنفس نمط Saved.jsx
+const settingsStyle = document.createElement('style');
+settingsStyle.textContent = `
+  /* ==================== الوضع الفاتح (الألوان الداكنة) ==================== */
+  .settings-glass-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* النصوص الرئيسية في الوضع الفاتح - أسود */
+  .settings-glass-card h1,
+  .settings-glass-card h2,
+  .settings-glass-card h3,
+  .settings-glass-card .title-text,
+  .settings-glass-card .font-bold,
+  .settings-glass-card .font-semibold {
+    color: #1f2937 !important;
+  }
+  
+  /* النصوص العادية في الوضع الفاتح - رمادي غامق */
+  .settings-glass-card p,
+  .settings-glass-card span,
+  .settings-glass-card label {
+    color: #374151 !important;
+  }
+  
+  /* النصوص الثانوية في الوضع الفاتح */
+  .settings-glass-card .text-gray-500,
+  .settings-glass-card .text-gray-600,
+  .settings-glass-card .text-sm:not(.font-bold) {
+    color: #6b7280 !important;
+  }
+  
+  /* ==================== الوضع المظلم ==================== */
+  .dark .settings-glass-card {
+    background: rgba(17, 24, 39, 0.7) !important;
+    border-color: rgba(75, 85, 99, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* النصوص الرئيسية في الوضع المظلم - أبيض */
+  .dark .settings-glass-card h1,
+  .dark .settings-glass-card h2,
+  .dark .settings-glass-card h3,
+  .dark .settings-glass-card .font-bold,
+  .dark .settings-glass-card .font-semibold {
+    color: #f3f4f6 !important;
+  }
+  
+  /* النصوص العادية في الوضع المظلم - رمادي فاتح */
+  .dark .settings-glass-card p,
+  .dark .settings-glass-card span,
+  .dark .settings-glass-card label {
+    color: #d1d5db !important;
+  }
+  
+  /* النصوص الثانوية في الوضع المظلم */
+  .dark .settings-glass-card .text-gray-500,
+  .dark .settings-glass-card .text-gray-600 {
+    color: #9ca3af !important;
+  }
+  
+  .settings-glass-card:hover {
+    border-color: #2563eb !important;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+  }
+  
+  .dark .settings-glass-card:hover {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 10px 20px rgba(59, 130, 246, 0.15);
+  }
+  
+  /* ==================== أزرار التحديث ==================== */
+  .settings-refresh-btn {
+    transition: all 0.3s ease;
+  }
+  
+  .settings-refresh-btn:hover {
+    transform: rotate(180deg);
+    background: rgba(37, 99, 235, 0.1);
+  }
+  
+  /* ==================== سكيلتون الشاشة ==================== */
+  .settings-skeleton {
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(4px);
+  }
+  
+  .dark .settings-skeleton {
+    background: rgba(31, 41, 55, 0.4) !important;
+  }
+  
+  /* ==================== الحقول والإدخالات ==================== */
+  .settings-input {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(37, 99, 235, 0.2) !important;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    color: #1f2937 !important;
+  }
+  
+  .dark .settings-input {
+    background: rgba(31, 41, 55, 0.5) !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+    color: #f3f4f6 !important;
+  }
+  
+  .settings-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    outline: none;
+  }
+  
+  /* ==================== أزرار التبديل (Toggle) ==================== */
+  .settings-toggle {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .settings-toggle.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  }
+  
+  .settings-toggle.inactive {
+    background: #cbd5e1 !important;
+  }
+  
+  .dark .settings-toggle.inactive {
+    background: #4b5563 !important;
+  }
+  
+  .settings-toggle-knob {
+    position: absolute;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* ==================== الشريط الجانبي ==================== */
+  .settings-sidebar-btn-active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(29, 78, 216, 0.15) 100%) !important;
+    color: #2563eb !important;
+    border-right: 4px solid #2563eb !important;
+  }
+  
+  .dark .settings-sidebar-btn-active {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%) !important;
+    color: #3b82f6 !important;
+    border-right: 4px solid #3b82f6 !important;
+  }
+  
+  .settings-sidebar-btn-inactive {
+    color: #4b5563 !important;
+  }
+  
+  .settings-sidebar-btn-inactive:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #2563eb !important;
+  }
+  
+  .dark .settings-sidebar-btn-inactive {
+    color: #9ca3af !important;
+  }
+  
+  .dark .settings-sidebar-btn-inactive:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #3b82f6 !important;
+  }
+  
+  /* ==================== عنوان الصفحة ==================== */
+  .settings-title {
+    color: #1f2937 !important;
+  }
+  
+  .dark .settings-title {
+    color: #f3f4f6 !important;
+  }
+  
+  .settings-subtitle {
+    color: #6b7280 !important;
+  }
+  
+  .dark .settings-subtitle {
+    color: #9ca3af !important;
+  }
+`;
+document.head.appendChild(settingsStyle);
+
+// Skeleton Component بنفس نمط Saved
+const SettingsSkeleton = () => {
+  return (
+    <div className="settings-skeleton rounded-2xl p-6 animate-pulse">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gray-300 dark:bg-gray-600"></div>
+        <div className="flex-1">
+          <div className="h-5 w-32 bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-12 w-full bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
+        <div className="h-12 w-full bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
+        <div className="h-12 w-full bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
+        <div className="h-12 w-5/6 bg-gray-300 dark:bg-gray-600 rounded-xl mx-auto"></div>
+      </div>
+    </div>
+  );
+};
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -18,47 +240,27 @@ const Settings = () => {
     user, 
     theme, 
     toggleTheme, 
-    updateUser, 
     logout,
-    updateProfile,
     updatePrivacy,
     fetchBlockedUsers,
     unblockUser,
     changePassword,
-    requestResetCode,
-    verifyResetCode,
-    resetPasswordWithCode
+    fetchCurrentUserProfile
   } = useStore();
   
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('security');
   const [loading, setLoading] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
+  const [blockedLoaded, setBlockedLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   
-  // Profile form state
-  const [profileForm, setProfileForm] = useState({
-    username: '',
-    phone: '',
-    bio: '',
-    location: '',
-    email: ''
-  });
-  
-  // Password form state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   
-  // Reset password with email state
-  const [resetEmail, setResetEmail] = useState('');
-  const [resetCode, setResetCode] = useState('');
-  const [newPasswordReset, setNewPasswordReset] = useState('');
-  const [resetStep, setResetStep] = useState('email');
-  const [resetLoading, setResetLoading] = useState(false);
-  
-  // Privacy state
   const [privacy, setPrivacy] = useState({
     showEmail: false,
     showPhone: false,
@@ -66,25 +268,22 @@ const Settings = () => {
     showOnlineStatus: true
   });
   
-  // Language state
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
   
-  // Show password toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
   
-  // Load user data
+  const isRTL = i18n.language === 'ar';
+  
+  const languages = [
+    { code: 'ar', name: t('languages.arabic'), nativeName: 'العربية', dir: 'rtl' },
+    { code: 'en', name: t('languages.english'), nativeName: 'English', dir: 'ltr' },
+    { code: 'fr', name: t('languages.french'), nativeName: 'Français', dir: 'ltr' }
+  ];
+  
   useEffect(() => {
     if (user) {
-      setProfileForm({
-        username: user.username || '',
-        phone: user.phone || '',
-        bio: user.bio || '',
-        location: user.location || '',
-        email: user.email || ''
-      });
       setPrivacy({
         showEmail: user.privacy?.showEmail || false,
         showPhone: user.privacy?.showPhone || false,
@@ -94,75 +293,58 @@ const Settings = () => {
     }
   }, [user]);
   
-  // Fetch blocked users
-  const loadBlockedUsers = async () => {
+  const loadBlockedUsers = useCallback(async (force = false) => {
+    if (blockedLoaded && !force) return;
+    if (loadingBlocked) return;
+    
     setLoadingBlocked(true);
     try {
       const users = await fetchBlockedUsers();
-      setBlockedUsers(users);
+      setBlockedUsers(users || []);
+      setBlockedLoaded(true);
     } catch (error) {
-      toast.error('فشل في جلب قائمة المحظورين');
+      console.error('Error fetching blocked users:', error);
+      toast.error(t('errors.blockedFetchError', 'Failed to load blocked users'));
     } finally {
       setLoadingBlocked(false);
     }
-  };
+  }, [fetchBlockedUsers, blockedLoaded, loadingBlocked, t]);
   
   useEffect(() => {
-    if (activeTab === 'blocked') {
+    if (activeTab === 'blocked' && !blockedLoaded && !loadingBlocked) {
       loadBlockedUsers();
     }
-  }, [activeTab]);
+  }, [activeTab, blockedLoaded, loadingBlocked, loadBlockedUsers]);
   
-  // Update profile
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const result = await updateProfile({
-        username: profileForm.username,
-        phone: profileForm.phone,
-        bio: profileForm.bio,
-        location: profileForm.location
-      });
-      
-      if (result.success) {
-        toast.success('تم تحديث الملف الشخصي بنجاح');
-      } else {
-        toast.error(result.error || 'فشل تحديث الملف الشخصي');
-      }
-    } catch (error) {
-      toast.error(error.message || 'فشل تحديث الملف الشخصي');
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Update privacy
   const handleUpdatePrivacy = async () => {
     setLoading(true);
     try {
       const result = await updatePrivacy(privacy);
       if (result.success) {
-        toast.success('تم تحديث إعدادات الخصوصية');
+        await fetchCurrentUserProfile();
+        toast.success(t('success.privacyUpdated', 'Privacy settings updated'));
       } else {
-        toast.error(result.error || 'فشل تحديث الخصوصية');
+        toast.error(result.error || t('errors.privacyUpdateError', 'Failed to update privacy'));
       }
     } catch (error) {
-      toast.error(error.message || 'فشل تحديث الخصوصية');
+      toast.error(error.message || t('errors.privacyUpdateError', 'Failed to update privacy'));
     } finally {
       setLoading(false);
     }
   };
   
-  // Change password
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('كلمة المرور الجديدة غير متطابقة');
+      toast.error(t('errors.passwordMismatch', 'New passwords do not match'));
       return;
     }
     if (passwordForm.newPassword.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      toast.error(t('errors.passwordTooShort', 'Password must be at least 6 characters'));
+      return;
+    }
+    if (!passwordForm.currentPassword) {
+      toast.error(t('errors.currentPasswordRequired', 'Current password is required'));
       return;
     }
     
@@ -170,302 +352,168 @@ const Settings = () => {
     try {
       const result = await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
       if (result.success) {
-        toast.success('تم تغيير كلمة المرور بنجاح');
+        toast.success(t('success.passwordChanged', 'Password changed successfully'));
         setPasswordForm({
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
         });
       } else {
-        toast.error(result.error || 'فشل تغيير كلمة المرور');
+        toast.error(result.error || t('errors.passwordChangeError', 'Failed to change password'));
       }
     } catch (error) {
-      toast.error(error.message || 'فشل تغيير كلمة المرور');
+      toast.error(error.message || t('errors.passwordChangeError', 'Failed to change password'));
     } finally {
       setLoading(false);
     }
   };
   
-  // Request reset code
-  const handleRequestResetCode = async (e) => {
-    e.preventDefault();
-    if (!resetEmail) {
-      toast.error('البريد الإلكتروني مطلوب');
-      return;
-    }
-    
-    setResetLoading(true);
-    try {
-      const result = await requestResetCode(resetEmail);
-      if (result.success) {
-        setResetStep('code');
-        toast.success('تم إرسال رمز التحقق إلى بريدك الإلكتروني');
-      } else {
-        toast.error(result.error || 'فشل إرسال الرمز');
-      }
-    } catch (error) {
-      toast.error(error.message || 'فشل إرسال الرمز');
-    } finally {
-      setResetLoading(false);
-    }
-  };
-  
-  // Verify reset code
-  const handleVerifyCode = async (e) => {
-    e.preventDefault();
-    if (!resetCode || resetCode.length !== 6) {
-      toast.error('الرمز يجب أن يكون 6 أرقام');
-      return;
-    }
-    
-    setResetLoading(true);
-    try {
-      const result = await verifyResetCode(resetEmail, resetCode);
-      if (result.valid) {
-        setResetStep('password');
-        toast.success('الرمز صحيح، أدخل كلمة المرور الجديدة');
-      } else {
-        toast.error(result.error || 'الرمز غير صحيح');
-      }
-    } catch (error) {
-      toast.error(error.message || 'فشل التحقق من الرمز');
-    } finally {
-      setResetLoading(false);
-    }
-  };
-  
-  // Reset password with code
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    if (!newPasswordReset || newPasswordReset.length < 6) {
-      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      return;
-    }
-    
-    setResetLoading(true);
-    try {
-      const result = await resetPasswordWithCode(resetEmail, resetCode, newPasswordReset);
-      if (result.success) {
-        toast.success('تم إعادة تعيين كلمة المرور بنجاح');
-        setResetStep('email');
-        setResetEmail('');
-        setResetCode('');
-        setNewPasswordReset('');
-      } else {
-        toast.error(result.error || 'فشل إعادة تعيين كلمة المرور');
-      }
-    } catch (error) {
-      toast.error(error.message || 'فشل إعادة تعيين كلمة المرور');
-    } finally {
-      setResetLoading(false);
-    }
-  };
-  
-  // Unblock user
   const handleUnblockUser = async (userId, username) => {
     try {
       const result = await unblockUser(userId);
       if (result.success) {
-        toast.success(`تم إلغاء حظر ${username}`);
+        toast.success(t('success.userUnblocked', '{{username}} has been unblocked', { username }));
         setBlockedUsers(prev => prev.filter(u => u._id !== userId));
       } else {
-        toast.error(result.error || 'فشل إلغاء الحظر');
+        toast.error(result.error || t('errors.unblockError', 'Failed to unblock user'));
       }
     } catch (error) {
-      toast.error(error.message || 'حدث خطأ');
+      toast.error(error.message || t('errors.unblockError', 'Failed to unblock user'));
     }
   };
   
-  // Change language
   const changeLanguage = async (lang) => {
     setSelectedLanguage(lang);
     await i18n.changeLanguage(lang);
     document.dir = lang === 'ar' ? 'rtl' : 'ltr';
     localStorage.setItem('language', lang);
-    toast.success(`تم تغيير اللغة إلى ${lang === 'ar' ? 'العربية' : 'English'}`);
+    toast.success(t('success.languageChanged', 'Language changed to {{language}}', { 
+      language: languages.find(l => l.code === lang)?.name 
+    }));
   };
   
-  // Tabs
+  const handleRefresh = () => {
+    if (activeTab === 'blocked') {
+      setRefreshing(true);
+      setBlockedLoaded(false);
+      loadBlockedUsers(true).finally(() => setRefreshing(false));
+    }
+  };
+  
   const tabs = [
-    { id: 'profile', label: 'الملف الشخصي', icon: User },
-    { id: 'security', label: 'الأمان', icon: Lock },
-    { id: 'privacy', label: 'الخصوصية', icon: Shield },
-    { id: 'appearance', label: 'المظهر', icon: theme === 'dark' ? Moon : Sun },
-    { id: 'language', label: 'اللغة', icon: Globe },
-    { id: 'blocked', label: 'المستخدمون المحظورون', icon: Ban },
+    { id: 'security', label: t('nav.security'), icon: Lock },
+    { id: 'privacy', label: t('nav.privacy'), icon: Shield },
+    { id: 'appearance', label: t('nav.appearance'), icon: theme === 'dark' ? Moon : Sun },
+    { id: 'language', label: t('nav.language'), icon: Languages },
+    { id: 'blocked', label: t('nav.blocked'), icon: Ban },
   ];
   
+  // أنيميشن بسيط وسلس للظهور والاختفاء
+  const pageAnimation = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 20 },
+    transition: { duration: 0.25, ease: "easeInOut" }
+  };
+  
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4">
+    <div className="w-full">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center">
-            <SettingsIcon className="w-6 h-6 text-white" />
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between mb-6"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
+            <SettingsIcon className="w-7 h-7 text-white" />
           </div>
-          الإعدادات
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          إدارة حسابك وتفضيلاتك الشخصية
-        </p>
-      </div>
+          <div>
+            <h1 className="text-2xl font-bold settings-title">{t('nav.settings')}</h1>
+            <p className="text-sm settings-subtitle">{t('settings.subtitle')}</p>
+          </div>
+        </div>
+        
+        {activeTab === 'blocked' && blockedLoaded && blockedUsers.length > 0 && (
+          <motion.button
+            whileHover={{ rotate: 180 }}
+            transition={{ duration: 0.3 }}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 hover:bg-white/50 dark:hover:bg-gray-800/50 disabled:opacity-50 shadow-md settings-refresh-btn"
+            title={t('common.refresh') || 'تحديث'}
+          >
+            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} style={{ color: '#4b5563' }} />
+          </motion.button>
+        )}
+      </motion.div>
       
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Sidebar */}
+        {/* الشريط الجانبي */}
         <div className="lg:w-80 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
-            {tabs.map((tab) => {
+          <div className="settings-glass-card overflow-hidden">
+            {tabs.map((tab, index) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <motion.button
                   key={tab.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
-                    isActive
-                      ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-r-4 border-primary-500'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all duration-300 ${
+                    isActive 
+                      ? 'settings-sidebar-btn-active' 
+                      : 'settings-sidebar-btn-inactive'
+                  } ${isRTL && isActive ? 'border-l-4 border-r-0' : ''}`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span className="flex-1 text-right">{tab.label}</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  <span className="flex-1 text-right font-medium">{tab.label}</span>
+                  <ChevronRight className={`w-4 h-4 opacity-50 transition-transform duration-300 group-hover:translate-x-1 ${isRTL ? 'rotate-180' : ''}`} />
+                </motion.button>
               );
             })}
           </div>
         </div>
         
-        {/* Main Content */}
-        <div className="flex-1">
+        {/* المحتوى الرئيسي - مع أنيميشن سلسة عند التبديل */}
+        <div className="flex-1 min-w-0">
           <AnimatePresence mode="wait">
-            {/* Profile Tab */}
-            {activeTab === 'profile' && (
-              <motion.div
-                key="profile"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
-              >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <User className="w-5 h-5 text-primary-500" />
-                  الملف الشخصي
-                </h2>
-                
-                <form onSubmit={handleUpdateProfile} className="space-y-5">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      اسم المستخدم
-                    </label>
-                    <input
-                      type="text"
-                      value={profileForm.username}
-                      onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      البريد الإلكتروني
-                    </label>
-                    <input
-                      type="email"
-                      value={profileForm.email}
-                      disabled
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">لا يمكن تغيير البريد الإلكتروني</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      رقم الهاتف
-                    </label>
-                    <input
-                      type="tel"
-                      value={profileForm.phone}
-                      onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      الموقع
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-gray-400" />
-                      <input
-                        type="text"
-                        value={profileForm.location}
-                        onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
-                        placeholder="المدينة، الولاية"
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      السيرة الذاتية
-                    </label>
-                    <textarea
-                      value={profileForm.bio}
-                      onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="اكتب نبذة عن نفسك..."
-                    />
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                    حفظ التغييرات
-                  </button>
-                </form>
-              </motion.div>
-            )}
-            
-            {/* Security Tab */}
             {activeTab === 'security' && (
               <motion.div
                 key="security"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-6"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageAnimation}
+                className="max-w-md mx-auto"
               >
-                {/* Change Password */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <Key className="w-5 h-5 text-primary-500" />
-                    تغيير كلمة المرور
-                  </h2>
+                <div className="settings-glass-card p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                      <Key className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-lg font-bold">{t('settings.security.changePassword')}</h2>
+                  </div>
                   
                   <form onSubmit={handleChangePassword} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        كلمة المرور الحالية
-                      </label>
+                      <label className="block text-sm font-medium mb-2">{t('settings.security.currentPassword')}</label>
                       <div className="relative">
                         <input
                           type={showCurrentPassword ? 'text' : 'password'}
                           value={passwordForm.currentPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10"
+                          className="settings-input w-full px-4 py-2.5"
                           required
+                          placeholder="••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                          className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
                         >
                           {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -473,22 +521,21 @@ const Settings = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        كلمة المرور الجديدة
-                      </label>
+                      <label className="block text-sm font-medium mb-2">{t('settings.security.newPassword')}</label>
                       <div className="relative">
                         <input
                           type={showNewPassword ? 'text' : 'password'}
                           value={passwordForm.newPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10"
+                          className="settings-input w-full px-4 py-2.5"
                           required
                           minLength={6}
+                          placeholder="••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                          className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
                         >
                           {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -496,418 +543,305 @@ const Settings = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        تأكيد كلمة المرور الجديدة
-                      </label>
+                      <label className="block text-sm font-medium mb-2">{t('settings.security.confirmPassword')}</label>
                       <div className="relative">
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           value={passwordForm.confirmPassword}
                           onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10"
+                          className="settings-input w-full px-4 py-2.5"
                           required
+                          placeholder="••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                          className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
                         >
                           {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
                     
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={loading}
-                      className="w-full py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Key className="w-5 h-5" />}
-                      تغيير كلمة المرور
-                    </button>
+                      {t('settings.security.changePasswordBtn')}
+                    </motion.button>
                   </form>
-                </div>
-                
-                {/* Reset Password with Email */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                    <Mail className="w-5 h-5 text-primary-500" />
-                    إعادة تعيين كلمة المرور عبر البريد
-                  </h2>
-                  
-                  {resetStep === 'email' && (
-                    <form onSubmit={handleRequestResetCode}>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          البريد الإلكتروني
-                        </label>
-                        <input
-                          type="email"
-                          value={resetEmail}
-                          onChange={(e) => setResetEmail(e.target.value)}
-                          placeholder="example@email.com"
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                          required
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={resetLoading}
-                        className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {resetLoading ? <Loader className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
-                        إرسال رمز التحقق
-                      </button>
-                    </form>
-                  )}
-                  
-                  {resetStep === 'code' && (
-                    <form onSubmit={handleVerifyCode}>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          رمز التحقق
-                        </label>
-                        <input
-                          type="text"
-                          value={resetCode}
-                          onChange={(e) => setResetCode(e.target.value)}
-                          placeholder="أدخل الرمز المكون من 6 أرقام"
-                          maxLength={6}
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent text-center text-2xl tracking-widest"
-                          required
-                        />
-                        <p className="text-xs text-gray-500 mt-2 text-center">
-                          تم إرسال الرمز إلى {resetEmail}
-                        </p>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={resetLoading}
-                        className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {resetLoading ? <Loader className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
-                        التحقق من الرمز
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setResetStep('email')}
-                        className="w-full mt-2 py-2 text-gray-600 dark:text-gray-400 hover:text-primary-600 transition-colors"
-                      >
-                        تغيير البريد الإلكتروني
-                      </button>
-                    </form>
-                  )}
-                  
-                  {resetStep === 'password' && (
-                    <form onSubmit={handleResetPassword}>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          كلمة المرور الجديدة
-                        </label>
-                        <div className="relative">
-                          <input
-                            type={showResetPassword ? 'text' : 'password'}
-                            value={newPasswordReset}
-                            onChange={(e) => setNewPasswordReset(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10"
-                            required
-                            minLength={6}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowResetPassword(!showResetPassword)}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                          >
-                            {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </button>
-                        </div>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={resetLoading}
-                        className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                      >
-                        {resetLoading ? <Loader className="w-5 h-5 animate-spin" /> : <Key className="w-5 h-5" />}
-                        إعادة تعيين كلمة المرور
-                      </button>
-                    </form>
-                  )}
                 </div>
               </motion.div>
             )}
             
-            {/* Privacy Tab */}
             {activeTab === 'privacy' && (
               <motion.div
                 key="privacy"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageAnimation}
+                className="settings-glass-card p-6"
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary-500" />
-                  إعدادات الخصوصية
-                </h2>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-bold">{t('settings.privacy.title')}</h2>
+                </div>
                 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">إظهار البريد الإلكتروني</p>
-                      <p className="text-sm text-gray-500">عرض بريدك الإلكتروني في الملف الشخصي</p>
+                      <p className="font-medium">{t('settings.privacy.showEmail')}</p>
+                      <p className="text-sm">{t('settings.privacy.showEmailDesc')}</p>
                     </div>
                     <button
                       onClick={() => setPrivacy({ ...privacy, showEmail: !privacy.showEmail })}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${
-                        privacy.showEmail ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                      className={`settings-toggle ${privacy.showEmail ? 'active' : 'inactive'}`}
                     >
-                      <div
-                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          privacy.showEmail ? 'right-1 translate-x-0' : 'left-1'
-                        }`}
-                      />
+                      <div className={`settings-toggle-knob ${privacy.showEmail ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">إظهار رقم الهاتف</p>
-                      <p className="text-sm text-gray-500">عرض رقم هاتفك في الملف الشخصي</p>
+                      <p className="font-medium">{t('settings.privacy.showPhone')}</p>
+                      <p className="text-sm">{t('settings.privacy.showPhoneDesc')}</p>
                     </div>
                     <button
                       onClick={() => setPrivacy({ ...privacy, showPhone: !privacy.showPhone })}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${
-                        privacy.showPhone ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                      className={`settings-toggle ${privacy.showPhone ? 'active' : 'inactive'}`}
                     >
-                      <div
-                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          privacy.showPhone ? 'right-1 translate-x-0' : 'left-1'
-                        }`}
-                      />
+                      <div className={`settings-toggle-knob ${privacy.showPhone ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">إظهار الموقع</p>
-                      <p className="text-sm text-gray-500">عرض موقعك في الملف الشخصي</p>
+                      <p className="font-medium">{t('settings.privacy.showLocation')}</p>
+                      <p className="text-sm">{t('settings.privacy.showLocationDesc')}</p>
                     </div>
                     <button
                       onClick={() => setPrivacy({ ...privacy, showLocation: !privacy.showLocation })}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${
-                        privacy.showLocation ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                      className={`settings-toggle ${privacy.showLocation ? 'active' : 'inactive'}`}
                     >
-                      <div
-                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          privacy.showLocation ? 'right-1 translate-x-0' : 'left-1'
-                        }`}
-                      />
+                      <div className={`settings-toggle-knob ${privacy.showLocation ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
                     </button>
                   </div>
                   
                   <div className="flex items-center justify-between py-3">
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">إظهار حالة الاتصال</p>
-                      <p className="text-sm text-gray-500">عرض ما إذا كنت متصلاً أم لا</p>
+                      <p className="font-medium">{t('settings.privacy.showOnlineStatus')}</p>
+                      <p className="text-sm">{t('settings.privacy.showOnlineStatusDesc')}</p>
                     </div>
                     <button
                       onClick={() => setPrivacy({ ...privacy, showOnlineStatus: !privacy.showOnlineStatus })}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${
-                        privacy.showOnlineStatus ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                      className={`settings-toggle ${privacy.showOnlineStatus ? 'active' : 'inactive'}`}
                     >
-                      <div
-                        className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                          privacy.showOnlineStatus ? 'right-1 translate-x-0' : 'left-1'
-                        }`}
-                      />
+                      <div className={`settings-toggle-knob ${privacy.showOnlineStatus ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
                     </button>
                   </div>
                 </div>
                 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleUpdatePrivacy}
                   disabled={loading}
-                  className="w-full mt-6 py-3 bg-gradient-primary text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full mt-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                  حفظ الإعدادات
-                </button>
+                  {t('common.save')}
+                </motion.button>
               </motion.div>
             )}
             
-            {/* Appearance Tab */}
             {activeTab === 'appearance' && (
               <motion.div
                 key="appearance"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageAnimation}
+                className="settings-glass-card p-6"
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  {theme === 'dark' ? <Moon className="w-5 h-5 text-primary-500" /> : <Sun className="w-5 h-5 text-primary-500" />}
-                  المظهر
-                </h2>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                    {theme === 'dark' ? <Moon className="w-5 h-5 text-white" /> : <Sun className="w-5 h-5 text-white" />}
+                  </div>
+                  <h2 className="text-lg font-bold">{t('settings.appearance.title')}</h2>
+                </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => {
-                      if (theme !== 'light') toggleTheme();
-                    }}
-                    className={`p-6 rounded-2xl border-2 transition-all ${
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { if (theme !== 'light') toggleTheme(); }}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
                       theme === 'light'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
+                        ? 'border-blue-500 bg-blue-500/10 shadow-lg'
+                        : 'border-gray-200/50 hover:border-blue-400 bg-white/10'
                     }`}
                   >
-                    <Sun className="w-8 h-8 mx-auto mb-3 text-yellow-500" />
-                    <p className="font-medium text-gray-900 dark:text-white">فاتح</p>
-                    <p className="text-sm text-gray-500">وضع النهار</p>
-                  </button>
+                    <Sun className="w-10 h-10 mx-auto mb-3 text-yellow-500" />
+                    <p className="font-medium">{t('settings.appearance.light')}</p>
+                    <p className="text-sm">{t('settings.appearance.lightDesc')}</p>
+                  </motion.button>
                   
-                  <button
-                    onClick={() => {
-                      if (theme !== 'dark') toggleTheme();
-                    }}
-                    className={`p-6 rounded-2xl border-2 transition-all ${
+                  <motion.button
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => { if (theme !== 'dark') toggleTheme(); }}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 ${
                       theme === 'dark'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
+                        ? 'border-blue-500 bg-blue-500/10 shadow-lg'
+                        : 'border-gray-200/50 hover:border-blue-400 bg-white/10'
                     }`}
                   >
-                    <Moon className="w-8 h-8 mx-auto mb-3 text-indigo-500" />
-                    <p className="font-medium text-gray-900 dark:text-white">داكن</p>
-                    <p className="text-sm text-gray-500">وضع الليل</p>
-                  </button>
+                    <Moon className="w-10 h-10 mx-auto mb-3 text-indigo-500" />
+                    <p className="font-medium">{t('settings.appearance.dark')}</p>
+                    <p className="text-sm">{t('settings.appearance.darkDesc')}</p>
+                  </motion.button>
                 </div>
               </motion.div>
             )}
             
-            {/* Language Tab */}
             {activeTab === 'language' && (
               <motion.div
                 key="language"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageAnimation}
+                className="settings-glass-card p-6"
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-primary-500" />
-                  اللغة
-                </h2>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-bold">{t('settings.language.title')}</h2>
+                </div>
                 
                 <div className="space-y-3">
-                  <button
-                    onClick={() => changeLanguage('ar')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                      selectedLanguage === 'ar'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <span className="text-2xl">🇸🇦</span>
-                    </div>
-                    <div className="flex-1 text-right">
-                      <p className="font-medium text-gray-900 dark:text-white">العربية</p>
-                      <p className="text-sm text-gray-500">Arabic</p>
-                    </div>
-                    {selectedLanguage === 'ar' && <CheckCircle className="w-5 h-5 text-primary-500" />}
-                  </button>
-                  
-                  <button
-                    onClick={() => changeLanguage('en')}
-                    className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                      selectedLanguage === 'en'
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary-300'
-                    }`}
-                  >
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <span className="text-2xl">🇺🇸</span>
-                    </div>
-                    <div className="flex-1 text-right">
-                      <p className="font-medium text-gray-900 dark:text-white">English</p>
-                      <p className="text-sm text-gray-500">الإنجليزية</p>
-                    </div>
-                    {selectedLanguage === 'en' && <CheckCircle className="w-5 h-5 text-primary-500" />}
-                  </button>
+                  {languages.map((lang) => (
+                    <motion.button
+                      key={lang.code}
+                      whileHover={{ scale: 1.01, x: isRTL ? -4 : 4 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => changeLanguage(lang.code)}
+                      className={`w-full p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-3 ${
+                        selectedLanguage === lang.code
+                          ? 'border-blue-500 bg-blue-500/10 shadow-md'
+                          : 'border-gray-200/50 hover:border-blue-400 bg-white/10'
+                      }`}
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                        <span className="text-lg font-bold text-white">{lang.nativeName.charAt(0)}</span>
+                      </div>
+                      <div className="flex-1 text-right">
+                        <p className="font-medium">{lang.name}</p>
+                        <p className="text-sm">{lang.nativeName}</p>
+                      </div>
+                      {selectedLanguage === lang.code && <CheckCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />}
+                    </motion.button>
+                  ))}
                 </div>
               </motion.div>
             )}
             
-            {/* Blocked Users Tab */}
             {activeTab === 'blocked' && (
               <motion.div
                 key="blocked"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6"
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={pageAnimation}
+                className="settings-glass-card p-6"
               >
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                  <Ban className="w-5 h-5 text-red-500" />
-                  المستخدمون المحظورون
-                </h2>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md">
+                    <Ban className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-lg font-bold">{t('settings.blocked.title')}</h2>
+                </div>
                 
                 {loadingBlocked ? (
                   <div className="flex justify-center py-12">
-                    <Loader className="w-8 h-8 animate-spin text-primary-500" />
+                    <Loader className="w-8 h-8 animate-spin text-blue-500" />
                   </div>
                 ) : blockedUsers.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Ban className="w-10 h-10 text-gray-400" />
+                    <div className="w-20 h-20 bg-gray-100/50 dark:bg-gray-700/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Ban className="w-10 h-10 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400">لا يوجد مستخدمون محظورون</p>
-                    <p className="text-sm text-gray-400 mt-2">عند حظر مستخدم، سيظهر هنا</p>
+                    <p className="font-medium">{t('settings.blocked.noUsers')}</p>
+                    <p className="text-sm mt-2">{t('settings.blocked.noUsersDesc')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {blockedUsers.map((blockedUser) => (
-                      <div
-                        key={blockedUser._id}
-                        className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl"
-                      >
-                        <img
-                          src={blockedUser.profileImage || defaultImgProfile}
-                          alt={blockedUser.username}
-                          className="w-12 h-12 rounded-full object-cover"
-                          onError={(e) => { e.target.src = defaultImgProfile; }}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 dark:text-white">{blockedUser.username}</p>
-                          <p className="text-sm text-gray-500">{blockedUser.role === 'client' ? 'عميل' : blockedUser.role === 'artisan' ? 'حرفي' : 'عامل'}</p>
-                        </div>
-                        <button
-                          onClick={() => handleUnblockUser(blockedUser._id, blockedUser.username)}
-                          className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                    <AnimatePresence>
+                      {blockedUsers.map((blockedUser, index) => (
+                        <motion.div
+                          key={blockedUser._id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 20 }}
+                          transition={{ duration: 0.2, delay: index * 0.05 }}
+                          whileHover={{ scale: 1.01 }}
+                          className="flex items-center gap-3 p-4 rounded-xl bg-white/20 dark:bg-gray-700/30 border border-gray-200/50 dark:border-gray-700/50 hover:shadow-md transition-all duration-300"
                         >
-                          إلغاء الحظر
-                        </button>
-                      </div>
-                    ))}
+                          <img
+                            src={blockedUser.profileImage || defaultImgProfile}
+                            alt={blockedUser.username}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-white/50 dark:border-gray-600/50"
+                            onError={(e) => { e.target.src = defaultImgProfile; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold truncate">{blockedUser.username}</p>
+                            <p className="text-sm">
+                              {blockedUser.role === 'client' ? t('roles.client') : 
+                               blockedUser.role === 'artisan' ? t('roles.artisan') : t('roles.worker')}
+                            </p>
+                          </div>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleUnblockUser(blockedUser._id, blockedUser.username)}
+                            className="px-4 py-2 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all duration-300 font-medium"
+                          >
+                            {t('settings.blocked.unblock')}
+                          </motion.button>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
           
-          {/* Logout Button */}
-          <div className="mt-6">
-            <button
+          {/* زر تسجيل الخروج */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="mt-6"
+          >
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={logout}
-              className="w-full py-4 bg-red-50 dark:bg-red-900/20 text-red-600 font-semibold rounded-2xl hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-semibold rounded-2xl hover:bg-red-500/20 dark:hover:bg-red-500/30 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-sm border border-red-200/50 dark:border-red-800/30 hover:shadow-lg"
             >
               <LogOut className="w-5 h-5" />
-              تسجيل الخروج
-            </button>
-          </div>
+              {t('nav.logout')}
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     </div>

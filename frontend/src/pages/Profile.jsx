@@ -20,12 +20,138 @@ import AddReviewModal from '../components/reviews/AddReviewModal';
 import ReviewCard from '../components/reviews/ReviewCard';
 import PostCard from '../components/PostCard';
 
+// إضافة CSS مخصص لصفحة البروفايل
+const profileStyle = document.createElement('style');
+profileStyle.textContent = `
+  /* ==================== الوضع الفاتح (الألوان الداكنة) ==================== */
+  .profile-glass-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-glass-card-inner {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(8px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  /* النصوص الرئيسية في الوضع الفاتح - أسود */
+  .profile-glass-card h1,
+  .profile-glass-card h2,
+  .profile-glass-card h3,
+  .profile-glass-card .font-bold,
+  .profile-glass-card .font-semibold,
+  .profile-text-primary {
+    color: #1f2937 !important;
+  }
+  
+  /* النصوص العادية في الوضع الفاتح - رمادي غامق */
+  .profile-glass-card p,
+  .profile-glass-card span,
+  .profile-glass-card label,
+  .profile-text-secondary {
+    color: #374151 !important;
+  }
+  
+  /* النصوص الثانوية في الوضع الفاتح - رمادي */
+  .profile-glass-card .text-gray-500,
+  .profile-glass-card .text-gray-600,
+  .profile-text-muted {
+    color: #6b7280 !important;
+  }
+  
+  /* ==================== الوضع المظلم ==================== */
+  .dark .profile-glass-card {
+    background: rgba(17, 24, 39, 0.7) !important;
+    border-color: rgba(75, 85, 99, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark .profile-glass-card-inner {
+    background: rgba(17, 24, 39, 0.5) !important;
+    border-color: rgba(75, 85, 99, 0.2);
+  }
+  
+  /* النصوص الرئيسية في الوضع المظلم - أبيض */
+  .dark .profile-glass-card h1,
+  .dark .profile-glass-card h2,
+  .dark .profile-glass-card h3,
+  .dark .profile-glass-card .font-bold,
+  .dark .profile-glass-card .font-semibold,
+  .dark .profile-text-primary {
+    color: #f3f4f6 !important;
+  }
+  
+  /* النصوص العادية في الوضع المظلم - رمادي فاتح */
+  .dark .profile-glass-card p,
+  .dark .profile-glass-card span,
+  .dark .profile-glass-card label,
+  .dark .profile-text-secondary {
+    color: #d1d5db !important;
+  }
+  
+  /* النصوص الثانوية في الوضع المظلم */
+  .dark .profile-glass-card .text-gray-500,
+  .dark .profile-glass-card .text-gray-600,
+  .dark .profile-text-muted {
+    color: #9ca3af !important;
+  }
+  
+  /* ==================== تبويبات البروفايل ==================== */
+  .profile-tab {
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+  }
+  
+  .profile-tab-active {
+    border-bottom-color: #2563eb !important;
+    color: #2563eb !important;
+  }
+  
+  .dark .profile-tab-active {
+    border-bottom-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+  }
+  
+  .profile-tab-inactive {
+    color: #6b7280 !important;
+  }
+  
+  .dark .profile-tab-inactive {
+    color: #9ca3af !important;
+  }
+  
+  .profile-tab-inactive:hover {
+    color: #2563eb !important;
+  }
+  
+  .dark .profile-tab-inactive:hover {
+    color: #3b82f6 !important;
+  }
+  
+  /* ==================== تنسيق المتجر ==================== */
+  .profile-stat {
+    transition: all 0.3s ease;
+  }
+  
+  .profile-stat:hover {
+    transform: translateY(-2px);
+  }
+`;
+document.head.appendChild(profileStyle);
+
 const ProfileSkeleton = () => {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="h-32 bg-gradient-to-r from-primary-400 to-primary-600 animate-pulse"></div>
+        <div className="profile-glass-card overflow-hidden mb-6">
+          <div className="h-32 rounded-t-3xl bg-gradient-to-r from-blue-400 to-blue-600 animate-pulse"></div>
           <div className="relative px-6 pb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-end -mt-16 mb-4">
               <div className="relative mb-4 sm:mb-0 sm:ml-6 rtl:sm:mr-6">
@@ -43,7 +169,7 @@ const ProfileSkeleton = () => {
   );
 };
 
-// مكون Popup التأكيد المخصص
+// مكون Popup التأكيد المخصص (محسن)
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
   if (!isOpen) return null;
 
@@ -53,7 +179,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden"
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-gray-700"
       >
         <div className="p-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
@@ -98,7 +224,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
   );
 };
 
-// مكون القائمة المنسدلة المنفصل
+// مكون القائمة المنسدلة المنفصل (محسن)
 const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport, isRTL, blockingUser }) => {
   const menuRef = useRef(null);
 
@@ -118,7 +244,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
-      // منع التمرير في الخلفية
       document.body.style.overflow = 'hidden';
     }
 
@@ -133,7 +258,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
 
   return (
     <>
-      {/* خلفية شفافة للإغلاق */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
       
       <motion.div
@@ -146,7 +270,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
         style={{ top: '100%' }}
       >
         <div className="py-1">
-          {/* نسخ الرابط */}
           <button
             onClick={() => {
               onShare();
@@ -158,7 +281,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
             <span>نسخ الرابط</span>
           </button>
           
-          {/* حظر / إلغاء حظر المستخدم */}
           <button
             onClick={() => {
               onBlockToggle();
@@ -175,7 +297,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
             <span>{isBlocked ? 'إلغاء حظر المستخدم' : 'حظر المستخدم'}</span>
           </button>
           
-          {/* الإبلاغ عن المستخدم */}
           <button
             onClick={() => {
               onReport();
@@ -241,7 +362,8 @@ const Profile = () => {
   
   // State للـ Popup التأكيد
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'block', 'unblock'
+  const [confirmAction, setConfirmAction] = useState(null); // 'block', 'unblock', 'deleteReview'
+  const [reviewToDelete, setReviewToDelete] = useState(null); // لتخزين معرف التقييم المراد حذفه
   
   const isOwnProfile = useMemo(() => {
     if (!profileData || !currentUser) return false;
@@ -373,14 +495,38 @@ const Profile = () => {
     setShowConfirmModal(true);
   };
 
-  // تنفيذ الحظر أو إلغاء الحظر بعد التأكيد
+  // فتح Popup تأكيد حذف التقييم
+  const openDeleteReviewConfirm = (reviewId) => {
+    setReviewToDelete(reviewId);
+    setConfirmAction('deleteReview');
+    setShowConfirmModal(true);
+  };
+
+  // تنفيذ الحظر أو إلغاء الحظر أو حذف التقييم بعد التأكيد
   const executeBlockAction = async () => {
+    if (confirmAction === 'deleteReview') {
+      // تنفيذ حذف التقييم
+      try {
+        await deleteReview(reviewToDelete);
+        toast.success('تم حذف التقييم بنجاح');
+        // إعادة تحميل التقييمات
+        await loadReviews(true);
+      } catch (error) {
+        console.error('Error deleting review:', error);
+        toast.error(error.response?.data?.message || 'حدث خطأ أثناء حذف التقييم');
+      } finally {
+        setShowConfirmModal(false);
+        setConfirmAction(null);
+        setReviewToDelete(null);
+      }
+      return;
+    }
+
     if (!profileData) return;
     
     setBlockingUser(true);
     try {
       if (confirmAction === 'unblock') {
-        // إلغاء الحظر
         const response = await api.delete(`/users/block/${profileData._id}`);
         if (response.data.success) {
           toast.success(`تم إلغاء حظر المستخدم ${profileData.username}`);
@@ -390,7 +536,6 @@ const Profile = () => {
           toast.error(response.data.message || 'فشل إلغاء الحظر');
         }
       } else {
-        // حظر المستخدم
         const response = await api.post(`/users/block/${profileData._id}`);
         if (response.data.success) {
           toast.success(`تم حظر المستخدم ${profileData.username} بنجاح`);
@@ -420,9 +565,13 @@ const Profile = () => {
 
   // دالة معالجة حذف البوست
   const handlePostDelete = (deletedPostId) => {
-    // إعادة تحميل البوستات بعد الحذف
     loadPosts(true);
     toast.success('تم حذف المنشور');
+  };
+
+  // دالة معالجة حذف التقييم من ReviewCard
+  const handleReviewDelete = async (reviewId) => {
+    openDeleteReviewConfirm(reviewId);
   };
 
   // إغلاق قائمة المزيد
@@ -536,7 +685,7 @@ const Profile = () => {
 
   if (!profileData && !profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -547,7 +696,7 @@ const Profile = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all"
           >
             العودة للرئيسية
           </button>
@@ -557,14 +706,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="h-32 relative">
+        {/* Profile Card - Glass morphism style */}
+        <div className="profile-glass-card overflow-hidden mb-6">
+          {/* Banner */}
+          <div className="h-32 relative rounded-t-3xl">
             <button
               onClick={() => navigate(-1)}
-              className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-white/30 transition-colors"
+              className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-xl hover:bg-white/30 transition-colors"
             >
               {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
@@ -576,7 +726,7 @@ const Profile = () => {
                 <img
                   src={profileData.profileImage || defaultImgProfile}
                   alt={profileData.username}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg object-cover cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300"
                   onClick={() => handleImageClick(profileData.profileImage || defaultImgProfile)}
                   onError={(e) => {
                     e.target.onerror = null;
@@ -594,7 +744,7 @@ const Profile = () => {
               <div className="flex-1 sm:mr-6 rtl:sm:ml-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
                       {profileData.username}
                       {profileData.professionalInfo?.verified && (
                         <CheckCircle className="w-5 h-5 text-blue-500" />
@@ -603,7 +753,7 @@ const Profile = () => {
                     
                     <div className="flex flex-wrap items-center gap-3 mt-2">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                        ${profileData.role === 'artisan' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400' : ''}
+                        ${profileData.role === 'artisan' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' : ''}
                         ${profileData.role === 'worker' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : ''}
                         ${profileData.role === 'client' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : ''}
                       `}>
@@ -611,13 +761,13 @@ const Profile = () => {
                       </span>
                       
                       {profileData.location && (
-                        <span className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <span className="inline-flex items-center text-sm">
                           <MapPin className="w-4 h-4 ml-1 rtl:mr-1" />
                           {profileData.location}
                         </span>
                       )}
                       
-                      <span className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <span className="inline-flex items-center text-sm">
                         <Calendar className="w-4 h-4 ml-1 rtl:mr-1" />
                         {new Date(profileData.createdAt).toLocaleDateString('ar-DZ')}
                       </span>
@@ -630,10 +780,10 @@ const Profile = () => {
                         <button
                           onClick={handleMessage}
                           disabled={isBlocked}
-                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
                             isBlocked
                               ? 'bg-gray-400 cursor-not-allowed text-white'
-                              : 'bg-primary-600 hover:bg-primary-700 text-white'
+                              : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:shadow-lg hover:scale-[1.02] text-white'
                           }`}
                         >
                           <MessageCircle className="w-4 h-4" />
@@ -643,7 +793,7 @@ const Profile = () => {
                         {userExistingReview ? (
                           <button
                             onClick={() => setActiveTab('reviews')}
-                            className="px-4 py-2 bg-gray-500 text-white rounded-xl text-sm font-medium hover:bg-gray-600 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
                           >
                             <Eye className="w-4 h-4" />
                             <span>عرض تقييمك</span>
@@ -652,7 +802,7 @@ const Profile = () => {
                           !isBlocked && (
                             <button
                               onClick={() => setShowAddReviewModal(true)}
-                              className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-sm font-medium hover:bg-yellow-600 transition-colors flex items-center gap-2"
+                              className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
                             >
                               <Star className="w-4 h-4" />
                               <span>تقييم</span>
@@ -663,10 +813,10 @@ const Profile = () => {
                     ) : (
                       <button
                         onClick={handleEditProfile}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white dark:text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        <span>تعديل الملف</span>
+                        <span className='text-white dark:text-white'>تعديل الملف</span>
                       </button>
                     )}
                     
@@ -675,7 +825,7 @@ const Profile = () => {
                       <div className="relative">
                         <button
                           onClick={() => setShowMoreMenu(!showMoreMenu)}
-                          className="p-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          className="p-2 bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm text-gray-700 dark:text-gray-300 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-300 border border-white/20 dark:border-gray-700/30"
                           disabled={blockingUser}
                         >
                           <MoreHorizontal className="w-5 h-5" />
@@ -697,7 +847,7 @@ const Profile = () => {
                 </div>
 
                 {profileData.bio && (
-                  <p className="mt-4 text-gray-700 dark:text-gray-300 max-w-2xl">
+                  <p className="mt-4 max-w-2xl profile-text-secondary">
                     {profileData.bio}
                   </p>
                 )}
@@ -706,12 +856,12 @@ const Profile = () => {
                   {showPostsTab && (
                     <button 
                       onClick={() => setActiveTab('posts')}
-                      className="text-center hover:opacity-80 transition-opacity"
+                      className="profile-stat text-center hover:opacity-80 transition-all duration-300"
                     >
-                      <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      <div className="text-xl font-bold">
                         {profileData.stats?.postsCount || 0}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs profile-text-muted">
                         منشورات
                       </div>
                     </button>
@@ -719,12 +869,12 @@ const Profile = () => {
                   
                   <button 
                     onClick={() => setActiveTab('reviews')}
-                    className="text-center hover:opacity-80 transition-opacity"
+                    className="profile-stat text-center hover:opacity-80 transition-all duration-300"
                   >
-                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-xl font-bold">
                       {profileData.stats?.totalRatings || 0}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <div className="text-xs profile-text-muted flex items-center gap-1">
                       <Star className="w-3 h-3 text-yellow-500" />
                       تقييمات
                     </div>
@@ -732,8 +882,8 @@ const Profile = () => {
                 </div>
 
                 {profileData.role !== 'client' && profileData.professionalInfo && (
-                  <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <div className="mt-6 p-4 profile-glass-card-inner">
+                    <h3 className="font-medium mb-3 flex items-center gap-2 profile-text-primary">
                       <Briefcase className="w-4 h-4" />
                       المعلومات المهنية
                     </h3>
@@ -742,13 +892,13 @@ const Profile = () => {
                       {profileData.role === 'artisan' && (
                         <>
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="text-sm profile-text-secondary">
                               الحرفة: {profileData.professionalInfo.craft}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <Clock className="w-4 h-4 profile-text-muted" />
+                            <span className="text-sm profile-text-secondary">
                               الخبرة: {profileData.professionalInfo.experience}
                             </span>
                           </div>
@@ -758,14 +908,14 @@ const Profile = () => {
                       {profileData.role === 'worker' && (
                         <>
                           <div className="flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <DollarSign className="w-4 h-4 profile-text-muted" />
+                            <span className="text-sm profile-text-secondary">
                               السعر اليومي: {profileData.professionalInfo.dailyRate?.toLocaleString()} دج
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Award className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                            <Award className="w-4 h-4 profile-text-muted" />
+                            <span className="text-sm profile-text-secondary">
                               {profileData.professionalInfo.skills?.length || 0} مهارة
                             </span>
                           </div>
@@ -776,12 +926,12 @@ const Profile = () => {
                     {profileData.role === 'worker' && profileData.professionalInfo.skills?.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {profileData.professionalInfo.skills.slice(0, 5).map(skill => (
-                          <span key={skill} className="px-2 py-1 bg-white dark:bg-gray-800 rounded text-xs font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                          <span key={skill} className="px-2 py-1 bg-white/50 dark:bg-gray-800/50 rounded text-xs font-medium profile-text-secondary border border-gray-200/50 dark:border-gray-700/50">
                             {skill}
                           </span>
                         ))}
                         {profileData.professionalInfo.skills.length > 5 && (
-                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium text-gray-600 dark:text-gray-400">
+                          <span className="px-2 py-1 bg-gray-100/50 dark:bg-gray-700/50 rounded text-xs font-medium profile-text-secondary">
                             +{profileData.professionalInfo.skills.length - 5}
                           </span>
                         )}
@@ -794,15 +944,13 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6 sticky top-0 bg-gray-50 dark:bg-gray-900 z-10">
-          <nav className="flex space-x-8 rtl:space-x-reverse overflow-x-auto scrollbar-hide">
+        {/* Tabs - Glass style */}
+        <div className="sticky top-0 z-10 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 rounded-t-2xl">
+          <nav className="flex space-x-8 rtl:space-x-reverse overflow-x-auto scrollbar-hide px-2">
             <button
               onClick={() => setActiveTab('about')}
-              className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${
-                activeTab === 'about'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              className={`profile-tab py-4 px-1 text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'about' ? 'profile-tab-active' : 'profile-tab-inactive'
               }`}
             >
               <Info className="w-4 h-4" />
@@ -812,10 +960,8 @@ const Profile = () => {
             {showPostsTab && (
               <button
                 onClick={() => setActiveTab('posts')}
-                className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${
-                  activeTab === 'posts'
-                    ? 'border-primary-600 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                className={`profile-tab py-4 px-1 text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                  activeTab === 'posts' ? 'profile-tab-active' : 'profile-tab-inactive'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -825,10 +971,8 @@ const Profile = () => {
             
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`py-4 px-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${
-                activeTab === 'reviews'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              className={`profile-tab py-4 px-1 text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                activeTab === 'reviews' ? 'profile-tab-active' : 'profile-tab-inactive'
               }`}
             >
               <Star className="w-4 h-4" />
@@ -837,7 +981,7 @@ const Profile = () => {
           </nav>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Glass cards */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -845,11 +989,12 @@ const Profile = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
+            className="mt-6"
           >
             {/* About Tab */}
             {activeTab === 'about' && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="profile-glass-card p-6">
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
                   <User className="w-5 h-5" />
                   نبذة عن المستخدم
                 </h3>
@@ -857,19 +1002,19 @@ const Profile = () => {
                 <div className="space-y-6">
                   {profileData.bio && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">السيرة الذاتية</h4>
-                      <p className="text-gray-700 dark:text-gray-300">{profileData.bio}</p>
+                      <h4 className="text-sm font-medium profile-text-muted mb-2">السيرة الذاتية</h4>
+                      <p className="profile-text-secondary">{profileData.bio}</p>
                     </div>
                   )}
                   
                   {(profileData.email || profileData.phone || profileData.location) && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">معلومات الاتصال</h4>
+                      <h4 className="text-sm font-medium profile-text-muted mb-2">معلومات الاتصال</h4>
                       <div className="space-y-2">
                         {profileData.email && (isOwnProfile || profileData.privacy?.showEmail) && (
                           <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
-                            <a href={`mailto:${profileData.email}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
+                            <Mail className="w-4 h-4 profile-text-muted" />
+                            <a href={`mailto:${profileData.email}`} className="profile-text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                               {profileData.email}
                             </a>
                           </div>
@@ -877,8 +1022,8 @@ const Profile = () => {
                         
                         {profileData.phone && (isOwnProfile || profileData.privacy?.showPhone) && (
                           <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            <a href={`tel:${profileData.phone}`} className="text-gray-700 dark:text-gray-300 hover:text-primary-600">
+                            <Phone className="w-4 h-4 profile-text-muted" />
+                            <a href={`tel:${profileData.phone}`} className="profile-text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                               {profileData.phone}
                             </a>
                           </div>
@@ -886,8 +1031,8 @@ const Profile = () => {
                         
                         {profileData.location && (isOwnProfile || profileData.privacy?.showLocation) && (
                           <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-700 dark:text-gray-300">{profileData.location}</span>
+                            <MapPin className="w-4 h-4 profile-text-muted" />
+                            <span className="profile-text-secondary">{profileData.location}</span>
                           </div>
                         )}
                       </div>
@@ -896,19 +1041,19 @@ const Profile = () => {
                   
                   {profileData.role !== 'client' && profileData.professionalInfo && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">المعلومات المهنية</h4>
+                      <h4 className="text-sm font-medium profile-text-muted mb-2">المعلومات المهنية</h4>
                       <div className="space-y-2">
                         {profileData.role === 'artisan' && (
                           <>
                             <div className="flex items-center gap-2">
-                              <Briefcase className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700 dark:text-gray-300">
+                              <Briefcase className="w-4 h-4 profile-text-muted" />
+                              <span className="profile-text-secondary">
                                 الحرفة: {profileData.professionalInfo.craft}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700 dark:text-gray-300">
+                              <Clock className="w-4 h-4 profile-text-muted" />
+                              <span className="profile-text-secondary">
                                 الخبرة: {profileData.professionalInfo.experience}
                               </span>
                             </div>
@@ -917,18 +1062,18 @@ const Profile = () => {
                         {profileData.role === 'worker' && (
                           <>
                             <div className="flex items-center gap-2">
-                              <DollarSign className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700 dark:text-gray-300">
+                              <DollarSign className="w-4 h-4 profile-text-muted" />
+                              <span className="profile-text-secondary">
                                 السعر اليومي: {profileData.professionalInfo.dailyRate?.toLocaleString()} دج
                               </span>
                             </div>
                             <div className="flex items-start gap-2">
-                              <Wrench className="w-4 h-4 text-gray-400 mt-1" />
+                              <Wrench className="w-4 h-4 profile-text-muted mt-1" />
                               <div>
-                                <span className="text-gray-700 dark:text-gray-300 block mb-1">المهارات:</span>
+                                <span className="profile-text-secondary block mb-1">المهارات:</span>
                                 <div className="flex flex-wrap gap-2">
                                   {profileData.professionalInfo.skills?.map(skill => (
-                                    <span key={skill} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs text-gray-700 dark:text-gray-300">
+                                    <span key={skill} className="px-2 py-1 bg-white/50 dark:bg-gray-800/50 rounded text-xs profile-text-secondary border border-gray-200/50 dark:border-gray-700/50">
                                       {skill}
                                     </span>
                                   ))}
@@ -942,12 +1087,12 @@ const Profile = () => {
                   )}
 
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">معلومات الحساب</h4>
+                    <h4 className="text-sm font-medium profile-text-muted mb-2">معلومات الحساب</h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-700 dark:text-gray-300">
-                          انضم في {new Date(profileData.createdAt).toLocaleDateString('ar-DZ')}
+                        <Calendar className="w-4 h-4 profile-text-muted" />
+                        <span className="profile-text-secondary">
+                          انضم في {new Date(profileData.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-DZ' : (i18n.language === 'fr' ? 'fr-FR' : 'en-US'))}
                         </span>
                       </div>
                     </div>
@@ -960,15 +1105,15 @@ const Profile = () => {
             {activeTab === 'posts' && showPostsTab && (
               <div className="space-y-4">
                 {posts.length === 0 && !postsLoading && (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  <div className="profile-glass-card p-8 text-center">
+                    <FileText className="w-12 h-12 mx-auto mb-4 profile-text-muted" />
+                    <h3 className="text-lg font-medium mb-2">
                       لا توجد منشورات
                     </h3>
                     {isOwnProfile && canCreatePost && (
                       <button
                         onClick={handleCreatePost}
-                        className="mt-4 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 mx-auto"
+                        className="mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 mx-auto"
                       >
                         <PlusCircle className="w-5 h-5" />
                         <span>أنشئ منشورك الأول</span>
@@ -980,7 +1125,7 @@ const Profile = () => {
                 {postsLoading && posts.length === 0 && (
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 animate-pulse">
+                      <div key={i} className="profile-glass-card p-4 animate-pulse">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
                           <div className="flex-1">
@@ -1009,13 +1154,13 @@ const Profile = () => {
                 
                 {postsLoading && posts.length > 0 && (
                   <div className="text-center py-4">
-                    <Loader className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                    <Loader className="w-6 h-6 animate-spin text-blue-500 mx-auto" />
                   </div>
                 )}
                 
                 {!hasMorePosts && posts.length > 0 && (
-                  <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                    لقد وصلت إلى نهاية المنشورات
+                  <div className="text-center py-4 profile-text-muted text-sm">
+                    🏁 لقد وصلت إلى نهاية المنشورات
                   </div>
                 )}
               </div>
@@ -1024,11 +1169,11 @@ const Profile = () => {
             {/* Reviews Tab */}
             {activeTab === 'reviews' && (
               <div className="space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
+                <div className="profile-glass-card p-6">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex items-center gap-6">
                       <div className="text-center">
-                        <div className="text-4xl font-bold text-gray-900 dark:text-white">
+                        <div className="text-4xl font-bold">
                           {reviewsStats.average?.toFixed(1) || 0}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
@@ -1040,7 +1185,7 @@ const Profile = () => {
                             }`} />
                           ))}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs profile-text-muted mt-1">
                           {reviewsStats.count || 0} تقييم
                         </div>
                       </div>
@@ -1053,7 +1198,7 @@ const Profile = () => {
                             : 0;
                           return (
                             <div key={rating} className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600 dark:text-gray-400 w-6">
+                              <span className="text-xs profile-text-muted w-6">
                                 {rating} ★
                               </span>
                               <div className="w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -1062,7 +1207,7 @@ const Profile = () => {
                                   style={{ width: `${percentage}%` }}
                                 />
                               </div>
-                              <span className="text-xs text-gray-500 w-8">
+                              <span className="text-xs profile-text-muted w-8">
                                 {count}
                               </span>
                             </div>
@@ -1076,7 +1221,7 @@ const Profile = () => {
                 {reviewsLoading && reviews.length === 0 ? (
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 animate-pulse">
+                      <div key={i} className="profile-glass-card p-4 animate-pulse">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
                           <div className="flex-1">
@@ -1092,12 +1237,12 @@ const Profile = () => {
                     ))}
                   </div>
                 ) : reviews.length === 0 ? (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-8 text-center">
-                    <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  <div className="profile-glass-card p-8 text-center">
+                    <Star className="w-12 h-12 mx-auto mb-4 profile-text-muted" />
+                    <h3 className="text-lg font-medium mb-2">
                       لا توجد تقييمات
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400">
+                    <p className="profile-text-secondary">
                       {isOwnProfile 
                         ? 'لم يتم تقييمك بعد'
                         : 'لا توجد تقييمات لهذا المستخدم'}
@@ -1109,7 +1254,7 @@ const Profile = () => {
                       <div key={review._id} id={`review-${review._id}`}>
                         <ReviewCard
                           review={review}
-                          onDelete={deleteReview}
+                          onDelete={handleReviewDelete}
                           onUpdate={updateReview}
                         />
                       </div>
@@ -1121,13 +1266,13 @@ const Profile = () => {
                 
                 {reviewsLoading && reviews.length > 0 && (
                   <div className="text-center py-4">
-                    <Loader className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+                    <Loader className="w-6 h-6 animate-spin text-blue-500 mx-auto" />
                   </div>
                 )}
                 
                 {!hasMoreReviews && reviews.length > 0 && (
-                  <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                    لقد وصلت إلى نهاية التقييمات
+                  <div className="text-center py-4 profile-text-muted text-sm">
+                    🏁 لقد وصلت إلى نهاية التقييمات
                   </div>
                 )}
               </div>
@@ -1156,7 +1301,7 @@ const Profile = () => {
               <img 
                 src={selectedImage} 
                 alt="Preview" 
-                className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                className="max-w-full max-h-[90vh] object-contain rounded-2xl"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = defaultImgProfile;
@@ -1164,7 +1309,7 @@ const Profile = () => {
               />
               <button 
                 onClick={() => setShowImageModal(false)} 
-                className="absolute top-4 right-4 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="absolute top-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white dark:hover:bg-gray-700 transition-all duration-300"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1184,23 +1329,34 @@ const Profile = () => {
         reviewedUserName={profileData?.username}
       />
 
-      {/* Confirmation Modal للحظر/إلغاء الحظر */}
+      {/* Confirmation Modal موحد للحظر/إلغاء الحظر/حذف التقييم */}
       <ConfirmationModal
         isOpen={showConfirmModal}
         onClose={() => {
           setShowConfirmModal(false);
           setConfirmAction(null);
+          setReviewToDelete(null);
         }}
         onConfirm={executeBlockAction}
-        title={confirmAction === 'block' ? 'حظر المستخدم' : 'إلغاء حظر المستخدم'}
+        title={
+          confirmAction === 'block' ? 'حظر المستخدم' :
+          confirmAction === 'unblock' ? 'إلغاء حظر المستخدم' :
+          'حذف التقييم'
+        }
         message={
           confirmAction === 'block'
             ? `هل أنت متأكد من رغبتك في حظر المستخدم ${profileData?.username}؟\n\nبعد الحظر، لن تتمكن من رؤية منشوراته أو مراسلته.`
-            : `هل أنت متأكد من رغبتك في إلغاء حظر المستخدم ${profileData?.username}؟`
+            : confirmAction === 'unblock'
+            ? `هل أنت متأكد من رغبتك في إلغاء حظر المستخدم ${profileData?.username}؟`
+            : 'هل أنت متأكد من حذف هذا التقييم؟\n\nلا يمكن التراجع عن هذا الإجراء.'
         }
-        confirmText={confirmAction === 'block' ? 'حظر' : 'إلغاء الحظر'}
+        confirmText={
+          confirmAction === 'block' ? 'حظر' :
+          confirmAction === 'unblock' ? 'إلغاء الحظر' :
+          'حذف'
+        }
         cancelText="إلغاء"
-        isDanger={confirmAction === 'block'}
+        isDanger={confirmAction !== 'unblock'}
       />
     </div>
   );

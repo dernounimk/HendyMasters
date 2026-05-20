@@ -12,7 +12,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const transporter = nodemailer.createTransport({
   host: process.env.BREVO_HOST || 'smtp-relay.brevo.com',
   port: parseInt(process.env.BREVO_PORT) || 587,
-  secure: false, // false for port 587
+  secure: false,
   auth: {
     user: process.env.BREVO_USER,
     pass: process.env.BREVO_PASS
@@ -36,11 +36,12 @@ console.log('📧 Email service initialized with Brevo (Sendinblue)');
 export const sendResetCode = async (email, username, code) => {
   try {
     console.log(`📧 Sending reset code to: ${email}`);
+    console.log(`🔑 Reset code: ${code}`);
     
     const info = await transporter.sendMail({
-      from: `"HandyMasters" <${process.env.BREVO_USER}>`,
+      from: `"Handys" <${process.env.BREVO_USER}>`,
       to: email,
-      subject: 'رمز إعادة تعيين كلمة المرور - HandyMasters',
+      subject: 'رمز إعادة تعيين كلمة المرور - Handys',
       html: `
         <!DOCTYPE html>
         <html dir="rtl">
@@ -49,11 +50,7 @@ export const sendResetCode = async (email, username, code) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>رمز إعادة تعيين كلمة المرور</title>
           <style>
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
               font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -75,14 +72,8 @@ export const sendResetCode = async (email, username, code) => {
               animation: slideUp 0.5s ease-out;
             }
             @keyframes slideUp {
-              from {
-                opacity: 0;
-                transform: translateY(30px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
+              from { opacity: 0; transform: translateY(30px); }
+              to { opacity: 1; transform: translateY(0); }
             }
             .header {
               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -120,9 +111,7 @@ export const sendResetCode = async (email, username, code) => {
               position: relative;
               z-index: 1;
             }
-            .content {
-              padding: 40px 35px;
-            }
+            .content { padding: 40px 35px; }
             .greeting {
               font-size: 22px;
               color: #1f2937;
@@ -179,7 +168,7 @@ export const sendResetCode = async (email, username, code) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🛠️ HandyMasters</h1>
+              <h1>🛠️ Handys</h1>
               <p>منصة الحرفيين والعمال في الجزائر</p>
             </div>
             <div class="content">
@@ -199,12 +188,8 @@ export const sendResetCode = async (email, username, code) => {
               </div>
             </div>
             <div class="footer">
-              <p class="footer-text">
-                © ${new Date().getFullYear()} HandyMasters. جميع الحقوق محفوظة.
-              </p>
-              <p class="footer-text" style="font-size: 10px;">
-                هذا بريد إلكتروني تلقائي، الرجاء عدم الرد عليه.
-              </p>
+              <p class="footer-text">© ${new Date().getFullYear()} Handys. جميع الحقوق محفوظة.</p>
+              <p class="footer-text" style="font-size: 10px;">هذا بريد إلكتروني تلقائي، الرجاء عدم الرد عليه.</p>
             </div>
           </div>
         </body>
@@ -225,9 +210,9 @@ export const sendResetCode = async (email, username, code) => {
 export const sendPasswordChangedEmail = async (email, username) => {
   try {
     const info = await transporter.sendMail({
-      from: `"HandyMasters" <${process.env.BREVO_USER}>`,
+      from: `"Handys" <${process.env.BREVO_USER}>`,
       to: email,
-      subject: 'تم تغيير كلمة المرور - HandyMasters',
+      subject: 'تم تغيير كلمة المرور - Handys',
       html: `
         <!DOCTYPE html>
         <html dir="rtl">
@@ -255,18 +240,9 @@ export const sendPasswordChangedEmail = async (email, username) => {
               text-align: center;
               color: white;
             }
-            .header h1 {
-              margin: 0;
-              font-size: 32px;
-            }
-            .content {
-              padding: 35px;
-            }
-            .success-icon {
-              text-align: center;
-              font-size: 64px;
-              margin-bottom: 20px;
-            }
+            .header h1 { margin: 0; font-size: 32px; }
+            .content { padding: 35px; }
+            .success-icon { text-align: center; font-size: 64px; margin-bottom: 20px; }
             .warning-box {
               background-color: #fef3c7;
               padding: 15px;
@@ -285,21 +261,19 @@ export const sendPasswordChangedEmail = async (email, username) => {
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <h1>🛠️ HandyMasters</h1>
-            </div>
+            <div class="header"><h1>Handys</h1></div>
             <div class="content">
               <div class="success-icon">✅</div>
               <h2 style="text-align: center; color: #1f2937; margin-bottom: 20px;">تم تغيير كلمة المرور بنجاح</h2>
               <p style="font-size: 18px; margin-bottom: 15px;">مرحباً ${username}،</p>
-              <p style="color: #4b5563; line-height: 1.6;">تم تغيير كلمة المرور الخاصة بحسابك في HandyMasters بنجاح.</p>
+              <p style="color: #4b5563; line-height: 1.6;">تم تغيير كلمة المرور الخاصة بحسابك في Handys بنجاح.</p>
               <div class="warning-box">
                 ⚠️ <strong>تنبيه أمني مهم:</strong> إذا لم تقم بتغيير كلمة المرور، يرجى التواصل مع الدعم الفني فوراً
               </div>
               <p style="color: #6b7280; margin-top: 20px;">إذا قمت بتغيير كلمة المرور بنفسك، يمكنك تجاهل هذا البريد الإلكتروني.</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} HandyMasters. جميع الحقوق محفوظة.</p>
+              <p>© ${new Date().getFullYear()} Handys. جميع الحقوق محفوظة.</p>
               <p style="font-size: 10px; margin-top: 8px;">هذا بريد إلكتروني تلقائي، الرجاء عدم الرد عليه.</p>
             </div>
           </div>

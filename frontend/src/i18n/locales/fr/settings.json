@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Gérez votre compte et vos préférences personnelles",
+    "tabs": {
+      "profile": "Profil",
+      "security": "Sécurité",
+      "privacy": "Confidentialité",
+      "appearance": "Apparence",
+      "language": "Langue",
+      "blocked": "Utilisateurs bloqués"
+    },
+    "security": {
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "changePasswordBtn": "Changer le mot de passe",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+      "currentPasswordRequired": "Le mot de passe actuel est requis",
+      "passwordChangeSuccess": "Mot de passe changé",
+      "passwordChangeError": "Échec du changement"
+    },
+    "privacy": {
+      "title": "Confidentialité",
+      "showEmail": "Afficher l'email",
+      "showEmailDesc": "Afficher votre email sur votre profil",
+      "showPhone": "Afficher le téléphone",
+      "showPhoneDesc": "Afficher votre numéro sur votre profil",
+      "showLocation": "Afficher l'emplacement",
+      "showLocationDesc": "Afficher votre emplacement",
+      "showOnlineStatus": "Afficher le statut",
+      "showOnlineStatusDesc": "Afficher si vous êtes en ligne",
+      "save": "Enregistrer",
+      "updateSuccess": "Paramètres mis à jour",
+      "updateError": "Échec de la mise à jour"
+    },
+    "appearance": {
+      "title": "Apparence",
+      "light": "Clair",
+      "lightDesc": "Mode jour",
+      "dark": "Sombre",
+      "darkDesc": "Mode nuit"
+    },
+    "language": {
+      "title": "Langue",
+      "changed": "Langue changée en Français"
+    },
+    "blocked": {
+      "title": "Utilisateurs bloqués",
+      "noUsers": "Aucun utilisateur bloqué",
+      "noUsersDesc": "Les utilisateurs bloqués apparaîtront ici",
+      "unblock": "Débloquer",
+      "unblockSuccess": "{username} débloqué",
+      "unblockError": "Échec du déblocage",
+      "fetchError": "Échec du chargement"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "profile": {
+    "title": "Profile",
+    "edit": {
+      "title": "Edit Profile",
+      "clickToChangeAvatar": "Click to change profile picture",
+      "username": "Username",
+      "usernamePlaceholder": "Enter username",
+      "usernameChangeAvailable": "You can change your username now",
+      "usernameChangeNote": "You can change your username once every 15 days",
+      "usernameChangeWait": "You can change your username after {{days}} days",
+      "usernameRequired": "Username is required",
+      "usernameLength": "Username must be between 3 and 30 characters",
+      "usernameInvalidChars": "Username can only contain letters, numbers, and underscores",
+      "email": "Email",
+      "emailNote": "Your email will not be shown to others unless you allow it in privacy settings",
+      "phone": "Phone Number",
+      "phoneRequired": "Phone number is required",
+      "phoneNote": "Your phone number will not be shown to others unless you allow it in privacy settings",
+      "bio": "Bio",
+      "bioPlaceholder": "Write something about yourself...",
+      "location": "Location",
+      "privacy": "Privacy Settings",
+      "showEmail": "Show email to others",
+      "showPhone": "Show phone number to others",
+      "showLocation": "Show location to others",
+      "showOnlineStatus": "Show online status",
+      "avatarTooLarge": "Image size too large. Maximum 5MB",
+      "invalidImageType": "Invalid file type. Please choose an image",
+      "avatarRemoved": "Profile picture removed successfully",
+      "confirmRemoveAvatarTitle": "Remove Profile Picture",
+      "confirmRemoveAvatarMessage": "Are you sure you want to remove your profile picture?",
+      "confirmCancelTitle": "Cancel Changes",
+      "confirmCancelMessage": "Are you sure you want to cancel? All unsaved changes will be lost.",
+      "success": "Profile updated successfully",
+      "error": "An error occurred while updating profile",
+      "noChanges": "No changes to save"
+    },
+    "tabs": {
+      "about": "About",
+      "posts": "Posts",
+      "reviews": "Reviews"
+    },
+    "about": {
+      "title": "About User",
+      "bio": "Bio",
+      "contactInfo": "Contact Information",
+      "professionalInfo": "Professional Information",
+      "accountInfo": "Account Information",
+      "joinedAt": "Joined on {{date}}",
+      "craft": "Craft",
+      "experience": "Experience",
+      "dailyRate": "Daily Rate",
+      "skills": "Skills",
+      "noBio": "No bio available",
+      "noContactInfo": "No contact information available"
+    },
+    "posts": {
+      "noPosts": "No posts",
+      "createFirst": "Create your first post",
+      "endOfPosts": "🏁 You've reached the end of posts"
+    },
+    "reviews": {
+      "noReviews": "No reviews",
+      "noReviewsForUser": "No reviews for this user",
+      "notRatedYet": "You haven't been rated yet",
+      "endOfReviews": "🏁 You've reached the end of reviews",
+      "averageRating": "Average Rating",
+      "totalReviews": "review",
+      "totalReviews_plural": "reviews",
+      "distribution": "Rating Distribution"
+    },
+    "actions": {
+      "message": "Message",
+      "blocked": "Blocked",
+      "viewYourReview": "View Your Review",
+      "rate": "Rate",
+      "editProfile": "Edit Profile",
+      "shareProfile": "Share Profile",
+      "copyLink": "Copy Link",
+      "linkCopied": "Link copied",
+      "blockUser": "Block User",
+      "unblockUser": "Unblock User",
+      "reportUser": "Report User",
+      "reportSoon": "Report feature coming soon"
+    },
+    "errors": {
+      "notFound": "Profile not found",
+      "fetchFailed": "Failed to load profile"
+    }
+  }
+}

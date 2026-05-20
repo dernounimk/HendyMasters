@@ -1,0 +1,92 @@
+{
+  "reset": {
+    "title": "Reset Password",
+    "subtitle": "Enter your email to receive a verification code",
+    "backToLogin": "Back to login",
+    "steps": {
+      "email": "Email",
+      "verification": "Verification",
+      "reset": "Reset"
+    },
+    "fields": {
+      "email": {
+        "label": "Email Address",
+        "placeholder": "your@email.com"
+      },
+      "newPassword": {
+        "label": "New Password",
+        "placeholder": "Enter new password"
+      },
+      "confirmPassword": {
+        "label": "Confirm Password",
+        "placeholder": "Confirm your new password"
+      }
+    },
+    "buttons": {
+      "sendCode": "Send Code",
+      "sending": "Sending...",
+      "resendCode": "Resend Code",
+      "verify": "Verify",
+      "verifying": "Verifying...",
+      "resetPassword": "Reset Password",
+      "resetting": "Resetting..."
+    },
+    "verify": {
+      "title": "Verify Code",
+      "subtitle": "Enter the 6-digit code sent to your email",
+      "codeLabel": "Verification Code",
+      "resendTimer": "Resend code in",
+      "codeInvalid": "Invalid or expired code"
+    },
+    "reset": {
+      "title": "Create New Password",
+      "subtitle": "Enter your new password"
+    },
+    "notifications": {
+      "codeSent": "Verification code sent to your email",
+      "codeResent": "Verification code resent",
+      "codeVerified": "Code verified successfully",
+      "passwordChanged": "Password changed successfully!",
+      "redirecting": "Redirecting to login..."
+    },
+    "demo": {
+      "badge": "Demo Mode | Code:",
+      "demoMode": "Demo mode: any email is accepted",
+      "codeHint": "Demo code:",
+      "codeIs": "Demo code is:"
+    }
+  },
+  "validation": {
+    "required": {
+      "email": "Email is required",
+      "password": "Password is required",
+      "confirmPassword": "Please confirm your password"
+    },
+    "email": {
+      "invalidFormat": "Please enter a valid email address"
+    },
+    "password": {
+      "minLength": "Password must be at least 8 characters",
+      "uppercase": "Must contain an uppercase letter",
+      "lowercase": "Must contain a lowercase letter",
+      "number": "Must contain a number",
+      "special": "Must contain a special character",
+      "mismatch": "Passwords do not match"
+    }
+  },
+  "security": {
+    "passwordStrength": {
+      "label": "Password Strength",
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong"
+    },
+    "passwordChecks": {
+      "length": "8+ characters",
+      "uppercase": "Uppercase",
+      "lowercase": "Lowercase",
+      "number": "Number",
+      "special": "Special character"
+    }
+  }
+}

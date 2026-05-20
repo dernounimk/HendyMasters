@@ -39,7 +39,7 @@ import {
 
 import { RiHomeGearLine, RiPaintBrushLine } from 'react-icons/ri';
 
-// إضافة CSS للتأثيرات الحركية
+// إضافة CSS
 const style = document.createElement('style');
 style.textContent = `
   /* إخفاء شريط التمرير */
@@ -52,46 +52,6 @@ style.textContent = `
     scrollbar-width: none;
   }
   
-  /* تصحيح مواقع أزرار التمرير */
-  [dir="rtl"] .scroll-button-left {
-    left: 0.5rem;
-    right: auto;
-  }
-  
-  [dir="rtl"] .scroll-button-right {
-    right: 0.5rem;
-    left: auto;
-  }
-  
-  [dir="ltr"] .scroll-button-left {
-    left: 0.5rem;
-    right: auto;
-  }
-  
-  [dir="ltr"] .scroll-button-right {
-    right: 0.5rem;
-    left: auto;
-  }
-
-  /* أنيميشن بسيط */
-  .fade-enter {
-    opacity: 0;
-  }
-  
-  .fade-enter-active {
-    opacity: 1;
-    transition: opacity 300ms ease-in;
-  }
-  
-  .fade-exit {
-    opacity: 1;
-  }
-  
-  .fade-exit-active {
-    opacity: 0;
-    transition: opacity 300ms ease-in;
-  }
-
   /* تنسيقات الحاويات */
   .crafts-container, .skills-container {
     padding-left: 3rem !important;
@@ -100,90 +60,177 @@ style.textContent = `
 
   .craft-button, .skill-button {
     transition: all 0.2s ease;
-  }
-  
-  .craft-button:hover, .skill-button:hover {
-    transform: none !important;
-    background-color: #f3f4f6;
+    border-radius: 12px;
   }
   
   .craft-button.selected, .skill-button.selected {
-    background-color: #2563eb;
-    color: white;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    color: white !important;
     box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
   }
 
   .craft-button.selected .craft-icon {
-    color: white;
+    color: white !important;
   }
 
   .craft-icon {
     transition: color 0.2s ease;
   }
-
-  /* Modal Popup Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
+  
+  /* البطاقة الرئيسية - بدون خلفية */
+  .edit-profile-card {
+    background: transparent !important;
+    border-radius: 0;
   }
-
-  .modal-content {
-    background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    max-width: 400px;
-    width: 90%;
-    animation: slideUp 0.2s ease-out;
+  
+  /* الأقسام */
+  .edit-profile-section {
+    background: #ffffff !important;
+    border-radius: 24px;
+    border: 1px solid #e5e7eb;
   }
-
-  .dark .modal-content {
-    background: #1f2937;
+  
+  .dark .edit-profile-section {
+    background: #1f2937 !important;
+    border-color: #374151;
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  
+  /* الحقول والـ select - بنفس التصميم */
+  .edit-input, .edit-select {
+    border-radius: 20px !important;
+    transition: all 0.3s ease;
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    color: #000000 !important;
+    padding: 10px 16px;
+    width: 100%;
+    font-size: 14px;
   }
-
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  
+  .edit-input:focus, .edit-select:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: #2563eb !important;
+    background: #ffffff !important;
+    outline: none;
+  }
+  
+  .dark .edit-input, .dark .edit-select {
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #ffffff !important;
+  }
+  
+  .dark .edit-input:focus, .dark .edit-select:focus {
+    background: #4b5563 !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .edit-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-position: left 12px center;
+    background-repeat: no-repeat;
+    background-size: 20px;
+  }
+  
+  .dark .edit-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  }
+  
+  [dir="rtl"] .edit-select {
+    background-position: right 12px center;
+    padding-right: 40px;
+    padding-left: 16px;
+  }
+  
+  [dir="ltr"] .edit-select {
+    background-position: left 12px center;
+    padding-left: 40px;
+    padding-right: 16px;
+  }
+  
+  /* القائمة المنسدلة للمدن */
+  .cities-dropdown {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  
+  .city-option {
+    transition: all 0.2s ease;
+  }
+  
+  .city-option:hover {
+    background: #f3f4f6 !important;
+  }
+  
+  .dark .city-option:hover {
+    background: #4b5563 !important;
+  }
+  
+  /* أزرار التنقل */
+  .nav-scroll-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border-radius: 20px !important;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-scroll-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+  
+  /* مؤشرات القسم */
+  .section-icon {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border-radius: 16px;
+  }
+  
+  /* النصوص */
+  .section-title {
+    color: #000000 !important;
+  }
+  
+  .dark .section-title {
+    color: #ffffff !important;
+  }
+  
+  .section-label {
+    color: #4b5563 !important;
+  }
+  
+  .dark .section-label {
+    color: #9ca3af !important;
   }
 `;
 document.head.appendChild(style);
 
-// ✅ Modal Popup Component
+// Modal Popup Component
 const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-2">
           {title || 'تأكيد'}
         </h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
           {message || 'هل أنت متأكد من رغبتك في القيام بهذا الإجراء؟'}
         </p>
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300"
           >
             {cancelText || 'إلغاء'}
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-300"
           >
             {confirmText || 'تأكيد'}
           </button>
@@ -193,27 +240,24 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText,
   );
 };
 
-// Skeleton للتعديل
+// Skeleton
 const EditProfileSkeleton = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-          <div className="h-32 bg-gradient-to-r from-primary-400 to-primary-600 animate-pulse"></div>
-          <div className="px-6 py-8">
-            <div className="flex flex-col items-center -mt-20 mb-8">
-              <div className="w-28 h-28 rounded-2xl bg-gray-300 dark:bg-gray-600 border-4 border-white dark:border-gray-800 animate-pulse"></div>
-              <div className="h-6 w-32 bg-gray-300 dark:bg-gray-600 rounded mt-4 animate-pulse"></div>
-            </div>
-            
-            <div className="space-y-6">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i}>
-                  <div className="h-4 w-24 bg-gray-300 dark:bg-gray-600 rounded mb-2 animate-pulse"></div>
-                  <div className="h-10 w-full bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
-                </div>
-              ))}
-            </div>
+        <div className="animate-pulse">
+          <div className="h-32 bg-gradient-to-r from-blue-400 to-blue-600 rounded-3xl mb-6"></div>
+          <div className="flex flex-col items-center -mt-20 mb-8">
+            <div className="w-28 h-28 rounded-2xl bg-gray-300 dark:bg-gray-600 border-4 border-white dark:border-gray-800"></div>
+            <div className="h-6 w-32 bg-gray-300 dark:bg-gray-600 rounded mt-4"></div>
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl p-4">
+                <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                <div className="h-12 w-full bg-gray-100 dark:bg-gray-700 rounded-xl"></div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -242,21 +286,17 @@ const EditProfile = () => {
   } = useStore();
 
   const [formData, setFormData] = useState({
-    username: '', // ✅ أضفنا حقل username
+    username: '',
     bio: '',
     email: '',
     phone: '',
     location: '',
-    
-    // معلومات مهنية (للحرفيين والعمال فقط)
     professionalInfo: {
       craft: '',
       experience: '',
       dailyRate: '',
       skills: []
     },
-    
-    // إعدادات الخصوصية
     privacy: {
       showEmail: false,
       showPhone: false,
@@ -274,14 +314,12 @@ const EditProfile = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [selectedSection, setSelectedSection] = useState('basic');
   
-  // ✅ Modal state
   const [showRemoveAvatarModal, setShowRemoveAvatarModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const isRTL = document.dir === 'rtl';
   const isArtisan = currentUser?.role === 'artisan';
   const isWorker = currentUser?.role === 'worker';
-  const isClient = currentUser?.role === 'client';
   const isProfessional = isArtisan || isWorker;
 
   // قائمة الولايات الجزائرية
@@ -302,10 +340,7 @@ const EditProfile = () => {
     "الوادي", "El Oued", "خنشلة", "Khenchela", "سوق أهراس", "Souk Ahras",
     "تيبازة", "Tipaza", "ميلة", "Mila", "عين الدفلى", "Aïn Defla",
     "النعامة", "Naâma", "عين تموشنت", "Aïn Témouchent", "غرداية", "Ghardaïa",
-    "غليزان", "Relizane", "المغير", "El M'Ghair", "المنيعة", "El Menia",
-    "أولاد جلال", "Ouled Djellal", "بني عباس", "Béni Abbès",
-    "عين صالح", "Aïn Salah", "عين قزام", "Aïn Guezzam",
-    "تقرت", "Touggourt", "جانت", "Djanet", "تيميمون", "Timimoun"
+    "غليزان", "Relizane"
   ];
 
   const filteredCities = algerianCities.filter(city => 
@@ -325,42 +360,7 @@ const EditProfile = () => {
     { id: 'tiler', name: t('crafts.tiler'), icon: FaRuler, category: 'basic' },
     { id: 'blacksmith', name: t('crafts.blacksmith'), icon: FaFire, category: 'basic' },
     { id: 'gardener', name: t('crafts.gardener'), icon: FaLeaf, category: 'basic' },
-    { id: 'handyman', name: t('crafts.handyman'), icon: FaTools, category: 'basic' },
-    { id: 'cabinet_maker', name: t('crafts.cabinet_maker'), icon: FaCouch, category: 'specialized' },
-    { id: 'upholsterer', name: t('crafts.upholsterer'), icon: FaCouch, category: 'specialized' },
-    { id: 'glass_worker', name: t('crafts.glass_worker'), icon: GiGlassCelebration, category: 'specialized' },
-    { id: 'flooring_specialist', name: t('crafts.flooring_specialist'), icon: FaRuler, category: 'specialized' },
-    { id: 'facade_worker', name: t('crafts.facade_worker'), icon: FaHome, category: 'specialized' },
-    { id: 'roofer', name: t('crafts.roofer'), icon: MdOutlineRoofing, category: 'specialized' },
-    { id: 'kitchen_installer', name: t('crafts.kitchen_installer'), icon: MdOutlineKitchen, category: 'specialized' },
-    { id: 'bathroom_installer', name: t('crafts.bathroom_installer'), icon: FaBath, category: 'specialized' },
-    { id: 'solar_installer', name: t('crafts.solar_installer'), icon: MdOutlineSolarPower, category: 'electronics' },
-    { id: 'electronics_repair', name: t('crafts.electronics_repair'), icon: MdOutlineSmartphone, category: 'electronics' },
-    { id: 'security_systems', name: t('crafts.security_systems'), icon: MdOutlineSecurity, category: 'electronics' },
-    { id: 'network_tech', name: t('crafts.network_tech'), icon: FaNetworkWired, category: 'electronics' },
-    { id: 'satellite_installer', name: t('crafts.satellite_installer'), icon: FaSatelliteDish, category: 'electronics' },
-    { id: 'cctv_installer', name: t('crafts.cctv_installer'), icon: GiCctvCamera, category: 'electronics' },
-    { id: 'smart_home_tech', name: t('crafts.smart_home_tech'), icon: RiHomeGearLine, category: 'electronics' },
-    { id: 'hvac_tech', name: t('crafts.hvac_tech'), icon: FaSnowflake, category: 'advanced' },
-    { id: 'elevator_tech', name: t('crafts.elevator_tech'), icon: GiElevator, category: 'advanced' },
-    { id: 'pool_tech', name: t('crafts.pool_tech'), icon: FaSwimmingPool, category: 'advanced' },
-    { id: 'gas_tech', name: t('crafts.gas_tech'), icon: FaGasPump, category: 'advanced' },
-    { id: 'auto_electrician', name: t('crafts.auto_electrician'), icon: GiAutoRepair, category: 'advanced' },
-    { id: 'generator_tech', name: t('crafts.generator_tech'), icon: GiGearHammer, category: 'advanced' },
-    { id: 'interior_designer', name: t('crafts.interior_designer'), icon: MdOutlineDesignServices, category: 'design' },
-    { id: 'decorator', name: t('crafts.decorator'), icon: RiPaintBrushLine, category: 'design' },
-    { id: 'landscape_designer', name: t('crafts.landscape_designer'), icon: GiPlantsAndAnimals, category: 'design' },
-    { id: 'stone_cutter', name: t('crafts.stone_cutter'), icon: GiStoneCrafting, category: 'design' },
-    { id: 'wood_carver', name: t('crafts.wood_carver'), icon: GiWoodCabin, category: 'design' },
-    { id: 'foundation_worker', name: t('crafts.foundation_worker'), icon: MdOutlineConstruction, category: 'construction' },
-    { id: 'steel_fixer', name: t('crafts.steel_fixer'), icon: FaTools, category: 'construction' },
-    { id: 'plasterer', name: t('crafts.plasterer'), icon: FaPaintRoller, category: 'construction' },
-    { id: 'window_installer', name: t('crafts.window_installer'), icon: FaWindowMaximize, category: 'construction' },
-    { id: 'door_installer', name: t('crafts.door_installer'), icon: FaDoorOpen, category: 'construction' },
-    { id: 'appliance_repair', name: t('crafts.appliance_repair'), icon: FaTools, category: 'maintenance' },
-    { id: 'furniture_repair', name: t('crafts.furniture_repair'), icon: FaCouch, category: 'maintenance' },
-    { id: 'pest_control', name: t('crafts.pest_control'), icon: GiPlantsAndAnimals, category: 'maintenance' },
-    { id: 'water_tank_cleaner', name: t('crafts.water_tank_cleaner'), icon: GiWaterTank, category: 'maintenance' }
+    { id: 'handyman', name: t('crafts.handyman'), icon: FaTools, category: 'basic' }
   ];
 
   // سنوات الخبرة
@@ -379,13 +379,7 @@ const EditProfile = () => {
     t('skills.farming'), t('skills.painting'), t('skills.furniture_assembly'),
     t('skills.moving'), t('skills.assembling'), t('skills.repairing'),
     t('skills.plumbing'), t('skills.electrical'), t('skills.tiling'),
-    t('skills.carpentry'), t('skills.blacksmithing'), t('skills.welding'),
-    t('skills.stone_cutting'), t('skills.carving'), t('skills.glass_installation'),
-    t('skills.kitchen_installation'), t('skills.window_installation'),
-    t('skills.general_maintenance'), t('skills.facade_cleaning'),
-    t('skills.carpet_cleaning'), t('skills.pest_control'), t('skills.gardening'),
-    t('skills.automatic_irrigation'), t('skills.artificial_grass'),
-    t('skills.decorative_painting')
+    t('skills.carpentry'), t('skills.blacksmithing'), t('skills.welding')
   ];
 
   // تحميل بيانات المستخدم
@@ -407,7 +401,6 @@ const EditProfile = () => {
   // تحديث النموذج عند تحميل البيانات
   useEffect(() => {
     if (profileData) {
-      // حساب الأيام المتبقية لتغيير اسم المستخدم
       let daysLeft = null;
       if (profileData.lastUsernameChange) {
         const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
@@ -428,7 +421,7 @@ const EditProfile = () => {
           craft: profileData.professionalInfo?.craft || '',
           experience: profileData.professionalInfo?.experience || '',
           dailyRate: profileData.professionalInfo?.dailyRate || '',
-          skills: profileData.professionalInfo?.skills || []
+          skills: [...(profileData.professionalInfo?.skills || [])]
         },
         privacy: {
           showEmail: profileData.privacy?.showEmail || false,
@@ -443,7 +436,7 @@ const EditProfile = () => {
       };
 
       setFormData(newFormData);
-      setOriginalData(newFormData);
+      setOriginalData(JSON.parse(JSON.stringify(newFormData)));
 
       if (profileData.profileImage) {
         setAvatarPreview(profileData.profileImage);
@@ -463,7 +456,6 @@ const EditProfile = () => {
     const { name, value, type, checked } = e.target;
     
     if (name === 'username') {
-      // التحقق من صحة اسم المستخدم (أحرف إنجليزية وأرقام وشرطة سفلية فقط)
       const usernameRegex = /^[a-zA-Z0-9_]*$/;
       if (value && !usernameRegex.test(value)) {
         toast.error(t('profile.edit.usernameInvalidChars'));
@@ -519,7 +511,6 @@ const EditProfile = () => {
     reader.readAsDataURL(file);
   };
 
-  // ✅ دالة مع popup تأكيد لحذف الصورة
   const handleRemoveAvatarClick = () => {
     setShowRemoveAvatarModal(true);
   };
@@ -562,7 +553,6 @@ const EditProfile = () => {
     }));
   };
 
-  // دوال التمرير
   const scrollCrafts = (direction) => {
     if (craftsContainerRef.current) {
       const scrollAmount = 300;
@@ -585,19 +575,25 @@ const EditProfile = () => {
 
   // التحقق من وجود تغييرات
   const hasChanges = () => {
+    const currentSkills = [...formData.professionalInfo.skills].sort();
+    const originalSkills = [...(originalData.professionalInfo?.skills || [])].sort();
+    const skillsChanged = JSON.stringify(currentSkills) !== JSON.stringify(originalSkills);
+    
     return (
       formData.username !== originalData.username ||
       formData.bio !== originalData.bio ||
       formData.email !== originalData.email ||
       formData.phone !== originalData.phone ||
       formData.location !== originalData.location ||
-      JSON.stringify(formData.professionalInfo) !== JSON.stringify(originalData.professionalInfo) ||
+      formData.professionalInfo.craft !== originalData.professionalInfo?.craft ||
+      formData.professionalInfo.experience !== originalData.professionalInfo?.experience ||
+      formData.professionalInfo.dailyRate !== originalData.professionalInfo?.dailyRate ||
+      skillsChanged ||
       JSON.stringify(formData.privacy) !== JSON.stringify(originalData.privacy) ||
       avatarFile !== null
     );
   };
 
-  // ✅ دالة مع popup تأكيد للإلغاء
   const handleCancelClick = () => {
     if (hasChanges()) {
       setShowCancelModal(true);
@@ -611,6 +607,7 @@ const EditProfile = () => {
     navigate(-1);
   };
 
+  // دالة handleSubmit
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -622,7 +619,6 @@ const EditProfile = () => {
     setIsSubmitting(true);
 
     try {
-      // رفع الصورة أولاً إذا وجدت
       if (avatarFile) {
         const uploadResult = await uploadAvatar(avatarFile);
         if (!uploadResult?.success) {
@@ -631,7 +627,6 @@ const EditProfile = () => {
         }
       }
 
-      // بناء كائن التحديث
       const updateData = {};
 
       if (formData.username !== originalData.username) {
@@ -648,9 +643,7 @@ const EditProfile = () => {
         updateData.username = formData.username;
       }
 
-      if (formData.bio !== originalData.bio) {
-        updateData.bio = formData.bio;
-      }
+      if (formData.bio !== originalData.bio) updateData.bio = formData.bio;
 
       if (formData.email !== originalData.email) {
         if (formData.email && formData.email.trim() !== '') {
@@ -672,22 +665,25 @@ const EditProfile = () => {
         }
       }
 
-      if (formData.location !== originalData.location) {
-        updateData.location = formData.location;
-      }
+      if (formData.location !== originalData.location) updateData.location = formData.location;
 
+      // تحديث المعلومات المهنية
       if (isProfessional) {
+        const currentSkills = [...formData.professionalInfo.skills].sort();
+        const originalSkills = [...(originalData.professionalInfo?.skills || [])].sort();
+        const skillsChanged = JSON.stringify(currentSkills) !== JSON.stringify(originalSkills);
+        
         const professionalChanged = 
           formData.professionalInfo.craft !== originalData.professionalInfo?.craft ||
           formData.professionalInfo.experience !== originalData.professionalInfo?.experience ||
           formData.professionalInfo.dailyRate !== originalData.professionalInfo?.dailyRate ||
-          JSON.stringify(formData.professionalInfo.skills) !== JSON.stringify(originalData.professionalInfo?.skills || []);
+          skillsChanged;
 
         if (professionalChanged) {
           updateData.professionalInfo = {
-            ...(formData.professionalInfo.craft && { craft: formData.professionalInfo.craft }),
-            ...(formData.professionalInfo.experience && { experience: formData.professionalInfo.experience }),
-            ...(formData.professionalInfo.dailyRate && { dailyRate: formData.professionalInfo.dailyRate }),
+            craft: formData.professionalInfo.craft || '',
+            experience: formData.professionalInfo.experience || '',
+            dailyRate: formData.professionalInfo.dailyRate || '',
             skills: formData.professionalInfo.skills || []
           };
         }
@@ -703,17 +699,12 @@ const EditProfile = () => {
         return;
       }
 
-      console.log('Sending update data:', updateData);
-      
       const result = await updateProfile(updateData);
       
       if (result?.success) {
         toast.success(t('profile.edit.success'));
-        setOriginalData({
-          ...formData
-        });
+        setOriginalData(JSON.parse(JSON.stringify(formData)));
         
-        // تحديث اسم المستخدم في الرابط إذا تم تغييره
         const newUsername = updateData.username || profileData.username;
         navigate(`/profile/${newUsername}`);
       } else if (result?.error) {
@@ -734,14 +725,14 @@ const EditProfile = () => {
   if (!profileData) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {t('profile.errors.notFound')}
           </h2>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:shadow-lg transition-all"
           >
             {t('common.goHome')}
           </button>
@@ -753,8 +744,7 @@ const EditProfile = () => {
   const isUsernameChangeAllowed = daysUntilUsernameChange === null || daysUntilUsernameChange === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* ✅ Popup Modals */}
+    <div className="min-h-screen">
       <ConfirmModal
         isOpen={showRemoveAvatarModal}
         onClose={() => setShowRemoveAvatarModal(false)}
@@ -781,111 +771,277 @@ const EditProfile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* رأس الصفحة */}
-          <div className="mb-6 flex items-center justify-between">
+          {/* Banner */}
+          <div className="h-32 bg-gradient-to-r from-blue-500 to-blue-600 rounded-3xl mb-6 relative">
             <button
+              type="button"
               onClick={handleCancelClick}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-xl hover:bg-white/30 transition-colors"
             >
-              {isRTL ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-              <span>{t('common.back')}</span>
+              <X className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('profile.edit.title')}
-            </h1>
           </div>
 
-          {/* نموذج التعديل */}
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-            {/* غلاف الملف الشخصي */}
-            <div className="h-32 bg-gradient-to-r from-primary-400 to-primary-600 relative">
-              <button
-                type="button"
-                onClick={handleCancelClick}
-                className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-white/30 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="px-6 pb-6">
-              {/* الصورة الشخصية */}
-              <div className="flex flex-col items-center -mt-16 mb-8">
-                <div className="relative group">
-                  <img
-                    src={avatarPreview || defaultImgProfile}
-                    alt={profileData.username}
-                    className="w-28 h-28 rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = defaultImgProfile;
-                    }}
-                  />
-                  
-                  <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleAvatarClick}
-                      className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                      disabled={uploadingAvatar}
-                    >
-                      <Camera className="w-4 h-4 text-gray-700" />
-                    </button>
-                    
-                    {avatarPreview && avatarPreview !== defaultImgProfile && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveAvatarClick}
-                        className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                        disabled={uploadingAvatar}
-                      >
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </button>
-                    )}
-                  </div>
-
-                  {uploadingAvatar && (
-                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
-                      <Loader className="w-8 h-8 text-white animate-spin" />
-                    </div>
-                  )}
-                </div>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleAvatarChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  {t('profile.edit.clickToChangeAvatar')}
-                </p>
-              </div>
-
-              {/* أقسام التعديل */}
-              <div className="space-y-8">
-                {/* القسم 1: المعلومات الأساسية */}
-                <motion.div 
-                  initial={false}
-                  animate={{ height: 'auto' }}
-                  className="border-b border-gray-200 dark:border-gray-700 pb-6"
+          {/* Avatar */}
+          <div className="flex flex-col items-center -mt-20 mb-8">
+            <div className="relative group">
+              <img
+                src={avatarPreview || defaultImgProfile}
+                alt={profileData.username}
+                className="w-28 h-28 rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = defaultImgProfile;
+                }}
+              />
+              
+              <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAvatarClick}
+                  className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                  disabled={uploadingAvatar}
                 >
+                  <Camera className="w-4 h-4 text-gray-700" />
+                </button>
+                
+                {avatarPreview && avatarPreview !== defaultImgProfile && (
                   <button
                     type="button"
-                    onClick={() => setSelectedSection(selectedSection === 'basic' ? '' : 'basic')}
+                    onClick={handleRemoveAvatarClick}
+                    className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+                    disabled={uploadingAvatar}
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                )}
+              </div>
+
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+                  <Loader className="w-8 h-8 text-white animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+              accept="image/*"
+              className="hidden"
+            />
+
+            <p className="text-sm dark:text-gray-900 text-gray-300 mt-2">
+              {t('profile.edit.clickToChangeAvatar')}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              {/* القسم 1: المعلومات الأساسية */}
+              <div className="edit-profile-section p-5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSection(selectedSection === 'basic' ? '' : 'basic')}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <h2 className="section-title text-lg font-medium flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                    {t('steps.basicInfo')}
+                  </h2>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${selectedSection === 'basic' ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {selectedSection === 'basic' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 space-y-4"
+                    >
+                      <div>
+                        <label className="section-label block text-sm font-medium mb-2">
+                          <AtSign className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                          {t('profile.edit.username')}
+                        </label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={formData.username}
+                          onChange={handleInputChange}
+                          disabled={!isUsernameChangeAllowed}
+                          className={`edit-input ${!isUsernameChangeAllowed ? 'opacity-75 cursor-not-allowed' : ''}`}
+                          placeholder={t('profile.edit.usernamePlaceholder')}
+                          minLength={3}
+                          maxLength={30}
+                        />
+                        
+                        {!isUsernameChangeAllowed && daysUntilUsernameChange > 0 && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {t('profile.edit.usernameChangeWait', { days: daysUntilUsernameChange })}
+                          </p>
+                        )}
+                        
+                        {isUsernameChangeAllowed && (
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            {t('profile.edit.usernameChangeAvailable')}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="section-label block text-sm font-medium mb-2">
+                          <Mail className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                          {t('profile.edit.email')}
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="edit-input"
+                          placeholder="email@example.com"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="section-label block text-sm font-medium mb-2">
+                          <Phone className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                          {t('profile.edit.phone')}
+                        </label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="edit-input"
+                          placeholder="05XX XX XX XX"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="section-label block text-sm font-medium mb-2">
+                          <Briefcase className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                          {t('profile.edit.bio')}
+                        </label>
+                        <textarea
+                          name="bio"
+                          value={formData.bio}
+                          onChange={handleInputChange}
+                          rows={4}
+                          className="edit-input resize-none"
+                          placeholder={t('profile.edit.bioPlaceholder')}
+                          maxLength={500}
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">
+                          {formData.bio.length}/500
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="section-label block text-sm font-medium mb-2">
+                          <MapPin className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                          {t('profile.edit.location')}
+                        </label>
+                        
+                        {formData.location && (
+                          <div className="flex items-center justify-between rounded-xl p-3 mb-2 bg-blue-50 dark:bg-gray-700 border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                              <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                                {formData.location}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={removeLocation}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                        
+                        <div className="relative">
+                          <div className="flex items-center border rounded-2xl bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+                            <Search className={`w-4 h-4 ${isRTL ? 'mr-3' : 'ml-3'} text-gray-400`} />
+                            <input
+                              type="text"
+                              placeholder={t('professional.location.placeholder')}
+                              value={searchTerm}
+                              onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setShowCityDropdown(true);
+                              }}
+                              onFocus={() => setShowCityDropdown(true)}
+                              className={`flex-1 py-2 px-2 text-sm bg-transparent text-gray-900 dark:text-gray-100 outline-none ${isRTL ? 'text-right' : 'text-left'}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCityDropdown(!showCityDropdown)}
+                              className={`p-2 ${isRTL ? 'ml-1' : 'mr-1'}`}
+                            >
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            </button>
+                          </div>
+                          
+                          {showCityDropdown && (
+                            <div className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg max-h-60 overflow-y-auto">
+                              {filteredCities.length > 0 ? (
+                                filteredCities.map(city => (
+                                  <button
+                                    key={city}
+                                    type="button"
+                                    onClick={() => selectLocation(city)}
+                                    className={`w-full text-left rtl:text-right px-4 py-2 text-sm transition-colors flex items-center justify-between city-option
+                                      ${formData.location === city ? 'bg-blue-50 dark:bg-gray-700 text-blue-600' : 'text-gray-700 dark:text-gray-200'}`}
+                                  >
+                                    <span>{city}</span>
+                                    {formData.location === city && (
+                                      <CheckCircle className="w-3 h-3 text-blue-600" />
+                                    )}
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-2 text-sm text-gray-500">{t('professional.location.noResults')}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* القسم 2: المعلومات المهنية - فقط للمحترفين */}
+              {isProfessional && (
+                <div className="edit-profile-section p-5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSection(selectedSection === 'professional' ? '' : 'professional')}
                     className="w-full flex items-center justify-between text-left"
                   >
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      <User className="w-5 h-5 text-primary-600" />
-                      {t('steps.basicInfo')}
+                    <h2 className="section-title text-lg font-medium flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                        <Briefcase className="w-4 h-4 text-white" />
+                      </div>
+                      {t('steps.professional')}
                     </h2>
-                    <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${selectedSection === 'basic' ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${selectedSection === 'professional' ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
-                    {selectedSection === 'basic' && (
+                    {selectedSection === 'professional' && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -893,514 +1049,293 @@ const EditProfile = () => {
                         transition={{ duration: 0.3 }}
                         className="mt-4 space-y-4"
                       >
-                        {/* ✅ اسم المستخدم - قابل للتعديل مع رسوم بيانية */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <AtSign className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                            {t('profile.edit.username')}
-                          </label>
-                          <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleInputChange}
-                            disabled={!isUsernameChangeAllowed}
-                            className={`w-full px-4 py-2 border rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                              ${!isUsernameChangeAllowed 
-                                ? 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-75' 
-                                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600'
-                              }`}
-                            placeholder={t('profile.edit.usernamePlaceholder')}
-                            minLength={3}
-                            maxLength={30}
-                          />
-                          
-                          {/* ✅ عرض الأيام المتبقية لتغيير اسم المستخدم */}
-                          {!isUsernameChangeAllowed && daysUntilUsernameChange > 0 && (
-                            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {t('profile.edit.usernameChangeWait', { days: daysUntilUsernameChange })}
-                            </p>
-                          )}
-                          
-                          {isUsernameChangeAllowed && (
-                            <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              {t('profile.edit.usernameChangeAvailable')}
-                            </p>
-                          )}
-                          
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {t('profile.edit.usernameChangeNote')}
-                          </p>
-                        </div>
-
-                        {/* البريد الإلكتروني */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <Mail className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                            {t('profile.edit.email')}
-                          </label>
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            placeholder="email@example.com"
-                            required
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {t('profile.edit.emailNote')}
-                          </p>
-                        </div>
-
-                        {/* رقم الهاتف */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <Phone className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                            {t('profile.edit.phone')}
-                          </label>
-                          <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                            placeholder="05XX XX XX XX"
-                            required
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {t('profile.edit.phoneNote')}
-                          </p>
-                        </div>
-
-                        {/* السيرة الذاتية */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <Briefcase className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                            {t('profile.edit.bio')}
-                          </label>
-                          <textarea
-                            name="bio"
-                            value={formData.bio}
-                            onChange={handleInputChange}
-                            rows={4}
-                            className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                            placeholder={t('profile.edit.bioPlaceholder')}
-                            maxLength={500}
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">
-                            {formData.bio.length}/500
-                          </p>
-                        </div>
-
-                        {/* الموقع */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            <MapPin className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                            {t('profile.edit.location')}
+                          <label className="section-label block text-sm font-medium mb-2">
+                            <Wrench className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                            {t('professional.craft.label')}
                           </label>
                           
-                          {formData.location && (
-                            <div className="flex items-center justify-between rounded-lg p-2 mb-2 bg-primary-50 dark:bg-gray-700 border border-primary-200 dark:border-primary-800">
-                              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                                <MapPin className="w-4 h-4 text-primary-600" />
-                                <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                                  {formData.location}
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={removeLocation}
-                                className="text-gray-400 hover:text-red-500 transition-colors"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                          
-                          <div className="relative">
-                            <div className="flex items-center border rounded-lg bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
-                              <Search className={`w-4 h-4 ${isRTL ? 'mr-3' : 'ml-3'} text-gray-400`} />
-                              <input
-                                type="text"
-                                placeholder={t('professional.location.placeholder')}
-                                value={searchTerm}
-                                onChange={(e) => {
-                                  setSearchTerm(e.target.value);
-                                  setShowCityDropdown(true);
-                                }}
-                                onFocus={() => setShowCityDropdown(true)}
-                                className={`flex-1 py-2 px-2 text-sm bg-transparent text-gray-900 dark:text-gray-100 outline-none ${isRTL ? 'text-right' : 'text-left'}`}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowCityDropdown(!showCityDropdown)}
-                                className={`p-2 ${isRTL ? 'ml-1' : 'mr-1'}`}
-                              >
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
-                              </button>
-                            </div>
+                          <div className="relative mb-4">
+                            <button
+                              type="button"
+                              onClick={() => scrollCrafts('left')}
+                              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
                             
-                            {showCityDropdown && (
-                              <div className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                {filteredCities.length > 0 ? (
-                                  filteredCities.map(city => (
-                                    <button
-                                      key={city}
-                                      type="button"
-                                      onClick={() => selectLocation(city)}
-                                      className={`w-full text-left rtl:text-right px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between
-                                        ${formData.location === city ? 'bg-primary-50 dark:bg-gray-700 text-primary-600' : 'text-gray-700 dark:text-gray-200'}`}
-                                    >
-                                      <span>{city}</span>
-                                      {formData.location === city && (
-                                        <CheckCircle className="w-3 h-3 text-primary-600" />
-                                      )}
-                                    </button>
-                                  ))
-                                ) : (
-                                  <div className="px-4 py-2 text-sm text-gray-500">{t('professional.location.noResults')}</div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                {/* القسم 2: المعلومات المهنية - فقط للمحترفين */}
-                {isProfessional && (
-                  <motion.div 
-                    initial={false}
-                    animate={{ height: 'auto' }}
-                    className="border-b border-gray-200 dark:border-gray-700 pb-6"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedSection(selectedSection === 'professional' ? '' : 'professional')}
-                      className="w-full flex items-center justify-between text-left"
-                    >
-                      <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-primary-600" />
-                        {t('steps.professional')}
-                      </h2>
-                      <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${selectedSection === 'professional' ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    <AnimatePresence>
-                      {selectedSection === 'professional' && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mt-4 space-y-4"
-                        >
-                          {/* الحرفة - لكل المحترفين */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              <Wrench className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                              {t('professional.craft.label')}
-                            </label>
-                            
-                            <div className="relative mb-4">
-                              <button
-                                type="button"
-                                onClick={() => scrollCrafts('left')}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
-                              >
-                                <ChevronLeft className="w-5 h-5" />
-                              </button>
-                              
-                              <div 
-                                ref={craftsContainerRef}
-                                className="crafts-container flex overflow-x-auto scrollbar-hide rtl:space-x-reverse space-x-2 py-2 px-12"
-                              >
-                                {crafts.map((craft) => {
-                                  const Icon = craft.icon;
-                                  return (
-                                    <button
-                                      key={craft.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setFormData(prev => ({
-                                          ...prev,
-                                          professionalInfo: {
-                                            ...prev.professionalInfo,
-                                            craft: craft.id
-                                          }
-                                        }));
-                                      }}
-                                      className={`craft-button flex-shrink-0 flex items-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-all
-                                        ${formData.professionalInfo.craft === craft.id
-                                          ? 'bg-primary-600 text-white'
-                                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                        }`}
-                                    >
-                                      <Icon className={`craft-icon w-4 h-4 ${
-                                        formData.professionalInfo.craft === craft.id
-                                          ? 'text-white'
-                                          : 'text-gray-500 dark:text-gray-400'
-                                      }`} />
-                                      {craft.name}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                              
-                              <button
-                                type="button"
-                                onClick={() => scrollCrafts('right')}
-                                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
-                              >
-                                <ChevronRight className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* الخبرة - للحرفيين فقط */}
-                          {isArtisan && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <Clock className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                                {t('professional.experience.label')}
-                              </label>
-                              <div className="grid grid-cols-5 gap-2">
-                                {experienceOptions.map((exp) => (
+                            <div 
+                              ref={craftsContainerRef}
+                              className="crafts-container flex overflow-x-auto scrollbar-hide rtl:space-x-reverse space-x-2 py-2 px-12"
+                            >
+                              {crafts.map((craft) => {
+                                const Icon = craft.icon;
+                                const isSelected = formData.professionalInfo.craft === craft.id;
+                                return (
                                   <button
-                                    key={exp.value}
+                                    key={craft.id}
                                     type="button"
                                     onClick={() => {
                                       setFormData(prev => ({
                                         ...prev,
                                         professionalInfo: {
                                           ...prev.professionalInfo,
-                                          experience: exp.value
+                                          craft: craft.id
                                         }
                                       }));
                                     }}
-                                    className={`experience-button py-2 px-1 rounded-lg text-sm font-medium transition-all
-                                      ${formData.professionalInfo.experience === exp.value
-                                        ? 'bg-primary-600 text-white'
+                                    className={`craft-button flex-shrink-0 flex items-center gap-2 py-2.5 px-4 text-sm font-medium whitespace-nowrap transition-all
+                                      ${isSelected
+                                        ? 'selected'
                                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                       }`}
                                   >
-                                    {exp.label}
+                                    <Icon className={`craft-icon w-4 h-4 ${isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                                    {craft.name}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            
+                            <button
+                              type="button"
+                              onClick={() => scrollCrafts('right')}
+                              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {isArtisan && (
+                          <div>
+                            <label className="section-label block text-sm font-medium mb-2">
+                              <Clock className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                              {t('professional.experience.label')}
+                            </label>
+                            <select
+                              value={formData.professionalInfo.experience}
+                              onChange={(e) => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  professionalInfo: {
+                                    ...prev.professionalInfo,
+                                    experience: e.target.value
+                                  }
+                                }));
+                              }}
+                              className="edit-select"
+                            >
+                              <option value="">اختر سنوات الخبرة</option>
+                              {experienceOptions.map((exp) => (
+                                <option key={exp.value} value={exp.value}>
+                                  {exp.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {isWorker && (
+                          <div>
+                            <label className="section-label block text-sm font-medium mb-2">
+                              <DollarSign className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                              {t('professional.dailyRate.label')}
+                            </label>
+                            <input
+                              type="number"
+                              name="professional.dailyRate"
+                              value={formData.professionalInfo.dailyRate}
+                              onChange={handleInputChange}
+                              min="1000"
+                              max="50000"
+                              step="500"
+                              className="edit-input"
+                              placeholder="2000"
+                            />
+                          </div>
+                        )}
+
+                        {isWorker && (
+                          <div>
+                            <label className="section-label block text-sm font-medium mb-2">
+                              <Award className="w-4 h-4 inline ml-1 rtl:mr-1" />
+                              {t('professional.skills.label')}
+                            </label>
+                            
+                            <div className="relative mb-4">
+                              <button
+                                type="button"
+                                onClick={() => scrollSkills('left')}
+                                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                              >
+                                <ChevronLeft className="w-5 h-5" />
+                              </button>
+                              
+                              <div 
+                                ref={skillsContainerRef}
+                                className="skills-container flex overflow-x-auto scrollbar-hide rtl:space-x-reverse space-x-2 py-2 px-12"
+                              >
+                                {workerSkills.map((skill) => (
+                                  <button
+                                    key={skill}
+                                    type="button"
+                                    onClick={() => handleSkillToggle(skill)}
+                                    className={`skill-button flex-shrink-0 py-2.5 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-all
+                                      ${formData.professionalInfo.skills.includes(skill)
+                                        ? 'selected'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                      }`}
+                                  >
+                                    {skill}
                                   </button>
                                 ))}
                               </div>
-                            </div>
-                          )}
-
-                          {/* السعر اليومي - للعمال فقط */}
-                          {isWorker && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <DollarSign className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                                {t('professional.dailyRate.label')}
-                              </label>
-                              <input
-                                type="number"
-                                name="professional.dailyRate"
-                                value={formData.professionalInfo.dailyRate}
-                                onChange={handleInputChange}
-                                min="1000"
-                                max="50000"
-                                step="500"
-                                className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                                placeholder="2000"
-                              />
-                            </div>
-                          )}
-
-                          {/* المهارات - للعمال فقط */}
-                          {isWorker && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                <Award className="w-4 h-4 inline ml-1 rtl:mr-1" />
-                                {t('professional.skills.label')}
-                              </label>
                               
-                              <div className="relative mb-4">
-                                <button
-                                  type="button"
-                                  onClick={() => scrollSkills('left')}
-                                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
-                                >
-                                  <ChevronLeft className="w-5 h-5" />
-                                </button>
-                                
-                                <div 
-                                  ref={skillsContainerRef}
-                                  className="skills-container flex overflow-x-auto scrollbar-hide rtl:space-x-reverse space-x-2 py-2 px-12"
-                                >
-                                  {workerSkills.map((skill) => (
-                                    <button
-                                      key={skill}
-                                      type="button"
-                                      onClick={() => handleSkillToggle(skill)}
-                                      className={`skill-button flex-shrink-0 py-2.5 px-4 rounded-lg text-sm font-medium whitespace-nowrap transition-all
-                                        ${formData.professionalInfo.skills.includes(skill)
-                                          ? 'bg-primary-600 text-white'
-                                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                                        }`}
-                                    >
-                                      {skill}
-                                    </button>
-                                  ))}
-                                </div>
-                                
-                                <button
-                                  type="button"
-                                  onClick={() => scrollSkills('right')}
-                                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-primary-600 to-primary-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
-                                >
-                                  <ChevronRight className="w-5 h-5" />
-                                </button>
-                              </div>
-                              
-                              <p className="text-sm font-medium text-primary-600">
-                                {t('professional.skills.selected', { count: formData.professionalInfo.skills.length })}
-                              </p>
+                              <button
+                                type="button"
+                                onClick={() => scrollSkills('right')}
+                                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-full shadow-md hover:shadow-lg transition-all"
+                              >
+                                <ChevronRight className="w-5 h-5" />
+                              </button>
                             </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                )}
-
-                {/* القسم 3: إعدادات الخصوصية */}
-                <motion.div 
-                  initial={false}
-                  animate={{ height: 'auto' }}
-                  className="border-b border-gray-200 dark:border-gray-700 pb-6"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSection(selectedSection === 'privacy' ? '' : 'privacy')}
-                    className="w-full flex items-center justify-between text-left"
-                  >
-                    <h2 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-primary-600" />
-                      {t('profile.edit.privacy')}
-                    </h2>
-                    <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${selectedSection === 'privacy' ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  <AnimatePresence>
-                    {selectedSection === 'privacy' && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="mt-4 space-y-3"
-                      >
-                        <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {t('profile.edit.showEmail')}
-                            </span>
+                            
+                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                              {t('professional.skills.selected', { count: formData.professionalInfo.skills.length })}
+                            </p>
                           </div>
-                          <input
-                            type="checkbox"
-                            name="privacy.showEmail"
-                            checked={formData.privacy.showEmail}
-                            onChange={handleInputChange}
-                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
-                          />
-                        </label>
-
-                        <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {t('profile.edit.showPhone')}
-                            </span>
-                          </div>
-                          <input
-                            type="checkbox"
-                            name="privacy.showPhone"
-                            checked={formData.privacy.showPhone}
-                            onChange={handleInputChange}
-                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
-                          />
-                        </label>
-
-                        <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {t('profile.edit.showLocation')}
-                            </span>
-                          </div>
-                          <input
-                            type="checkbox"
-                            name="privacy.showLocation"
-                            checked={formData.privacy.showLocation}
-                            onChange={handleInputChange}
-                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
-                          />
-                        </label>
-
-                        <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                              {t('profile.edit.showOnlineStatus')}
-                            </span>
-                          </div>
-                          <input
-                            type="checkbox"
-                            name="privacy.showOnlineStatus"
-                            checked={formData.privacy.showOnlineStatus}
-                            onChange={handleInputChange}
-                            className="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"
-                          />
-                        </label>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </motion.div>
-
-                {/* أزرار التحكم */}
-                <div className="flex items-center gap-3 pt-4">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || uploadingAvatar || !hasChanges()}
-                    className={`flex-1 px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2
-                      ${!hasChanges() 
-                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-primary-600 text-white hover:bg-primary-700'
-                      }`}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader className="w-5 h-5 animate-spin" />
-                        <span>{t('common.saving')}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-5 h-5" />
-                        <span>{t('common.save')}</span>
-                      </>
-                    )}
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={handleCancelClick}
-                    className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    {t('common.cancel')}
-                  </button>
                 </div>
+              )}
+
+              {/* القسم 3: إعدادات الخصوصية */}
+              <div className="edit-profile-section p-5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSection(selectedSection === 'privacy' ? '' : 'privacy')}
+                  className="w-full flex items-center justify-between text-left"
+                >
+                  <h2 className="section-title text-lg font-medium flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-white" />
+                    </div>
+                    {t('profile.edit.privacy')}
+                  </h2>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${selectedSection === 'privacy' ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {selectedSection === 'privacy' && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 space-y-3"
+                    >
+                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {t('profile.edit.showEmail')}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          name="privacy.showEmail"
+                          checked={formData.privacy.showEmail}
+                          onChange={handleInputChange}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </label>
+
+                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {t('profile.edit.showPhone')}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          name="privacy.showPhone"
+                          checked={formData.privacy.showPhone}
+                          onChange={handleInputChange}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </label>
+
+                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {t('profile.edit.showLocation')}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          name="privacy.showLocation"
+                          checked={formData.privacy.showLocation}
+                          onChange={handleInputChange}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </label>
+
+                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {t('profile.edit.showOnlineStatus')}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          name="privacy.showOnlineStatus"
+                          checked={formData.privacy.showOnlineStatus}
+                          onChange={handleInputChange}
+                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </label>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* أزرار التحكم */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || uploadingAvatar || !hasChanges()}
+                  className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2
+                    ${!hasChanges() || isSubmitting || uploadingAvatar
+                      ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:shadow-lg hover:scale-[1.02]'
+                    }`}
+                >
+                  {isSubmitting || uploadingAvatar ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      <span>{t('common.saving') || 'جاري الحفظ...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      <span>{t('common.save') || 'حفظ'}</span>
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleCancelClick}
+                  className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300"
+                >
+                  {t('common.cancel') || 'إلغاء'}
+                </button>
               </div>
             </div>
           </form>

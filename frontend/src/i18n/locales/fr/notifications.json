@@ -1,0 +1,47 @@
+{
+  "notifications": {
+    "title": "Notifications",
+    "unreadCount": "{{count}} notification non lue",
+    "unreadCount_plural": "{{count}} notifications non lues",
+    "markAllAsRead": "Tout marquer comme lu",
+    "loadingMore": "Chargement...",
+    "endOfList": "Fin des notifications",
+    "filter": {
+      "all": "Toutes les notifications",
+      "unread": "Non lues"
+    },
+    "empty": {
+      "noNotifications": "Aucune notification",
+      "noUnread": "Aucune notification non lue",
+      "description": "Les notifications apparaîtront ici lorsque quelqu'un interagit avec vous",
+      "noUnreadDescription": "Vous n'avez aucune notification non lue"
+    },
+    "time": {
+      "justNow": "À l'instant",
+      "minutesAgo": "il y a {{count}} minute",
+      "minutesAgo_plural": "il y a {{count}} minutes",
+      "hoursAgo": "il y a {{count}} heure",
+      "hoursAgo_plural": "il y a {{count}} heures",
+      "yesterday": "Hier",
+      "daysAgo": "il y a {{count}} jour",
+      "daysAgo_plural": "il y a {{count}} jours"
+    },
+    "actions": {
+      "markAsRead": "Marquer comme lu",
+      "delete": "Supprimer",
+      "viewDetails": "Voir les détails"
+    },
+    "toasts": {
+      "markedAsRead": "Notification marquée comme lue",
+      "allMarkedAsRead": "Toutes les notifications marquées comme lues",
+      "deleted": "Notification supprimée",
+      "noUnread": "Aucune notification non lue"
+    },
+    "errors": {
+      "fetchFailed": "Échec du chargement des notifications",
+      "markAsReadFailed": "Échec du marquage de la notification",
+      "markAllFailed": "Échec du marquage de toutes les notifications",
+      "deleteFailed": "Échec de la suppression de la notification"
+    }
+  }
+}

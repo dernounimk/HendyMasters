@@ -1,0 +1,60 @@
+{
+  "createPost": {
+    "title": "Post Title",
+    "description": "Job Description",
+    "budget": "Budget",
+    "location": "Location",
+    "image": "Image",
+    "optional": "(Optional)",
+    "preview": "Post Preview",
+    "previewAlt": "Post Preview",
+    "uploadedImageAlt": "Uploaded Image",
+    "imageUploaded": "✅ Image uploaded",
+    "clickToUpload": "📸 Click to upload image or drag here",
+    "imageRequirements": "You can upload only one image, maximum size 5MB",
+    "postingAs": "You are posting as",
+    "success": "Post created successfully!",
+    "postTypes": {
+      "serviceRequest": "Service Request",
+      "serviceRequestDesc": "You are looking for an artisan to perform a specific service",
+      "jobOpportunity": "Job Opportunity",
+      "jobOpportunityDesc": "You are looking for workers or assistants to work with you"
+    },
+    "roleDescription": {
+      "client": "You can only create service requests",
+      "artisan": "You can only create job opportunities",
+      "both": "You can create service requests and job opportunities"
+    },
+    "steps": {
+      "basicInfo": "Basic Information",
+      "jobDetails": "Job Details",
+      "image": "Image"
+    },
+    "placeholders": {
+      "titleService": "Example: Need an electrician for home wiring",
+      "titleJob": "Example: Assistant workers needed for construction project",
+      "description": "Describe the required work in detail... (location, time, requirements)",
+      "budget": "Amount in Algerian Dinar",
+      "location": "State or City"
+    },
+    "errors": {
+      "titleRequired": "Title is required",
+      "titleMinLength": "Title must be at least 5 characters",
+      "descriptionRequired": "Description is required",
+      "descriptionMinLength": "Description must be at least 20 characters",
+      "budgetInvalid": "Invalid budget",
+      "budgetMin": "Budget must be at least 1000 DZD",
+      "locationRequired": "Location is required",
+      "invalidImageType": "Please select an image file only",
+      "imageTooLarge": "Image size too large. Maximum 5MB",
+      "fillAllFields": "Please fill in all required fields",
+      "failed": "Failed to create post"
+    }
+  },
+  "createStep": {
+    "previous": "Previous",
+    "next": "Next",
+    "posting": "Posting...",
+    "publish": "Publish Post"
+  }
+}

@@ -8,7 +8,11 @@
     "save": "Enregistrer",
     "cancel": "Annuler",
     "delete": "Supprimer",
-    "edit": "Modifier"
+    "edit": "Modifier",
+    "confirm": "Confirmer",
+    "saving": "Enregistrement...",
+    "goHome": "Retour à l'accueil",
+    "settings": "Paramètres"
   },
   "nav": {
     "home": "Accueil",
@@ -22,14 +26,106 @@
     "logout": "Déconnexion",
     "suggestedUsers": "Utilisateurs suggérés",
     "viewProfile": "Voir le profil",
-    "createPost": "Créer une publication"
+    "createPost": "Créer une publication",
+    "security": "Sécurité",
+    "privacy": "Confidentialité",
+    "appearance": "Apparence",
+    "language": "Langue",
+    "blocked": "Utilisateurs bloqués"
   },
   "roles": {
     "client": "Client",
     "artisan": "Artisan",
-    "worker": "Travailleur"
+    "worker": "Travailleur",
+    "both": "Client & Artisan"
   },
   "suggestions": {
     "noUsers": "Aucun utilisateur suggéré"
+  },
+  "search": {
+    "defaultLocation": "Algérie"
+  },
+  "loading": {
+    "loading": "Chargement..."
+  },
+  "otp": {
+    "digitLabel": "Chiffre",
+    "of": "sur",
+    "inputPlaceholder": "Entrez le code de vérification à {{length}} chiffres"
+  },
+  "languages": {
+    "arabic": "Arabe",
+    "english": "Anglais",
+    "french": "Français"
+  },
+  "errors": {
+    "blockedFetchError": "Échec du chargement des utilisateurs bloqués",
+    "privacyUpdateError": "Échec de la mise à jour de la confidentialité",
+    "unblockError": "Échec du déblocage de l'utilisateur",
+    "currentPasswordRequired": "Le mot de passe actuel est requis",
+    "passwordChangeError": "Échec du changement de mot de passe",
+    "general": "Une erreur est survenue",
+    "loginRequired": "Vous devez vous connecter d'abord",
+    "loadPostFailed": "Échec du chargement",
+    "loadPostError": "Erreur de chargement",
+    "loadConversations": "Échec du chargement des conversations",
+    "somethingWrong": "Oups !",
+    "postNotFound": "Publication non trouvée ou supprimée"
+  },
+  "success": {
+    "privacyUpdated": "Paramètres de confidentialité mis à jour",
+    "passwordChanged": "Mot de passe changé avec succès",
+    "userUnblocked": "{{username}} a été débloqué",
+    "languageChanged": "Langue changée en {{language}}"
+  },
+  "time": {
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "daysAgo": "il y a {{count}} jours",
+    "daysAgo_plural": "il y a {{count}} jours"
+  },
+  "currency": {
+    "dzd": "DZD"
+  },
+  "postTypes": {
+    "serviceRequest": "Demande de service",
+    "jobOpportunity": "Opportunité d'emploi"
+  },
+  "actions": {
+    "message": "Message",
+    "deletePost": "Supprimer",
+    "goHome": "Retour à l'accueil"
+  },
+  "messages": {
+    "saved": "Enregistré",
+    "unsaved": "Supprimé",
+    "checking": "Vérification...",
+    "interestInPost": "Intérêt pour votre publication",
+    "welcomeDetails": "Bienvenue pour discuter des détails",
+    "cannotMessage": "Vous ne pouvez pas envoyer de message à l'auteur de cette publication",
+    "cannotShareWithSelf": "Vous ne pouvez pas partager la publication avec vous-même",
+    "sharedPost": "a partagé une publication avec vous",
+    "sharingWith": "Partage avec {{name}}...",
+    "shareSuccess": "Partagé avec succès avec {{name}}",
+    "shareFailed": "Échec de l'envoi du partage",
+    "shareError": "Erreur lors du partage",
+    "linkCopied": "Lien copié",
+    "copyLinkFailed": "Échec de la copie du lien",
+    "deletingPost": "Suppression...",
+    "postDeleted": "Publication supprimée",
+    "deleteFailed": "Échec de la suppression",
+    "deleteError": "Erreur lors de la suppression",
+    "loadingPost": "Chargement...",
+    "loadingConversations": "Chargement des conversations..."
+  },
+  "modals": {
+    "deletePostTitle": "Supprimer",
+    "deletePostMessage": "Êtes-vous sûr de vouloir supprimer \"{{title}}\"?\n\nCette action est irréversible.",
+    "delete": "Supprimer",
+    "sharePostTitle": "Partager",
+    "sharePostDescription": "Choisissez une personne avec qui partager",
+    "sendAsMessage": "Envoyer comme message",
+    "noConversations": "Aucune conversation pour partager",
+    "copyLink": "Copier le lien"
   }
 }

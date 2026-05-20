@@ -1,0 +1,27 @@
+{
+  "home": {
+    "title": "Latest Offers",
+    "subtitle": "Browse the latest service requests and job opportunities",
+    "filter": {
+      "button": "Filter",
+      "title": "Filter Options",
+      "location": "Location",
+      "locationPlaceholder": "State or City",
+      "postType": "Post Type",
+      "allTypes": "All Types",
+      "serviceRequest": "Service Requests",
+      "jobOpportunity": "Job Opportunities",
+      "minBudget": "Min Budget (DZD)",
+      "maxBudget": "Max Budget (DZD)",
+      "budgetPlaceholder": "Example: 10000",
+      "apply": "Apply Filters",
+      "clearAll": "Clear All"
+    },
+    "empty": {
+      "title": "No Posts",
+      "description": "Be the first to post an offer on the platform!",
+      "createPost": "Create New Post"
+    },
+    "endOfList": "You've reached the end of the list"
+  }
+}

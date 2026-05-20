@@ -1,0 +1,64 @@
+{
+  "messages": {
+    "title": "الرسائل",
+    "you": "أنت",
+    "loadingMore": "جاري تحميل المزيد...",
+    "time": {
+      "yesterday": "أمس"
+    },
+    "status": {
+      "online": "متصل",
+      "offline": "غير متصل"
+    },
+    "input": {
+      "placeholder": "اكتب رسالة...",
+      "blockedPlaceholder": "لا يمكنك إرسال رسائل لمستخدم محظور"
+    },
+    "empty": {
+      "noConversations": "لا توجد محادثات",
+      "noMessages": "لا توجد رسائل",
+      "startConversation": "لا توجد رسائل بعد، ابدأ المحادثة",
+      "findPeople": "ابحث عن أشخاص",
+      "selectConversation": "اختر محادثة",
+      "selectDescription": "اختر محادثة من القائمة للبدء في المراسلة"
+    },
+    "blocked": {
+      "title": "لقد قمت بحظر هذا المستخدم",
+      "description": "لا يمكنك إرسال أو استقبال رسائل من هذا المستخدم"
+    },
+    "actions": {
+      "viewPost": "عرض المنشور",
+      "openLink": "فتح الرابط",
+      "deleteConversation": "حذف المحادثة",
+      "blockUser": "حظر المستخدم",
+      "unblockUser": "إلغاء حظر المستخدم"
+    },
+    "modals": {
+      "deleteTitle": "حذف المحادثة",
+      "deleteMessage": "هل أنت متأكد من رغبتك في حذف هذه المحادثة؟\n\nسيتم حذف جميع الرسائل ولا يمكن استعادتها.",
+      "delete": "حذف",
+      "blockTitle": "حظر المستخدم",
+      "blockMessage": "هل أنت متأكد من رغبتك في حظر المستخدم {{username}}؟\n\nبعد الحظر، لن تتمكن من رؤية منشوراته أو مراسلته.",
+      "block": "حظر",
+      "unblockTitle": "إلغاء حظر المستخدم",
+      "unblockMessage": "هل أنت متأكد من رغبتك في إلغاء حظر المستخدم {{username}}؟",
+      "unblock": "إلغاء الحظر"
+    },
+    "toasts": {
+      "conversationDeleted": "تم حذف المحادثة بنجاح",
+      "userBlocked": "تم حظر المستخدم {{username}} بنجاح",
+      "userUnblocked": "تم إلغاء حظر المستخدم {{username}}"
+    },
+    "errors": {
+      "unauthorized": "غير مصرح لك بالوصول إلى هذه المحادثة",
+      "fetchMessagesFailed": "فشل في جلب الرسائل",
+      "sendFailed": "فشل في إرسال الرسالة",
+      "noConnection": "لا يوجد اتصال بالخادم",
+      "cannotMessageBlocked": "لا يمكنك إرسال رسالة لمستخدم محظور",
+      "conversationBlocked": "لا يمكنك الوصول إلى هذه المحادثة، المستخدم محظور",
+      "deleteFailed": "فشل حذف المحادثة",
+      "blockFailed": "فشل حظر المستخدم",
+      "unblockFailed": "فشل إلغاء حظر المستخدم"
+    }
+  }
+}

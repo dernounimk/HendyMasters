@@ -18,10 +18,9 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import EditProfile from './pages/EditProfile';
 import CreatePost from './pages/CreatePost';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
+import PasswordReset from './pages/PasswordReset'; // ✅ إضافة صفحة Password Reset الموحدة
 import Settings from './pages/Settings';
-import PostDetails from './pages/PostDetails';  // ✅ أضف هذا الاستيراد
+import PostDetails from './pages/PostDetails';
 
 // Loading Component
 import LoadingScreen from './components/LoadingScreen';
@@ -162,15 +161,10 @@ function App() {
             </PublicRoute>
           } />
           
-          {/* مسارات إعادة تعيين كلمة المرور (متاحة للجميع) */}
-          <Route path="/forgot-password" element={
+          {/* ✅ المسار الجديد لصفحة Password Reset الموحدة */}
+          <Route path="/password-reset" element={
             <SemiPublicRoute>
-              <ForgotPassword />
-            </SemiPublicRoute>
-          } />
-          <Route path="/reset-password" element={
-            <SemiPublicRoute>
-              <ResetPassword />
+              <PasswordReset />
             </SemiPublicRoute>
           } />
           
@@ -195,7 +189,7 @@ function App() {
             <Route path="saved" element={<Saved />} />
             <Route path="posts/create" element={<CreatePost />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="post/:id" element={<PostDetails />} />  {/* ✅ أضف هذا المسار */}
+            <Route path="post/:id" element={<PostDetails />} />
           </Route>
           
           {/* مسار 404 */}

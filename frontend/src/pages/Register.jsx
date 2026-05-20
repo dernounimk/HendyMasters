@@ -369,7 +369,7 @@ style.textContent = `
     color: white;
     box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
   }
-  
+
   .step-simple-icon.completed {
     background: linear-gradient(to right, #2563eb, #1d4ed8);
     color: white;
@@ -388,11 +388,11 @@ style.textContent = `
   }
   
   .step-simple-title.active {
-    color: #2563eb;
+    color:linear-gradient(to right, #2563eb, #1d4ed8);
   }
   
   .step-simple-title.completed {
-    color: #2563eb;
+    color:linear-gradient(to right, #2563eb, #1d4ed8);
   }
   
   .step-simple-title.inactive {
@@ -408,7 +408,7 @@ style.textContent = `
   }
   
   .step-simple-connector.active {
-    background-color: #2563eb;
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
   }
 `;
 document.head.appendChild(style);

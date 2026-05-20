@@ -1,0 +1,19 @@
+{
+  "search": {
+    "placeholder": "Search by username...",
+    "results": "Search Results",
+    "searching": "Searching...",
+    "noResults": "No results found",
+    "noResultsQuery": "No users found for \"{{query}}\"",
+    "defaultLocation": "Algeria",
+    "empty": {
+      "title": "Search for Users",
+      "description": "Type the username you're looking for in the search bar to get started",
+      "suggestions": {
+        "searchArtisans": "Search for artisans",
+        "connect": "Connect with new clients",
+        "viewReviews": "View ratings and reviews"
+      }
+    }
+  }
+}

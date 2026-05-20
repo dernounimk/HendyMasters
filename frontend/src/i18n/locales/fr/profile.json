@@ -1,0 +1,92 @@
+{
+  "profile": {
+    "title": "Profil",
+    "edit": {
+      "title": "Modifier le profil",
+      "clickToChangeAvatar": "Cliquez pour changer la photo de profil",
+      "username": "Nom d'utilisateur",
+      "usernamePlaceholder": "Entrez le nom d'utilisateur",
+      "usernameChangeAvailable": "Vous pouvez changer votre nom d'utilisateur maintenant",
+      "usernameChangeNote": "Vous pouvez changer votre nom d'utilisateur une fois tous les 15 jours",
+      "usernameChangeWait": "Vous pouvez changer votre nom d'utilisateur après {{days}} jours",
+      "usernameRequired": "Le nom d'utilisateur est requis",
+      "usernameLength": "Le nom d'utilisateur doit contenir entre 3 et 30 caractères",
+      "usernameInvalidChars": "Le nom d'utilisateur ne peut contenir que des lettres, chiffres et tirets bas",
+      "email": "Email",
+      "emailNote": "Votre email ne sera pas visible par les autres sauf si vous l'autorisez",
+      "phone": "Numéro de téléphone",
+      "phoneRequired": "Le numéro de téléphone est requis",
+      "phoneNote": "Votre numéro de téléphone ne sera pas visible par les autres sauf si vous l'autorisez",
+      "bio": "Bio",
+      "bioPlaceholder": "Écrivez quelque chose sur vous...",
+      "location": "Emplacement",
+      "privacy": "Paramètres de confidentialité",
+      "showEmail": "Afficher l'email aux autres",
+      "showPhone": "Afficher le numéro de téléphone aux autres",
+      "showLocation": "Afficher l'emplacement aux autres",
+      "showOnlineStatus": "Afficher le statut en ligne",
+      "avatarTooLarge": "Image trop volumineuse. Maximum 5Mo",
+      "invalidImageType": "Type de fichier invalide. Choisissez une image",
+      "avatarRemoved": "Photo de profil supprimée",
+      "confirmRemoveAvatarTitle": "Supprimer la photo de profil",
+      "confirmRemoveAvatarMessage": "Êtes-vous sûr de vouloir supprimer votre photo de profil ?",
+      "confirmCancelTitle": "Annuler les modifications",
+      "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler ? Toutes les modifications non enregistrées seront perdues.",
+      "success": "Profil mis à jour",
+      "error": "Erreur lors de la mise à jour du profil",
+      "noChanges": "Aucune modification à enregistrer"
+    },
+    "tabs": {
+      "about": "À propos",
+      "posts": "Publications",
+      "reviews": "Avis"
+    },
+    "about": {
+      "title": "À propos de l'utilisateur",
+      "bio": "Bio",
+      "contactInfo": "Informations de contact",
+      "professionalInfo": "Informations professionnelles",
+      "accountInfo": "Informations du compte",
+      "joinedAt": "Inscrit le {{date}}",
+      "craft": "Métier",
+      "experience": "Expérience",
+      "dailyRate": "Tarif journalier",
+      "skills": "Compétences",
+      "noBio": "Aucune bio",
+      "noContactInfo": "Aucune information de contact disponible"
+    },
+    "posts": {
+      "noPosts": "Aucune publication",
+      "createFirst": "Créez votre première publication",
+      "endOfPosts": "🏁 Fin des publications"
+    },
+    "reviews": {
+      "noReviews": "Aucun avis",
+      "noReviewsForUser": "Aucun avis pour cet utilisateur",
+      "notRatedYet": "Vous n'avez pas encore été évalué",
+      "endOfReviews": "🏁 Fin des avis",
+      "averageRating": "Note moyenne",
+      "totalReviews": "avis",
+      "totalReviews_plural": "avis",
+      "distribution": "Distribution des notes"
+    },
+    "actions": {
+      "message": "Message",
+      "blocked": "Bloqué",
+      "viewYourReview": "Voir votre avis",
+      "rate": "Évaluer",
+      "editProfile": "Modifier le profil",
+      "shareProfile": "Partager le profil",
+      "copyLink": "Copier le lien",
+      "linkCopied": "Lien copié",
+      "blockUser": "Bloquer l'utilisateur",
+      "unblockUser": "Débloquer l'utilisateur",
+      "reportUser": "Signaler l'utilisateur",
+      "reportSoon": "Fonction de signalement bientôt disponible"
+    },
+    "errors": {
+      "notFound": "Profil non trouvé",
+      "fetchFailed": "Échec du chargement du profil"
+    }
+  }
+}

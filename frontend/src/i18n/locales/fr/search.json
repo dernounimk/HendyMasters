@@ -1,0 +1,19 @@
+{
+  "search": {
+    "placeholder": "Rechercher par nom d'utilisateur...",
+    "results": "Résultats de recherche",
+    "searching": "Recherche en cours...",
+    "noResults": "Aucun résultat",
+    "noResultsQuery": "Aucun utilisateur trouvé pour \"{{query}}\"",
+    "defaultLocation": "Algérie",
+    "empty": {
+      "title": "Rechercher des utilisateurs",
+      "description": "Tapez le nom d'utilisateur que vous recherchez dans la barre de recherche pour commencer",
+      "suggestions": {
+        "searchArtisans": "Rechercher des artisans",
+        "connect": "Connectez-vous avec de nouveaux clients",
+        "viewReviews": "Voir les évaluations"
+      }
+    }
+  }
+}

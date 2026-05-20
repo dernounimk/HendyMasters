@@ -1,0 +1,60 @@
+{
+  "createPost": {
+    "title": "Titre de la publication",
+    "description": "Description du travail",
+    "budget": "Budget",
+    "location": "Emplacement",
+    "image": "Image",
+    "optional": "(Optionnel)",
+    "preview": "Aperçu de la publication",
+    "previewAlt": "Aperçu de la publication",
+    "uploadedImageAlt": "Image téléchargée",
+    "imageUploaded": "✅ Image téléchargée",
+    "clickToUpload": "📸 Cliquez pour télécharger ou glisser ici",
+    "imageRequirements": "Vous ne pouvez télécharger qu'une seule image, taille maximale 5MB",
+    "postingAs": "Vous publiez en tant que",
+    "success": "Publication créée avec succès !",
+    "postTypes": {
+      "serviceRequest": "Demande de service",
+      "serviceRequestDesc": "Vous recherchez un artisan pour effectuer un service spécifique",
+      "jobOpportunity": "Opportunité d'emploi",
+      "jobOpportunityDesc": "Vous recherchez des travailleurs ou assistants pour travailler avec vous"
+    },
+    "roleDescription": {
+      "client": "Vous ne pouvez créer que des demandes de service",
+      "artisan": "Vous ne pouvez créer que des opportunités d'emploi",
+      "both": "Vous pouvez créer des demandes de service et des opportunités d'emploi"
+    },
+    "steps": {
+      "basicInfo": "Informations de base",
+      "jobDetails": "Détails du travail",
+      "image": "Image"
+    },
+    "placeholders": {
+      "titleService": "Exemple: Besoin d'un électricien pour le câblage domestique",
+      "titleJob": "Exemple: Ouvriers assistants nécessaires pour projet de construction",
+      "description": "Décrivez le travail requis en détail... (emplacement, heure, exigences)",
+      "budget": "Montant en Dinar Algérien",
+      "location": "État ou Ville"
+    },
+    "errors": {
+      "titleRequired": "Le titre est requis",
+      "titleMinLength": "Le titre doit contenir au moins 5 caractères",
+      "descriptionRequired": "La description est requise",
+      "descriptionMinLength": "La description doit contenir au moins 20 caractères",
+      "budgetInvalid": "Budget invalide",
+      "budgetMin": "Le budget doit être d'au moins 1000 DZD",
+      "locationRequired": "L'emplacement est requis",
+      "invalidImageType": "Veuillez sélectionner uniquement un fichier image",
+      "imageTooLarge": "Image trop volumineuse. Maximum 5MB",
+      "fillAllFields": "Veuillez remplir tous les champs requis",
+      "failed": "Échec de la création de la publication"
+    }
+  },
+  "createStep": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "posting": "Publication en cours...",
+    "publish": "Publier"
+  }
+}

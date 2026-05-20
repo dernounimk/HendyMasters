@@ -12,6 +12,147 @@ import {
   Sparkles, FileText, User
 } from 'lucide-react';
 
+// إضافة CSS مخصص لصفحة إنشاء البوست
+const createPostStyle = document.createElement('style');
+createPostStyle.textContent = `
+  /* ==================== الوضع الفاتح ==================== */
+  .createpost-glass-card {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 32px;
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    transition: all 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  }
+  
+  .createpost-preview-card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px);
+    border-radius: 28px;
+    border: 1px solid rgba(203, 213, 225, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  .createpost-input {
+    background: rgba(243, 244, 246, 0.8) !important;
+    border: 1px solid rgba(203, 213, 225, 0.5);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+  
+  .createpost-input:focus {
+    background: rgba(255, 255, 255, 1) !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+  
+  .createpost-upload-area {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 2px dashed rgba(203, 213, 225, 0.6);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+  }
+  
+  .createpost-upload-area:hover {
+    border-color: #2563eb !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .createpost-upload-area-active {
+    border-color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+  }
+  
+  .createpost-step-circle {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(203, 213, 225, 0.5);
+  }
+  
+  .createpost-step-circle-active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    border: none;
+  }
+  
+  .createpost-step-line {
+    background: rgba(203, 213, 225, 0.5);
+  }
+  
+  .createpost-step-line-active {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+  }
+  
+  .createpost-info-badge {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-radius: 16px;
+  }
+  
+  /* ==================== الوضع المظلم ==================== */
+  .dark .createpost-glass-card {
+    background: rgba(17, 24, 39, 0.75) !important;
+    border-color: rgba(75, 85, 99, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark .createpost-preview-card {
+    background: rgba(31, 41, 55, 0.7) !important;
+    border-color: rgba(75, 85, 99, 0.3);
+  }
+  
+  .dark .createpost-input {
+    background: rgba(55, 65, 81, 0.8) !important;
+    border-color: rgba(75, 85, 99, 0.5);
+    color: #ffffff !important;
+  }
+  
+  .dark .createpost-input:focus {
+    background: rgba(55, 65, 81, 1) !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .dark .createpost-upload-area {
+    background: rgba(31, 41, 55, 0.6) !important;
+    border-color: rgba(75, 85, 99, 0.4);
+  }
+  
+  .dark .createpost-upload-area:hover {
+    background: rgba(31, 41, 55, 0.85) !important;
+    border-color: #3b82f6 !important;
+  }
+  
+  .dark .createpost-step-circle {
+    background: rgba(31, 41, 55, 0.8) !important;
+    border-color: rgba(75, 85, 99, 0.4);
+    color: #ffffff !important;
+  }
+  
+  .dark .createpost-info-badge {
+    background: rgba(59, 130, 246, 0.15) !important;
+  }
+  
+  /* النصوص */
+  .createpost-glass-card *,
+  .createpost-preview-card * {
+    color: #000000 !important;
+  }
+  
+  .dark .createpost-glass-card *,
+  .dark .createpost-preview-card * {
+    color: #ffffff !important;
+  }
+  
+  .createpost-glass-card .text-gray-500,
+  .createpost-glass-card .text-gray-400 {
+    color: #6b7280 !important;
+  }
+  
+  .dark .createpost-glass-card .text-gray-500,
+  .dark .createpost-glass-card .text-gray-400 {
+    color: #9ca3af !important;
+  }
+`;
+document.head.appendChild(createPostStyle);
+
 const CreatePost = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -69,27 +210,27 @@ const CreatePost = () => {
     
     if (currentStep === 1) {
       if (!formData.title.trim()) {
-        newErrors.title = 'العنوان مطلوب';
+        newErrors.title = t('createPost.errors.titleRequired');
       } else if (formData.title.length < 5) {
-        newErrors.title = 'العنوان يجب أن يكون 5 أحرف على الأقل';
+        newErrors.title = t('createPost.errors.titleMinLength');
       }
       
       if (!formData.description.trim()) {
-        newErrors.description = 'الوصف مطلوب';
+        newErrors.description = t('createPost.errors.descriptionRequired');
       } else if (formData.description.length < 20) {
-        newErrors.description = 'الوصف يجب أن يكون 20 حرفاً على الأقل';
+        newErrors.description = t('createPost.errors.descriptionMinLength');
       }
     }
     
     if (currentStep === 2) {
       if (!formData.budget || parseFloat(formData.budget) <= 0) {
-        newErrors.budget = 'الميزانية غير صالحة';
+        newErrors.budget = t('createPost.errors.budgetInvalid');
       } else if (parseFloat(formData.budget) < 1000) {
-        newErrors.budget = 'الميزانية يجب أن تكون 1000 دج على الأقل';
+        newErrors.budget = t('createPost.errors.budgetMin');
       }
       
       if (!formData.location.trim()) {
-        newErrors.location = 'الموقع مطلوب';
+        newErrors.location = t('createPost.errors.locationRequired');
       }
     }
     
@@ -123,12 +264,12 @@ const CreatePost = () => {
     if (!file) return;
     
     if (!file.type.startsWith('image/')) {
-      toast.error('يرجى اختيار ملف صورة فقط');
+      toast.error(t('createPost.errors.invalidImageType'));
       return;
     }
     
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('حجم الصورة كبير جداً. الحد الأقصى 5MB');
+      toast.error(t('createPost.errors.imageTooLarge'));
       return;
     }
     
@@ -149,11 +290,11 @@ const CreatePost = () => {
       fileInputRef.current.value = '';
     }
   };
-  
+
   const handleSubmit = async () => {
     if (!validateStep()) {
       setCurrentStep(2);
-      toast.error('يرجى إكمال جميع الحقول المطلوبة');
+      toast.error(t('createPost.errors.fillAllFields'));
       return;
     }
     
@@ -171,14 +312,14 @@ const CreatePost = () => {
       const result = await createPost(postData, imageFile);
       
       if (result.success) {
-        toast.success('تم إنشاء البوست بنجاح!');
+        toast.success(t('createPost.success'));
         navigate(`/post/${result.data._id}`);
       } else {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error(error.message || 'فشل إنشاء البوست');
+      console.error('❌ Error:', error);
+      toast.error(error.message || t('createPost.errors.failed'));
     } finally {
       setSubmitting(false);
     }
@@ -187,11 +328,24 @@ const CreatePost = () => {
   const getUserRoleText = () => {
     switch(user?.role) {
       case 'client':
-        return 'عميل';
+        return t('roles.client');
       case 'artisan':
-        return 'حرفي';
+        return t('roles.artisan');
       case 'both':
-        return 'عميل وحرفي';
+        return t('roles.both');
+      default:
+        return '';
+    }
+  };
+  
+  const getUserRoleDescription = () => {
+    switch(user?.role) {
+      case 'client':
+        return t('createPost.roleDescription.client');
+      case 'artisan':
+        return t('createPost.roleDescription.artisan');
+      case 'both':
+        return t('createPost.roleDescription.both');
       default:
         return '';
     }
@@ -200,49 +354,51 @@ const CreatePost = () => {
   const getPostTypeInfo = () => {
     if (postType === 'service_request') {
       return {
-        title: 'طلب خدمة',
-        description: 'أنت تبحث عن حرفي لتنفيذ خدمة معينة',
+        title: t('createPost.postTypes.serviceRequest'),
+        description: t('createPost.postTypes.serviceRequestDesc'),
         icon: Briefcase,
-        color: 'text-primary-600'
+        color: 'text-blue-600'
       };
     } else {
       return {
-        title: 'فرصة عمل',
-        description: 'أنت تبحث عن عمال أو مساعدين للعمل معك',
+        title: t('createPost.postTypes.jobOpportunity'),
+        description: t('createPost.postTypes.jobOpportunityDesc'),
         icon: Wrench,
-        color: 'text-primary-600'
+        color: 'text-blue-600'
       };
     }
   };
   
   const postTypeInfo = getPostTypeInfo();
-  const PostTypeIcon = postTypeInfo.icon;
   
   return (
-    <div className="max-w-4xl mx-auto py-6 px-4">
+    <div className="max-w-4xl mx-auto py-6 px-4 min-h-[calc(100vh-4rem)]">
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-primary-600" />
-          إنشاء بوست جديد
-        </h1>
-        <div className="mt-2 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center">
-            <User className="w-5 h-5 text-primary-600" />
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      > 
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="createpost-info-badge p-4 rounded-2xl flex items-center gap-3"
+        >
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+            <User className="w-6 h-6 text-white" />
           </div>
           <div>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              أنت تقوم بالنشر كـ: 
-              <span className="font-semibold text-primary-600 mx-1">{getUserRoleText()}</span>
+              {t('createPost.postingAs')}: 
+              <span className="font-semibold text-blue-600 dark:text-blue-400 mx-1">{getUserRoleText()}</span>
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              {user?.role === 'client' && 'يمكنك فقط إنشاء طلبات خدمة'}
-              {user?.role === 'artisan' && 'يمكنك فقط إنشاء فرص عمل'}
-              {user?.role === 'both' && 'يمكنك إنشاء طلبات خدمة وفرص عمل'}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              {getUserRoleDescription()}
             </p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
       
       {/* Progress Steps */}
       <div className="mb-8">
@@ -250,30 +406,34 @@ const CreatePost = () => {
           {[1, 2, 3].map((step) => (
             <div key={step} className="flex-1 relative">
               <div className="flex items-center justify-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
-                  currentStep >= step 
-                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                }`}>
+                <motion.div 
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: currentStep >= step ? 1 : 0.8 }}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    currentStep >= step 
+                      ? 'createpost-step-circle-active text-white shadow-lg' 
+                      : 'createpost-step-circle text-gray-500'
+                  }`}
+                >
                   {currentStep > step ? <CheckCircle className="w-5 h-5" /> : step}
-                </div>
+                </motion.div>
               </div>
-              <div className="absolute top-5 left-1/2 w-full h-0.5 -z-10">
+              <div className="absolute top-5 left-1/2 w-full -z-10">
                 {step < 3 && (
-                  <div className={`h-full transition-all duration-300 ${
+                  <div className={`h-0.5 transition-all duration-300 ${
                     currentStep > step 
-                      ? 'bg-gradient-to-r from-primary-600 to-primary-700' 
-                      : 'bg-gray-200 dark:bg-gray-700'
+                      ? 'createpost-step-line-active' 
+                      : 'createpost-step-line'
                   }`} />
                 )}
               </div>
             </div>
           ))}
         </div>
-        <div className="flex justify-between mt-2 text-sm">
-          <span className="text-gray-600 dark:text-gray-400">المعلومات الأساسية</span>
-          <span className="text-gray-600 dark:text-gray-400">تفاصيل العمل</span>
-          <span className="text-gray-600 dark:text-gray-400">الصورة</span>
+        <div className="flex justify-between mt-2 text-sm px-4">
+          <span className="text-gray-600 dark:text-gray-400">{t('createPost.steps.basicInfo')}</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('createPost.steps.jobDetails')}</span>
+          <span className="text-gray-600 dark:text-gray-400">{t('createPost.steps.image')}</span>
         </div>
       </div>
       
@@ -283,7 +443,7 @@ const CreatePost = () => {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.3 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden"
+        className="createpost-glass-card overflow-hidden"
       >
         
         {/* Step 1: Basic Info */}
@@ -291,7 +451,7 @@ const CreatePost = () => {
           <div className="p-6 space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                عنوان البوست *
+                {t('createPost.title')} *
               </label>
               <input
                 type="text"
@@ -299,25 +459,29 @@ const CreatePost = () => {
                 value={formData.title}
                 onChange={handleInputChange}
                 placeholder={postType === 'service_request' 
-                  ? 'مثال: أحتاج كهربائي لتركيب أسلاك المنزل'
-                  : 'مثال: مطلوب عمال مساعدين لمشروع بناء'}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all ${
+                  ? t('createPost.placeholders.titleService')
+                  : t('createPost.placeholders.titleJob')}
+                className={`createpost-input w-full px-4 py-3 focus:outline-none transition-all ${
                   errors.title 
                     ? 'border-red-500 focus:ring-red-500' 
-                    : 'border-gray-300 dark:border-gray-600'
+                    : ''
                 }`}
               />
               {errors.title && (
-                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <motion.p 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                >
                   <AlertCircle className="w-3 h-3" />
                   {errors.title}
-                </p>
+                </motion.p>
               )}
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                وصف العمل *
+                {t('createPost.description')} *
               </label>
               <textarea
                 ref={textareaRef}
@@ -325,18 +489,22 @@ const CreatePost = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={6}
-                placeholder="صف العمل المطلوب بالتفصيل... (الموقع، الوقت، المتطلبات)"
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none transition-all ${
+                placeholder={t('createPost.placeholders.description')}
+                className={`createpost-input w-full px-4 py-3 focus:outline-none transition-all resize-none ${
                   errors.description 
                     ? 'border-red-500 focus:ring-red-500' 
-                    : 'border-gray-300 dark:border-gray-600'
+                    : ''
                 }`}
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <motion.p 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-1 text-sm text-red-500 flex items-center gap-1"
+                >
                   <AlertCircle className="w-3 h-3" />
                   {errors.description}
-                </p>
+                </motion.p>
               )}
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 {formData.description.length} / 2000
@@ -345,7 +513,7 @@ const CreatePost = () => {
           </div>
         )}
         
-        {/* Step 2: Job Details - فقط الميزانية والموقع */}
+        {/* Step 2: Job Details */}
         {currentStep === 2 && (
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -353,20 +521,26 @@ const CreatePost = () => {
               {/* Budget */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  الميزانية (دج) *
+                  {t('createPost.budget')} (DZD) *
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="budget"
                   value={formData.budget}
                   onChange={handleInputChange}
-                  placeholder="المبلغ بالدينار الجزائري"
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                    errors.budget ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  placeholder={t('createPost.placeholders.budget')}
+                  className={`createpost-input w-full px-4 py-3 focus:outline-none ${
+                    errors.budget ? 'border-red-500' : ''
                   }`}
                 />
                 {errors.budget && (
-                  <p className="mt-1 text-sm text-red-500">{errors.budget}</p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 text-sm text-red-500"
+                  >
+                    {errors.budget}
+                  </motion.p>
                 )}
               </div>
               
@@ -374,41 +548,45 @@ const CreatePost = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <MapPin className="w-4 h-4 inline ml-1" />
-                  الموقع *
+                  {t('createPost.location')} *
                 </label>
                 <input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="الولاية أو المدينة"
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white ${
-                    errors.location ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                  placeholder={t('createPost.placeholders.location')}
+                  className={`createpost-input w-full px-4 py-3 focus:outline-none ${
+                    errors.location ? 'border-red-500' : ''
                   }`}
                 />
                 {errors.location && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location}</p>
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-1 text-sm text-red-500"
+                  >
+                    {errors.location}
+                  </motion.p>
                 )}
               </div>
             </div>
           </div>
         )}
         
-        {/* Step 3: Image فقط */}
+        {/* Step 3: Image */}
         {currentStep === 3 && (
           <div className="p-6 space-y-6">
-            {/* Image - صورة واحدة فقط */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 <Image className="w-4 h-4 inline ml-1" />
-                الصورة
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">(اختياري)</span>
+                {t('createPost.image')}
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">{t('createPost.optional')}</span>
               </label>
-              <div 
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                  image 
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
-                    : 'border-gray-300 dark:border-gray-600 hover:border-primary-500'
+              <motion.div 
+                whileHover={{ scale: 1.01 }}
+                className={`createpost-upload-area p-8 text-center cursor-pointer transition-all ${
+                  image ? 'createpost-upload-area-active' : ''
                 }`}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -419,35 +597,41 @@ const CreatePost = () => {
                   onChange={handleImageSelect}
                   className="hidden"
                 />
-                <Upload className={`w-12 h-12 mx-auto mb-3 ${
-                  image ? 'text-primary-500' : 'text-gray-400'
+                <Upload className={`w-14 h-14 mx-auto mb-3 transition-all ${
+                  image ? 'text-blue-500' : 'text-gray-400'
                 }`} />
-                <p className="text-gray-600 dark:text-gray-400">
-                  {image ? 'صورة مرفوعة' : 'انقر لرفع الصورة أو اسحبها هنا'}
+                <p className="text-gray-600 dark:text-gray-400 font-medium">
+                  {image ? t('createPost.imageUploaded') : t('createPost.clickToUpload')}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                  يمكنك رفع صورة واحدة فقط، حجم الصورة لا يتجاوز 5MB
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                  {t('createPost.imageRequirements')}
                 </p>
-              </div>
+              </motion.div>
               
               {/* عرض الصورة المرفوعة */}
               {image && (
-                <div className="mt-4">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mt-4"
+                >
                   <div className="relative group inline-block">
                     <img
                       src={image}
-                      alt="Uploaded"
-                      className="w-48 h-48 object-cover rounded-xl shadow-md"
+                      alt={t('createPost.uploadedImageAlt')}
+                      className="w-48 h-48 object-cover rounded-xl shadow-md border-2 border-blue-300 dark:border-blue-700"
                     />
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                       type="button"
                       onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                      className="absolute top-2 right-2 p-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:shadow-lg"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -456,44 +640,50 @@ const CreatePost = () => {
         {/* Navigation Buttons */}
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex gap-4">
           {currentStep > 1 && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={handlePrev}
-              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex items-center gap-2"
             >
               <ChevronRight className="w-5 h-5" />
-              السابق
-            </button>
+              {t('createStep.previous')}
+            </motion.button>
           )}
           
           {currentStep < 3 ? (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={handleNext}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
             >
-              التالي
+              {t('createStep.next')}
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span>جاري النشر...</span>
+                  <span>{t('createStep.posting')}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-5 h-5" />
-                  <span>نشر البوست</span>
+                  <span>{t('createStep.publish')}</span>
                 </>
               )}
-            </button>
+            </motion.button>
           )}
         </div>
       </motion.div>
@@ -503,18 +693,21 @@ const CreatePost = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6"
+          transition={{ delay: 0.2 }}
+          className="mt-6 createpost-preview-card p-6"
         >
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary-600" />
-            معاينة البوست
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <FileText className="w-4 h-4 text-white" />
+            </div>
+            {t('createPost.preview')}
           </h3>
-          <div className="border rounded-xl p-4 bg-gray-50 dark:bg-gray-700/50">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-50/50 dark:bg-gray-700/30">
+            <div className="flex items-center gap-3 mb-3">
               <img
                 src={user?.profileImage || 'https://via.placeholder.com/40'}
                 alt={user?.username}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover border-2 border-blue-300 dark:border-blue-700"
               />
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">{user?.username}</p>
@@ -522,10 +715,24 @@ const CreatePost = () => {
               </div>
             </div>
             <h4 className="font-bold text-gray-900 dark:text-white mb-2">{formData.title}</h4>
-            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">{formData.description}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">{formData.description}</p>
+            {(formData.budget || formData.location) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {formData.budget && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-lg">
+                    💰 {parseInt(formData.budget).toLocaleString()} DZD
+                  </span>
+                )}
+                {formData.location && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg">
+                    📍 {formData.location}
+                  </span>
+                )}
+              </div>
+            )}
             {image && (
               <div className="mt-3">
-                <img src={image} alt="Preview" className="w-32 h-32 object-cover rounded-lg" />
+                <img src={image} alt={t('createPost.previewAlt')} className="w-32 h-32 object-cover rounded-lg shadow-md" />
               </div>
             )}
           </div>

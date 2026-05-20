@@ -1,9 +1,12 @@
-// components/LoadingScreen.jsx
+// frontend/src/components/LoadingScreen.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Loader } from 'lucide-react';
 
 const LoadingScreen = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center z-50">
       <motion.div
@@ -21,10 +24,10 @@ const LoadingScreen = () => {
         </motion.div>
         
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          HandyMasters
+          Handys
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-          جاري التحميل...
+          {t('loading.loading')}
         </p>
       </motion.div>
     </div>

@@ -13,6 +13,8 @@ import {
   Wifi, WifiOff
 } from 'lucide-react';
 
+import logo from '../../../public/logo.jpg'
+
 import { useStore } from '../../store';
 import api from '../../services/api';
 import socketService from '../../services/socketService';
@@ -305,6 +307,23 @@ style.textContent = `
     left: -6px;
   }
 
+  /* ============================================ */
+  /* إصلاحات الوضع المظلم للمستخدمين المقترحين */
+  /* ============================================ */
+  
+  /* عنوان "المستخدمون المقترحون" */
+  .section-title h3,
+  .section-title .dark\\:text-white {
+    color: #1f2937 !important;
+  }
+  
+  .dark .section-title h3,
+  .dark .section-title .text-gray-900,
+  .dark .section-title span {
+    color: #f3f4f6 !important;
+  }
+  
+  /* بطاقات المستخدمين المقترحين */
   .suggested-card {
     background: white;
     border-radius: 24px;
@@ -318,9 +337,63 @@ style.textContent = `
   }
 
   .dark .suggested-card {
-    background: rgba(31, 41, 55, 0.7);
-    border-color: rgba(59, 130, 246, 0.2);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* اسم المستخدم في البطاقة */
+  .suggested-card .text-gray-900,
+  .suggested-card .dark\\:text-white,
+  .suggested-card p.font-semibold {
+    color: #111827 !important;
+  }
+  
+  .dark .suggested-card .text-gray-900,
+  .dark .suggested-card .dark\\:text-white,
+  .dark .suggested-card p.font-semibold {
+    color: #ffffff !important;
+  }
+  
+  /* النصوص الثانوية (المهنة، التقييم، الموقع) */
+  .suggested-card .text-gray-600,
+  .suggested-card .dark\\:text-gray-400,
+  .suggested-card .text-xs {
+    color: #4b5563 !important;
+  }
+  
+  .dark .suggested-card .text-gray-600,
+  .dark .suggested-card .text-xs:not(.text-white) {
+    color: #cbd5e1 !important;
+  }
+  
+  /* زر "عرض الملف الشخصي" */
+  .suggested-card a.bg-primary-50 {
+    background: #eff6ff;
+    color: #1f2937;
+    border-color: rgba(37, 99, 235, 0.3);
+  }
+  
+  .dark .suggested-card a.bg-primary-50 {
+    background: rgba(37, 99, 235, 0.25);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+  
+  .dark .suggested-card a.bg-primary-50:hover {
+    background: rgba(37, 99, 235, 0.4);
+    color: #bfdbfe;
+  }
+  
+  /* حالة عدم وجود مستخدمين */
+  .suggestions-section .text-gray-500,
+  .suggestions-section .dark\\:text-gray-400 {
+    color: #6b7280;
+  }
+  
+  .dark .suggestions-section .text-gray-500,
+  .dark .suggestions-section p {
+    color: #9ca3af !important;
   }
 
   .suggested-card::before {
@@ -496,6 +569,34 @@ style.textContent = `
     -webkit-text-fill-color: transparent;
   }
 
+  .logo-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .group:hover .logo-image {
+    transform: scale(1.05);
+  }
+
+  .logo-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  }
+
+  .dark .logo-container {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  }
+
   .bg-gradient-primary {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   }
@@ -599,6 +700,21 @@ style.textContent = `
       justify-content: center;
       padding: 0.75rem;
     }
+
+    .logo-container {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto;
+    }
+
+    .logo-image {
+      width: 32px;
+      height: 32px;
+    }
+
+    .logo-text {
+      display: none;
+    }
   }
 
   @media (max-width: 768px) {
@@ -613,57 +729,6 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
-
-// ترجمة المهن
-const craftTranslations = {
-  'electrician': 'كهربائي',
-  'plumber': 'سباك',
-  'carpenter': 'نجار',
-  'painter': 'دهان',
-  'mason': 'بناء',
-  'mover': 'ناقل أثاث',
-  'cleaner': 'منظف',
-  'ac_technician': 'فني تكييف',
-  'tiler': 'بلاط',
-  'blacksmith': 'حداد',
-  'gardener': 'بستاني',
-  'handyman': 'عامل صيانة',
-  'cabinet_maker': 'نجار موبيليا',
-  'upholsterer': 'مفروشات',
-  'glass_worker': 'عامل زجاج',
-  'flooring_specialist': 'أرضيات',
-  'facade_worker': 'واجهات',
-  'roofer': 'أسقف',
-  'kitchen_installer': 'مطابخ',
-  'bathroom_installer': 'حمامات',
-  'solar_installer': 'طاقة شمسية',
-  'electronics_repair': 'إلكترونيات',
-  'security_systems': 'أنظمة أمنية',
-  'network_tech': 'شبكات',
-  'satellite_installer': 'ستالايت',
-  'cctv_installer': 'كاميرات',
-  'smart_home_tech': 'منزل ذكي',
-  'hvac_tech': 'تدفئة وتبريد',
-  'elevator_tech': 'مصاعد',
-  'pool_tech': 'مسابح',
-  'gas_tech': 'غاز',
-  'auto_electrician': 'كهربائي سيارات',
-  'generator_tech': 'مولدات',
-  'interior_designer': 'مصمم داخلي',
-  'decorator': 'ديكور',
-  'landscape_designer': 'تنسيق حدائق',
-  'stone_cutter': 'قص حجر',
-  'wood_carver': 'نحت خشب',
-  'foundation_worker': 'أساسات',
-  'steel_fixer': 'حديد تسليح',
-  'plasterer': 'جبس',
-  'window_installer': 'نوافذ',
-  'door_installer': 'أبواب',
-  'appliance_repair': 'أجهزة منزلية',
-  'furniture_repair': 'أثاث',
-  'pest_control': 'مكافحة حشرات',
-  'water_tank_cleaner': 'تنظيف خزانات'
-};
 
 const MainLayout = () => {
   const { t, i18n } = useTranslation();
@@ -692,6 +757,7 @@ const MainLayout = () => {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   const isRTL = i18n.language === 'ar';
+  // Modified condition: worker cannot create posts, only client and artisan can
   const canCreatePost = user?.role === 'client' || user?.role === 'artisan';
 
   const fetchUnreadNotificationsCount = useCallback(async () => {
@@ -787,13 +853,15 @@ const MainLayout = () => {
               
               const stats = await fetchUserStats(dbUser._id);
               
-              let craft = 'حرفي';
+              let craft = t('roles.artisan');
               if (dbUser.professionalInfo?.craft) {
                 craft = i18n.language === 'ar' 
-                  ? craftTranslations[dbUser.professionalInfo.craft] || dbUser.professionalInfo.craft
+                  ? t(`crafts.${dbUser.professionalInfo.craft}`, dbUser.professionalInfo.craft.replace(/_/g, ' '))
                   : dbUser.professionalInfo.craft.replace(/_/g, ' ');
               } else if (dbUser.role === 'client') {
-                craft = 'عميل';
+                craft = t('roles.client');
+              } else if (dbUser.role === 'worker') {
+                craft = t('roles.worker');
               }
               
               const rating = stats?.rating || dbUser.stats?.rating || 0;
@@ -807,7 +875,7 @@ const MainLayout = () => {
                 profileImage: dbUser.profileImage,
                 role: dbUser.role,
                 craft: craft,
-                location: dbUser.location || 'الجزائر',
+                location: dbUser.location || t('search.defaultLocation', 'Algeria'),
                 rating: parseFloat(rating).toFixed(1),
                 isOnline: dbUser.isOnline || false,
                 bio: dbUser.bio || ''
@@ -828,7 +896,7 @@ const MainLayout = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, token, user?._id, user?.username, i18n.language]);
+  }, [isAuthenticated, token, user?._id, user?.username, i18n.language, t]);
 
   useEffect(() => {
     if (user && token && isAuthenticated) {
@@ -875,7 +943,7 @@ const MainLayout = () => {
   const navigationItems = [
     { path: '/', icon: Home, label: t('nav.home') },
     { path: '/explore', icon: Search, label: t('nav.search') },
-    { path: '/posts/create', icon: PlusCircle, label: t('nav.create') },
+    ...(canCreatePost ? [{ path: '/posts/create', icon: PlusCircle, label: t('nav.create') }] : []),
     { path: '/messages', icon: MessageCircle, label: t('nav.messages'), badge: unreadMessagesCount },
     { path: '/notifications', icon: Bell, label: t('nav.notifications'), badge: unreadNotificationsCount },
     { path: '/saved', icon: Bookmark, label: t('nav.saved') },
@@ -964,11 +1032,11 @@ const MainLayout = () => {
               <div className="layout-column h-full w-full">
                 <div className="column-content">
                   <div className="flex items-center justify-between mb-8">
-                    <Link to="/" className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">H</span>
+                    <Link to="/" className="flex items-center gap-2 group">
+                      <div className="logo-container">
+                        <img src={logo} alt="Handys" className="logo-image" />
                       </div>
-                      <span className="logo-text">HandyMasters</span>
+                      <span className="logo-text">Handys</span>
                     </Link>
                     <button onClick={() => setIsSidebarOpen(false)} className="action-button">
                       <X className="w-5 h-5" />
@@ -1015,10 +1083,10 @@ const MainLayout = () => {
           <div className="left-column-content">
             <div className="logo-section">
               <Link to="/" className="flex items-center gap-3 mb-4 group">
-                <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <span className="text-white font-bold text-xl">H</span>
+                <div className="logo-container">
+                  <img src={logo} alt="Handys" className="logo-image" />
                 </div>
-                <span className="logo-text">HandyMasters</span>
+                <span className="logo-text">Handys</span>
               </Link>
             </div>
 
@@ -1071,15 +1139,23 @@ const MainLayout = () => {
                 {isSocketConnected ? (
                   <>
                     <Wifi className="w-3 h-3 text-green-500" />
-                    <span className="text-xs text-green-600 dark:text-green-400">متصل</span>
+                    <span className="text-xs text-green-600 dark:text-green-400">{t('messages.status.online')}</span>
                   </>
                 ) : (
                   <>
                     <WifiOff className="w-3 h-3 text-red-500" />
-                    <span className="text-xs text-red-600 dark:text-red-400">غير متصل</span>
+                    <span className="text-xs text-red-600 dark:text-red-400">{t('messages.status.offline')}</span>
                   </>
                 )}
               </div>
+
+              <button
+                onClick={handleThemeToggle}
+                className="action-button"
+                title={theme === 'dark' ? t('common.lightMode') : t('common.darkMode')}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
 
               {canCreatePost && (
                 <Link to="/posts/create" className="create-post-btn hidden lg:flex">
@@ -1111,7 +1187,7 @@ const MainLayout = () => {
                       className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-56 dropdown-menu z-50`}
                     >
                       <div className="p-3 border-b border-primary-100 dark:border-primary-900">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{user?.username}</p>
+                        <p className="text-sm font-semibold text-gray-500">{user?.username}</p>
                         <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
                           <Award className="w-3 h-3 text-primary-500" />
                           {t(`roles.${user?.role}`)}
@@ -1183,7 +1259,7 @@ const MainLayout = () => {
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="w-10 h-10 border-3 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-3" />
-                  <p className="text-sm text-gray-500 dark:text-gray-400">جاري التحميل...</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{t('common.loading')}</p>
                 </div>
               ) : suggestedUsers.length > 0 ? (
                 <div className="space-y-2">
@@ -1203,17 +1279,17 @@ const MainLayout = () => {
                           <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {user.name}
                           </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-center gap-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-300 truncate flex items-center gap-1">
                             <Wrench className="w-3 h-3 text-primary-500 flex-shrink-0" />
                             <span className="truncate">{user.craft}</span>
                           </p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
                               <Star className="w-3 h-3 text-yellow-500 ml-1 flex-shrink-0" />
                               <span className="font-medium">{user.rating}</span>
                             </div>
                             {user.location && (
-                              <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
                                 <MapPin className="w-3 h-3 text-primary-500 ml-1 flex-shrink-0" />
                                 <span className="truncate max-w-[60px]">{user.location}</span>
                               </div>
@@ -1225,7 +1301,7 @@ const MainLayout = () => {
                       <div className="mt-2">
                         <Link
                           to={`/profile/${user.username}`}
-                          className="w-full flex items-center justify-center gap-1 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/20 dark:hover:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-medium py-2 px-3 rounded-xl transition-all transform hover:scale-105 border border-primary-200 dark:border-primary-800"
+                          className="w-full flex items-center justify-center gap-1 bg-primary-50 hover:bg-primary-100 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 text-gray-700 dark:text-primary-300 text-xs font-medium py-2 px-3 rounded-xl transition-all transform hover:scale-105 border border-primary-200 dark:border-primary-700"
                         >
                           <User className="w-3 h-3" />
                           <span>{t('nav.viewProfile')}</span>

@@ -1,8 +1,10 @@
 // frontend/src/components/OTPInput.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false }) => {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(value || new Array(length).fill(''));
   const inputRefs = useRef([]);
 
@@ -21,7 +23,6 @@ const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false })
     setOtp(newOtp);
 
     const otpString = newOtp.join('');
-    console.log('OTP changed:', otpString);
     
     if (onChange) onChange(otpString);
 
@@ -32,9 +33,7 @@ const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false })
 
     // Check if all fields are filled
     if (otpString.length === length) {
-      console.log('OTP completed:', otpString);
       if (onComplete) {
-        console.log('Calling onComplete with:', otpString);
         onComplete(otpString);
       }
     }
@@ -55,7 +54,10 @@ const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false })
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text/plain').slice(0, length);
-    if (!/^\d+$/.test(pastedData)) return;
+    if (!/^\d+$/.test(pastedData)) {
+      // Show error toast if needed
+      return;
+    }
 
     const newOtp = [...otp];
     for (let i = 0; i < pastedData.length; i++) {
@@ -73,13 +75,17 @@ const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false })
     }
 
     if (otpString.length === length && onComplete) {
-      console.log('OTP completed via paste:', otpString);
       onComplete(otpString);
     }
   };
 
+  // Get placeholder text for screen readers
+  const getPlaceholderText = () => {
+    return t('otp.inputPlaceholder', { length });
+  };
+
   return (
-    <div className="flex justify-center gap-3">
+    <div className="flex justify-center gap-3 rtl:gap-3">
       {otp.map((digit, index) => (
         <motion.input
           key={index}
@@ -92,7 +98,8 @@ const OTPInput = ({ length = 6, onComplete, onChange, value, disabled = false })
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
           disabled={disabled}
-          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          aria-label={`${t('otp.digitLabel')} ${index + 1} ${t('otp.of')} ${length}`}
+          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-2xl font-bold rounded-2xl border-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: index * 0.05 }}

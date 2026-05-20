@@ -14,6 +14,7 @@ const createAuthSlice = (set, get) => ({
   error: null,
   currentLanguage: 'ar',
   isRTL: true,
+  uploadingAvatar: false,
 
   setLanguage: (lang) => {
     set({ currentLanguage: lang, isRTL: lang === 'ar' });
@@ -33,7 +34,8 @@ const createAuthSlice = (set, get) => ({
           token,
           isAuthenticated: true,
           isLoading: false,
-          error: null
+          error: null,
+          profileData: user
         });
         
         socketService.initialize(token);
@@ -69,7 +71,8 @@ const createAuthSlice = (set, get) => ({
         set({
           user: userData,
           isAuthenticated: true,
-          isLoading: false
+          isLoading: false,
+          profileData: userData
         });
         
         if (userData && token) {
@@ -92,7 +95,8 @@ const createAuthSlice = (set, get) => ({
           user: null,
           token: null,
           isAuthenticated: false,
-          isLoading: false
+          isLoading: false,
+          profileData: null
         });
         socketService.disconnect();
       } else {
@@ -104,9 +108,15 @@ const createAuthSlice = (set, get) => ({
   
   updateUser: (userData) => {
     const currentUser = get().user;
+    const currentProfileData = get().profileData;
+    
     if (currentUser) {
       const updatedUser = { ...currentUser, ...userData };
       set({ user: updatedUser });
+      
+      if (currentProfileData && currentProfileData._id === updatedUser._id) {
+        set({ profileData: updatedUser });
+      }
     }
   },
 
@@ -123,7 +133,8 @@ const createAuthSlice = (set, get) => ({
           token,
           isAuthenticated: true,
           isLoading: false,
-          error: null
+          error: null,
+          profileData: user
         });
         
         socketService.initialize(token);
@@ -137,7 +148,75 @@ const createAuthSlice = (set, get) => ({
     }
   },
 
-  // دوال إعادة تعيين كلمة المرور بالرمز (OTP)
+  uploadAvatar: async (file) => {
+    set({ uploadingAvatar: true, error: null });
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const response = await api.post('/users/upload-avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (response.data.success) {
+        const currentUser = get().user;
+        const currentProfileData = get().profileData;
+        
+        if (currentUser) {
+          set({ 
+            user: { ...currentUser, profileImage: response.data.data.profileImage },
+          });
+        }
+        
+        if (currentProfileData) {
+          set({
+            profileData: { ...currentProfileData, profileImage: response.data.data.profileImage },
+          });
+        }
+        
+        set({ uploadingAvatar: false });
+        return { success: true, data: response.data.data };
+      }
+      throw new Error(response.data.message || 'فشل رفع الصورة');
+    } catch (error) {
+      console.error('Upload avatar error:', error);
+      set({ uploadingAvatar: false, error: error.response?.data?.message || error.message });
+      return { success: false, error: error.response?.data?.message || error.message };
+    }
+  },
+
+  removeAvatar: async () => {
+    set({ uploadingAvatar: true, error: null });
+    try {
+      const response = await api.delete('/users/remove-avatar');
+      
+      if (response.data.success) {
+        const currentUser = get().user;
+        const currentProfileData = get().profileData;
+        
+        if (currentUser) {
+          set({ 
+            user: { ...currentUser, profileImage: response.data.data.profileImage },
+          });
+        }
+        
+        if (currentProfileData) {
+          set({
+            profileData: { ...currentProfileData, profileImage: response.data.data.profileImage },
+          });
+        }
+        
+        set({ uploadingAvatar: false });
+        return { success: true, data: response.data.data };
+      }
+      throw new Error(response.data.message || 'فشل إزالة الصورة');
+    } catch (error) {
+      console.error('Remove avatar error:', error);
+      set({ uploadingAvatar: false, error: error.response?.data?.message || error.message });
+      return { success: false, error: error.response?.data?.message || error.message };
+    }
+  },
+
   requestResetCode: async (email) => {
     set({ isLoading: true, error: null });
     try {
@@ -145,82 +224,53 @@ const createAuthSlice = (set, get) => ({
       set({ isLoading: false });
       return { 
         success: true, 
-        message: response.data.message 
+        message: response.data.message,
+        devCode: response.data.devCode
       };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'حدث خطأ في طلب الرمز';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        error: errorMessage 
-      };
+      return { success: false, error: errorMessage };
     }
   },
 
   verifyResetCode: async (email, code) => {
     try {
-      console.log('🔐 Sending verify request:', { email, code });
-      
       const response = await api.post('/auth/verify-reset-code', { email, code });
-      
-      console.log('📨 Verify response:', response.data);
-      
       return { 
         success: true, 
         valid: response.data.valid || false,
         message: response.data.message 
       };
     } catch (error) {
-      console.error('❌ Verify error:', error.response?.data || error.message);
       const errorMessage = error.response?.data?.message || 'الرمز غير صحيح';
-      return { 
-        success: false, 
-        valid: false,
-        error: errorMessage 
-      };
+      return { success: false, valid: false, error: errorMessage };
     }
   },
 
   resetPasswordWithCode: async (email, code, newPassword) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.post('/auth/reset-password-with-code', { 
-        email, 
-        code, 
-        newPassword 
-      });
+      const response = await api.post('/auth/reset-password-with-code', { email, code, newPassword });
       set({ isLoading: false });
-      return { 
-        success: true, 
-        message: response.data.message 
-      };
+      return { success: true, message: response.data.message };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'حدث خطأ في إعادة تعيين كلمة المرور';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        error: errorMessage 
-      };
+      return { success: false, error: errorMessage };
     }
   },
 
-  // دوال إعادة تعيين كلمة المرور بالرابط
   forgotPassword: async (email) => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.post('/auth/forgot-password', { email });
       set({ isLoading: false });
-      return { 
-        success: true, 
-        message: response.data.message 
-      };
+      return { success: true, message: response.data.message };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'حدث خطأ في طلب إعادة التعيين';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        error: errorMessage 
-      };
+      return { success: false, error: errorMessage };
     }
   },
 
@@ -229,19 +279,11 @@ const createAuthSlice = (set, get) => ({
     try {
       const response = await api.get(`/auth/verify-reset-token/${token}`);
       set({ isLoading: false });
-      return { 
-        success: true, 
-        isValid: true,
-        email: response.data.email 
-      };
+      return { success: true, isValid: true, email: response.data.email };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'الرمز غير صالح';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        isValid: false, 
-        error: errorMessage 
-      };
+      return { success: false, isValid: false, error: errorMessage };
     }
   },
 
@@ -250,50 +292,43 @@ const createAuthSlice = (set, get) => ({
     try {
       const response = await api.post('/auth/reset-password', { token, password });
       set({ isLoading: false });
-      return { 
-        success: true, 
-        message: response.data.message 
-      };
+      return { success: true, message: response.data.message };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'حدث خطأ في إعادة تعيين كلمة المرور';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        error: errorMessage 
-      };
+      return { success: false, error: errorMessage };
     }
   },
 
   changePassword: async (currentPassword, newPassword) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.put('/auth/change-password', { 
-        currentPassword, 
-        newPassword 
-      });
+      const response = await api.put('/auth/change-password', { currentPassword, newPassword });
       set({ isLoading: false });
-      return { 
-        success: true, 
-        message: response.data.message 
-      };
+      return { success: true, message: response.data.message };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'حدث خطأ في تغيير كلمة المرور';
       set({ isLoading: false, error: errorMessage });
-      return { 
-        success: false, 
-        error: errorMessage 
-      };
+      return { success: false, error: errorMessage };
     }
   },
 
-  // دوال الخصوصية والمستخدمين المحظورين
   updatePrivacy: async (privacy) => {
     set({ isLoading: true, error: null });
     try {
       const response = await api.put('/users/privacy', privacy);
       if (response.data.success) {
-        const updatedUser = { ...get().user, privacy: response.data.data.privacy };
+        const currentUser = get().user;
+        const currentProfileData = get().profileData;
+        
+        const updatedUser = { ...currentUser, privacy: response.data.data.privacy };
+        
         set({ user: updatedUser, isLoading: false });
+        
+        if (currentProfileData && currentProfileData._id === updatedUser._id) {
+          set({ profileData: { ...currentProfileData, privacy: response.data.data.privacy } });
+        }
+        
         return { success: true, data: response.data.data };
       }
       throw new Error(response.data.message || 'فشل تحديث الخصوصية');
@@ -304,40 +339,34 @@ const createAuthSlice = (set, get) => ({
     }
   },
 
-fetchBlockedUsers: async () => {
-  try {
-    console.log('📋 Fetching blocked users from API...');
-    const response = await api.get('/users/blocks');
-    console.log('📋 API Response:', response.data);
-    
-    if (response.data.success) {
-      const blockedUsers = response.data.data || [];
-      console.log('📋 Blocked users loaded:', blockedUsers.length);
-      return blockedUsers;
+  fetchBlockedUsers: async () => {
+    try {
+      const response = await api.get('/users/blocks');
+      if (response.data.success) {
+        return response.data.data || [];
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
+      return [];
     }
-    return [];
-  } catch (error) {
-    console.error('❌ Error fetching blocked users:', error);
-    return [];
-  }
-},
+  },
 
-blockUser: async (userId) => {
-  set({ isLoading: true, error: null });
-  try {
-    console.log(`🔒 Blocking user: ${userId}`);
-    const response = await api.post(`/users/block/${userId}`);
-    if (response.data.success) {
-      set({ isLoading: false });
-      return { success: true, message: response.data.message };
+  blockUser: async (userId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.post(`/users/block/${userId}`);
+      if (response.data.success) {
+        set({ isLoading: false });
+        return { success: true, message: response.data.message };
+      }
+      throw new Error(response.data.message || 'فشل حظر المستخدم');
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'حدث خطأ في حظر المستخدم';
+      set({ isLoading: false, error: errorMessage });
+      return { success: false, error: errorMessage };
     }
-    throw new Error(response.data.message || 'فشل حظر المستخدم');
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || 'حدث خطأ في حظر المستخدم';
-    set({ isLoading: false, error: errorMessage });
-    return { success: false, error: errorMessage };
-  }
-},
+  },
 
   unblockUser: async (userId) => {
     try {
@@ -366,7 +395,8 @@ blockUser: async (userId) => {
       refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
-      error: null
+      error: null,
+      profileData: null
     });
   },
 
@@ -402,8 +432,18 @@ const createProfileSlice = (set, get) => ({
     try {
       const response = await api.get('/users/me');
       if (response.data.success) {
-        set({ profileData: response.data.data, profileLoading: false });
-        return { success: true, data: response.data.data };
+        const userData = response.data.data;
+        set({ 
+          profileData: userData, 
+          profileLoading: false 
+        });
+        
+        const currentUser = get().user;
+        if (currentUser && currentUser._id === userData._id) {
+          set({ user: userData });
+        }
+        
+        return { success: true, data: userData };
       }
       throw new Error(response.data.message || 'فشل جلب الملف الشخصي');
     } catch (error) {
@@ -412,34 +452,58 @@ const createProfileSlice = (set, get) => ({
     }
   },
 
-updateProfile: async (profileData) => {
-  set({ profileLoading: true, profileError: null });
-  try {
-    const response = await api.put('/users/profile', profileData);
-    if (response.data.success) {
-      // ✅ إصلاح: الخادم يرجع data مباشرة، وليس data.user
-      const updatedUser = response.data.data;
-      const currentUser = get().user;
+  updateProfile: async (profileData) => {
+    set({ profileLoading: true, profileError: null });
+    try {
+      const response = await api.put('/users/profile', profileData);
+      if (response.data.success) {
+        const updatedUser = response.data.data;
+        const currentUser = get().user;
+        const currentProfileData = get().profileData;
 
-      // ✅ تحديث حالة المستخدم الحالي (user) إذا كان هو نفسه
-      if (currentUser && currentUser._id === updatedUser._id) {
-        set({ user: updatedUser });
+        if (currentUser && currentUser._id === updatedUser._id) {
+          set({ user: updatedUser });
+        }
+
+        if (currentProfileData && currentProfileData._id === updatedUser._id) {
+          set({ profileData: updatedUser });
+        } else if (!currentProfileData && updatedUser) {
+          set({ profileData: updatedUser });
+        }
+
+        set({ profileLoading: false });
+        return { success: true, data: updatedUser };
       }
-
-      set({ profileData: updatedUser, profileLoading: false });
-      // ✅ إرجاع success: true و data
-      return { success: true, data: updatedUser };
+      throw new Error(response.data.message || 'فشل تحديث الملف الشخصي');
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      set({ profileError: errorMessage, profileLoading: false });
+      return { success: false, error: errorMessage };
     }
-    throw new Error(response.data.message || 'فشل تحديث الملف الشخصي');
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
-    set({ profileError: errorMessage, profileLoading: false });
-    return { success: false, error: errorMessage };
-  }
-},
+  },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
-  clearProfileError: () => set({ profileError: null })
+  clearProfileError: () => set({ profileError: null }),
+  
+  refreshCurrentUser: async () => {
+    set({ profileLoading: true });
+    try {
+      const response = await api.get('/users/me');
+      if (response.data.success) {
+        const userData = response.data.data;
+        set({ 
+          user: userData,
+          profileData: userData,
+          profileLoading: false 
+        });
+        return { success: true, data: userData };
+      }
+      throw new Error('Failed to refresh user');
+    } catch (error) {
+      set({ profileLoading: false });
+      return { success: false, error: error.message };
+    }
+  }
 });
 
 // ============== Slice: Posts ==============
@@ -494,7 +558,6 @@ const createReviewsSlice = (set, get) => ({
   reviewsStats: { average: 0, count: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
   reviewsError: null,
   
-  // جلب تقييمات المستخدم
   fetchUserReviews: async (userId, page = 1, reset = true) => {
     const { reviews, reviewsPage } = get();
     
@@ -525,15 +588,13 @@ const createReviewsSlice = (set, get) => ({
     }
   },
   
-  // إنشاء تقييم جديد
   createReview: async (reviewData) => {
     set({ reviewsLoading: true, reviewsError: null });
     try {
       const response = await api.post('/reviews', reviewData);
       if (response.data.success) {
-        // تحديث قائمة التقييمات
         const { reviewedUser } = reviewData;
-        const { fetchUserReviews, reviewsStats } = get();
+        const { fetchUserReviews } = get();
         await fetchUserReviews(reviewedUser, 1, true);
         
         set({ reviewsLoading: false });
@@ -546,7 +607,6 @@ const createReviewsSlice = (set, get) => ({
     }
   },
   
-  // تحديث تقييم
   updateReview: async (reviewId, updateData) => {
     set({ reviewsLoading: true, reviewsError: null });
     try {
@@ -567,7 +627,6 @@ const createReviewsSlice = (set, get) => ({
     }
   },
   
-  // حذف تقييم
   deleteReview: async (reviewId) => {
     set({ reviewsLoading: true, reviewsError: null });
     try {
@@ -635,32 +694,21 @@ const createPostsManagementSlice = (set, get) => ({
     }
   },
 
-fetchSavedPosts: async (page = 1, limit = 10) => {
-  try {
-    console.log(`📋 Fetching saved posts - page: ${page}, limit: ${limit}`);
-    const response = await api.get('/posts/saved', {
-      params: { page, limit }
-    });
-    console.log('📋 Saved posts response:', response.data);
-    
-    if (response.data.success) {
-      return {
-        posts: response.data.posts || [],
-        pagination: response.data.pagination || {
-          page: page,
-          limit: limit,
-          total: 0,
-          hasMore: false,
-          pages: 0
-        }
-      };
+  fetchSavedPosts: async (page = 1, limit = 10) => {
+    try {
+      const response = await api.get('/posts/saved', { params: { page, limit } });
+      if (response.data.success) {
+        return {
+          posts: response.data.posts || [],
+          pagination: response.data.pagination
+        };
+      }
+      return { posts: [], pagination: null };
+    } catch (error) {
+      console.error('Error fetching saved posts:', error);
+      return { posts: [], pagination: null };
     }
-    return { posts: [], pagination: null };
-  } catch (error) {
-    console.error('Error fetching saved posts:', error);
-    return { posts: [], pagination: null };
-  }
-},
+  },
   
   fetchPostById: async (postId) => {
     set({ currentPostLoading: true, currentPostError: null });
@@ -675,37 +723,20 @@ fetchSavedPosts: async (page = 1, limit = 10) => {
     }
   },
   
-  createPost: async (postData, images) => {
+  createPost: async (postData, image = null) => {
     set({ allPostsLoading: true });
     try {
       const currentUser = get().user;
-      
-      if (currentUser) {
-        if (currentUser.role === 'client' && postData.type !== 'service_request') {
-          throw new Error('العميل يمكنه فقط إنشاء طلبات خدمة');
-        }
-        if (currentUser.role === 'artisan' && postData.type !== 'job_opportunity') {
-          throw new Error('الحرفي يمكنه فقط إنشاء فرص عمل');
-        }
-        if (currentUser.role === 'worker') {
-          throw new Error('العامل لا يمكنه إنشاء منشورات');
-        }
-      }
-      
       const formData = new FormData();
       
       Object.keys(postData).forEach(key => {
-        if (key === 'requiredSkills' && Array.isArray(postData[key])) {
-          formData.append(key, JSON.stringify(postData[key]));
-        } else if (postData[key] !== undefined && postData[key] !== null) {
+        if (postData[key] !== undefined && postData[key] !== null) {
           formData.append(key, postData[key]);
         }
       });
       
-      if (images && images.length > 0) {
-        images.forEach(image => {
-          formData.append('images', image);
-        });
+      if (image) {
+        formData.append('images', image);
       }
       
       const response = await api.post('/posts', formData, {
@@ -728,11 +759,19 @@ fetchSavedPosts: async (page = 1, limit = 10) => {
             }
           };
           set({ user: updatedUser });
+          
+          const currentProfileData = get().profileData;
+          if (currentProfileData && currentProfileData._id === updatedUser._id) {
+            set({ profileData: updatedUser });
+          }
         }
         
         return { success: true, data: response.data.data };
       }
+      
+      throw new Error(response.data.message || 'فشل إنشاء البوست');
     } catch (error) {
+      console.error('Create post error:', error);
       set({ allPostsLoading: false });
       return { success: false, error: error.response?.data?.message || error.message };
     }
@@ -747,10 +786,7 @@ fetchSavedPosts: async (page = 1, limit = 10) => {
             post._id === postId 
               ? { 
                   ...post, 
-                  stats: { 
-                    ...post.stats, 
-                    savesCount: response.data.data.savesCount 
-                  },
+                  stats: { ...post.stats, savesCount: response.data.data.savesCount },
                   isSaved: response.data.data.saved
                 }
               : post
@@ -758,10 +794,7 @@ fetchSavedPosts: async (page = 1, limit = 10) => {
           currentPost: state.currentPost?._id === postId
             ? { 
                 ...state.currentPost, 
-                stats: { 
-                  ...state.currentPost.stats, 
-                  savesCount: response.data.data.savesCount 
-                },
+                stats: { ...state.currentPost.stats, savesCount: response.data.data.savesCount },
                 isSaved: response.data.data.saved
               }
             : state.currentPost
@@ -825,9 +858,7 @@ const createNotificationsSlice = (set, get) => ({
       if (response.data.success) {
         set((state) => ({
           notifications: state.notifications.map(notif =>
-            notif._id === notificationId
-              ? { ...notif, read: true }
-              : notif
+            notif._id === notificationId ? { ...notif, read: true } : notif
           ),
           unreadNotificationsCount: Math.max(0, state.unreadNotificationsCount - 1)
         }));
@@ -911,46 +942,41 @@ export const useStore = create(
         set({ theme: newTheme });
       },
 
-      // ============== Chat Functions ==============
-createConversation: async (recipientId, initialMessage = '') => {
-  console.log(`📨 Creating conversation with recipient: ${recipientId}`);
-  
-  return new Promise((resolve, reject) => {
-    if (!recipientId) {
-      reject(new Error('معرف المستلم غير صالح'));
-      return;
-    }
-    
-    const currentUser = get().user;
-    if (currentUser && String(currentUser._id) === String(recipientId)) {
-      reject(new Error('لا يمكنك إنشاء محادثة مع نفسك'));
-      return;
-    }
-    
-    // استخدام API endpoint بدلاً من Socket للموثوقية
-    const createViaAPI = async () => {
-      try {
-        const response = await api.post('/messages/conversations', {
-          recipientId,
-          initialMessage
+      // Chat Functions
+      createConversation: async (recipientId, initialMessage = '') => {
+        return new Promise((resolve, reject) => {
+          if (!recipientId) {
+            reject(new Error('معرف المستلم غير صالح'));
+            return;
+          }
+          
+          const currentUser = get().user;
+          if (currentUser && String(currentUser._id) === String(recipientId)) {
+            reject(new Error('لا يمكنك إنشاء محادثة مع نفسك'));
+            return;
+          }
+          
+          const createViaAPI = async () => {
+            try {
+              const response = await api.post('/messages/conversations', {
+                recipientId,
+                initialMessage
+              });
+              
+              if (response.data.success) {
+                resolve(response.data.data);
+              } else {
+                reject(new Error(response.data.message || 'فشل في إنشاء المحادثة'));
+              }
+            } catch (error) {
+              reject(new Error(error.response?.data?.message || 'حدث خطأ في إنشاء المحادثة'));
+            }
+          };
+          
+          createViaAPI();
         });
-        
-        console.log('📨 API conversation response:', response.data);
-        
-        if (response.data.success) {
-          resolve(response.data.data);
-        } else {
-          reject(new Error(response.data.message || 'فشل في إنشاء المحادثة'));
-        }
-      } catch (error) {
-        console.error('API error:', error);
-        reject(new Error(error.response?.data?.message || 'حدث خطأ في إنشاء المحادثة'));
-      }
-    };
-    
-    createViaAPI();
-  });
-},
+      },
+      
       checkMessagingPermission: async (userId) => {
         try {
           const response = await api.get(`/messages/check/${userId}`);
@@ -1050,7 +1076,7 @@ createConversation: async (recipientId, initialMessage = '') => {
           setTimeout(() => {
             socketService.initialize(state.token);
           }, 500);
-          console.log('✅ Storage rehydrated, socket initialized');
+          console.log('Storage rehydrated, socket initialized');
         }
       }
     }

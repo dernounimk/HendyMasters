@@ -8,7 +8,11 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
-    "edit": "Edit"
+    "edit": "Edit",
+    "confirm": "Confirm",
+    "saving": "Saving...",
+    "goHome": "Go Home",
+    "settings": "Settings"
   },
   "nav": {
     "home": "Home",
@@ -22,32 +26,106 @@
     "logout": "Logout",
     "suggestedUsers": "Suggested Users",
     "viewProfile": "View Profile",
-    "createPost": "Create Post"
+    "createPost": "Create Post",
+    "security": "Security",
+    "privacy": "Privacy",
+    "appearance": "Appearance",
+    "language": "Language",
+    "blocked": "Blocked Users"
   },
   "roles": {
     "client": "Client",
     "artisan": "Artisan",
-    "worker": "Worker"
+    "worker": "Worker",
+    "both": "Client & Artisan"
   },
   "suggestions": {
     "noUsers": "No suggested users"
   },
-  "messages": {
-    "title": "Messages",
-    "noConversations": "No conversations",
-    "typeMessage": "Type a message...",
-    "online": "Online",
-    "offline": "Offline",
-    "you": "You",
-    "errors": {
-      "fetchFailed": "Failed to fetch conversations",
-      "fetchMessagesFailed": "Failed to fetch messages",
-      "sendFailed": "Failed to send message",
-      "noConnection": "No connection to server"
-    }
+  "search": {
+    "defaultLocation": "Algeria"
+  },
+  "loading": {
+    "loading": "Loading..."
+  },
+  "otp": {
+    "digitLabel": "Digit",
+    "of": "of",
+    "inputPlaceholder": "Enter {{length}}-digit verification code"
+  },
+  "languages": {
+    "arabic": "Arabic",
+    "english": "English",
+    "french": "French"
+  },
+  "errors": {
+    "blockedFetchError": "Failed to load blocked users",
+    "privacyUpdateError": "Failed to update privacy settings",
+    "unblockError": "Failed to unblock user",
+    "currentPasswordRequired": "Current password is required",
+    "passwordChangeError": "Failed to change password",
+    "general": "An error occurred",
+    "loginRequired": "You must login first",
+    "loadPostFailed": "Failed to load post",
+    "loadPostError": "Error loading post",
+    "loadConversations": "Failed to load conversations",
+    "somethingWrong": "Oops!",
+    "postNotFound": "Post not found or has been deleted"
+  },
+  "success": {
+    "privacyUpdated": "Privacy settings updated",
+    "passwordChanged": "Password changed successfully",
+    "userUnblocked": "{{username}} has been unblocked",
+    "languageChanged": "Language changed to {{language}}"
   },
   "time": {
+    "today": "Today",
     "yesterday": "Yesterday",
-    "today": "Today"
+    "daysAgo": "{{count}} days ago",
+    "daysAgo_plural": "{{count}} days ago"
+  },
+  "currency": {
+    "dzd": "DZD"
+  },
+  "postTypes": {
+    "serviceRequest": "Service Request",
+    "jobOpportunity": "Job Opportunity"
+  },
+  "actions": {
+    "message": "Message",
+    "deletePost": "Delete Post",
+    "goHome": "Go Home"
+  },
+  "messages": {
+    "saved": "Saved",
+    "unsaved": "Removed",
+    "checking": "Checking...",
+    "interestInPost": "Interest in your post",
+    "welcomeDetails": "Welcome to discuss details",
+    "cannotMessage": "You cannot message the author of this post",
+    "cannotShareWithSelf": "You cannot share the post with yourself",
+    "sharedPost": "shared a post with you",
+    "sharingWith": "Sharing with {{name}}...",
+    "shareSuccess": "Shared successfully with {{name}}",
+    "shareFailed": "Failed to send share",
+    "shareError": "Error while sharing",
+    "linkCopied": "Post link copied",
+    "copyLinkFailed": "Failed to copy link",
+    "deletingPost": "Deleting post...",
+    "postDeleted": "Post deleted successfully",
+    "deleteFailed": "Failed to delete post",
+    "deleteError": "Error while deleting post",
+    "loadingPost": "Loading post...",
+    "loadingConversations": "Loading conversations..."
+  },
+  "modals": {
+    "deletePostTitle": "Delete Post",
+    "deletePostMessage": "Are you sure you want to delete \"{{title}}\"?\n\nThis action cannot be undone.",
+    "delete": "Delete",
+    "sharePostTitle": "Share Post",
+    "sharePostDescription": "Choose someone to share this post with",
+    "sendAsMessage": "Send as message",
+    "noConversations": "No conversations to share with",
+    "copyLink": "Copy post link"
   }
 }

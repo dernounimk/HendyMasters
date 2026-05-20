@@ -2,75 +2,54 @@
 import multer from 'multer';
 import path from 'path';
 
-// تكوين التخزين المؤقت في الذاكرة
+// استخدام memory storage للوصول إلى buffer
 const storage = multer.memoryStorage();
 
-// فلتر الملفات - قبول الصور فقط
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-  
-  if (allowedTypes.includes(file.mimetype)) {
+  const allowedTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (mimetype && extname) {
     cb(null, true);
   } else {
-    cb(new Error('نوع الملف غير مدعوم. يرجى رفع صور بصيغة JPG, PNG, GIF أو WebP'), false);
+    cb(new Error('يسمح فقط بملفات الصور (jpeg, jpg, png, gif, webp)'));
   }
 };
 
-// إعداد multer لرفع صور متعددة
-export const uploadMultipleImages = multer({
+// إعداد multer للصور المتعددة
+export const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
-    files: 5 // 5 صور كحد أقصى
   },
-  fileFilter: fileFilter
-}).array('images', 5);
+  fileFilter: fileFilter,
+});
 
-// إعداد multer لرفع صورة واحدة
-export const uploadSingleImage = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
-  },
-  fileFilter: fileFilter
-}).single('image');
+// دوال مختلفة لأنواع الرفع
+export const uploadMultipleImages = upload.array('images', 10);
+export const uploadSingleImage = upload.single('images');
+export const uploadAvatar = upload.single('avatar'); // ✅ إضافة هذه الدالة للصورة الشخصية
 
-// Middleware لرفع صورة الملف الشخصي
-export const uploadAvatar = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
-  },
-  fileFilter: fileFilter
-}).single('avatar');
-
-// معالج أخطاء multer
+// معالجة أخطاء multer
 export const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'حجم الملف كبير جداً. الحد الأقصى 5MB'
-      });
-    }
-    if (err.code === 'LIMIT_FILE_COUNT') {
-      return res.status(400).json({
-        success: false,
-        message: 'عدد الملفات كبير جداً. الحد الأقصى 5 صور'
+        message: 'حجم الصورة كبير جداً. الحد الأقصى 5MB',
       });
     }
     return res.status(400).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
-  
-  if (err.message === 'نوع الملف غير مدعوم. يرجى رفع صور بصيغة JPG, PNG, GIF أو WebP') {
+  if (err) {
     return res.status(400).json({
       success: false,
-      message: err.message
+      message: err.message,
     });
   }
-  
-  next(err);
+  next();
 };
