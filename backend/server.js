@@ -82,7 +82,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://hendymasters.vercel.app',
-    'https://hendy-masters-zj2p.vercel.app'
+    'https://hendy-masters-zj2p.vercel.app',
+    'https://handys-dz.netlify.app'
   ],
   credentials: true,
   optionsSuccessStatus: 200
