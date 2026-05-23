@@ -189,7 +189,7 @@ export const sendResetCode = async (email, username, code) => {
             <div class="footer">
               <p class="footer-text">© ${new Date().getFullYear()} Handys. جميع الحقوق محفوظة.</p>
               <p class="footer-text" style="font-size: 10px;">هذا بريد إلكتروني تلقائي، الرجاء عدم الرد عليه.</p>
-            </div>+
+            </div>
           </div>
         </body>
         </html>
