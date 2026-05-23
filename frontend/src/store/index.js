@@ -216,50 +216,49 @@ const createAuthSlice = (set, get) => ({
       return { success: false, error: error.response?.data?.message || error.message };
     }
   },
+requestResetCode: async (email) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await api.post('/auth/request-reset-code', { email });
+    set({ isLoading: false });
+    return { 
+      success: true, 
+      message: response.data.message,
+      devCode: response.data.devCode
+    };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'حدث خطأ في طلب الرمز';
+    set({ isLoading: false, error: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+},
 
-  requestResetCode: async (email) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post('/auth/request-reset-code', { email });
-      set({ isLoading: false });
-      return { 
-        success: true, 
-        message: response.data.message,
-        devCode: response.data.devCode
-      };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'حدث خطأ في طلب الرمز';
-      set({ isLoading: false, error: errorMessage });
-      return { success: false, error: errorMessage };
-    }
-  },
+verifyResetCode: async (email, code) => {
+  try {
+    const response = await api.post('/auth/verify-reset-code', { email, code });
+    return { 
+      success: true, 
+      valid: response.data.valid || false,
+      message: response.data.message 
+    };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'الرمز غير صحيح';
+    return { success: false, valid: false, error: errorMessage };
+  }
+},
 
-  verifyResetCode: async (email, code) => {
-    try {
-      const response = await api.post('/auth/verify-reset-code', { email, code });
-      return { 
-        success: true, 
-        valid: response.data.valid || false,
-        message: response.data.message 
-      };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'الرمز غير صحيح';
-      return { success: false, valid: false, error: errorMessage };
-    }
-  },
-
-  resetPasswordWithCode: async (email, code, newPassword) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post('/auth/reset-password-with-code', { email, code, newPassword });
-      set({ isLoading: false });
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'حدث خطأ في إعادة تعيين كلمة المرور';
-      set({ isLoading: false, error: errorMessage });
-      return { success: false, error: errorMessage };
-    }
-  },
+resetPasswordWithCode: async (email, code, newPassword) => {
+  set({ isLoading: true, error: null });
+  try {
+    const response = await api.post('/auth/reset-password-with-code', { email, code, newPassword });
+    set({ isLoading: false });
+    return { success: true, message: response.data.message };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'حدث خطأ في إعادة تعيين كلمة المرور';
+    set({ isLoading: false, error: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+},
 
   forgotPassword: async (email) => {
     set({ isLoading: true, error: null });

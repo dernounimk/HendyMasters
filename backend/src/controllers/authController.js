@@ -67,6 +67,8 @@ export const changePassword = async (req, res) => {
   }
 };
 
+// backend/controllers/authController.js (تحديث الدوال)
+
 export const requestResetCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -94,10 +96,10 @@ export const requestResetCode = async (req, res) => {
     const code = user.createResetCode();
     await user.save({ validateBeforeSave: false });
     
-    console.log(`💡 [DEV] Reset code for ${user.email}: ${code}`);
+    console.log(`📧 Reset code for ${user.email}: ${code}`);
     console.log(`⏰ Expires at: ${user.resetCodeExpires}`);
     
-    // محاولة إرسال البريد الإلكتروني (اختياري)
+    // محاولة إرسال البريد الإلكتروني
     let emailSent = false;
     try {
       await sendResetCode(user.email, user.username, code);
@@ -114,8 +116,8 @@ export const requestResetCode = async (req, res) => {
       success: true,
       message: emailSent 
         ? 'تم إرسال رمز التحقق إلى بريدك الإلكتروني'
-        : 'تم إنشاء رمز التحقق (تحقق من وحدة التحكم)',
-      ...(isDevelopment && { devCode: code }) // إرسال الرمز في الرد للتطوير فقط
+        : 'تم إنشاء رمز التحقق (تحقق من البريد الإلكتروني)',
+      ...(isDevelopment && { devCode: code }) // فقط في التطوير
     });
     
   } catch (error) {
@@ -144,8 +146,8 @@ export const verifyResetCode = async (req, res) => {
     
     if (!user) {
       console.log('❌ User not found');
-      return res.status(400).json({
-        success: false,
+      return res.status(200).json({  // استخدام 200 بدلاً من 400 لأسباب أمنية
+        success: true,
         valid: false,
         message: 'الرمز غير صالح'
       });
@@ -160,8 +162,8 @@ export const verifyResetCode = async (req, res) => {
     console.log('✅ Is valid:', isValid);
     
     if (!isValid) {
-      return res.status(400).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         valid: false,
         message: 'الرمز غير صالح أو منتهي الصلاحية'
       });
@@ -203,7 +205,7 @@ export const resetPasswordWithCode = async (req, res) => {
     const user = await User.findOne({ email, isActive: true }).select('+resetCode +resetCodeExpires +password');
     
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: 'المستخدم غير موجود'
       });
@@ -235,7 +237,7 @@ export const resetPasswordWithCode = async (req, res) => {
     
     console.log(`✅ Password reset successfully for user: ${user.email}`);
     
-    // إرسال بريد تأكيد (اختياري)
+    // إرسال بريد تأكيد
     try {
       await sendPasswordChangedEmail(user.email, user.username);
     } catch (emailError) {

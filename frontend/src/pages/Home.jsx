@@ -382,8 +382,8 @@ const Home = () => {
                     className="home-select w-full px-4 py-2.5 text-sm focus:outline-none"
                   >
                     <option value="">{t('home.filter.allTypes')}</option>
-                    <option value="service_request">📋 {t('home.filter.serviceRequest')}</option>
-                    <option value="job_opportunity">💼 {t('home.filter.jobOpportunity')}</option>
+                    <option value="service_request">{t('home.filter.serviceRequest')}</option>
+                    <option value="job_opportunity">{t('home.filter.jobOpportunity')}</option>
                   </select>
                 </div>
                 

@@ -143,8 +143,56 @@ profileStyle.textContent = `
   .profile-stat:hover {
     transform: translateY(-2px);
   }
+
+  /* ==================== تحسين عرض القائمة المنسدلة ==================== */
+  .profile-more-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: transparent;
+  }
+
+  .profile-more-menu-dropdown {
+    position: absolute;
+    z-index: 9999;
+    min-width: 240px;
+  }
 `;
 document.head.appendChild(profileStyle);
+
+// دالة مساعدة لتنسيق التاريخ بشكل موحد
+const formatDate = (dateString, language) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  };
+  
+  // تحديد اللغة المناسبة للتنسيق
+  let locale;
+  switch (language) {
+    case 'ar':
+      locale = 'ar-DZ';
+      break;
+    case 'fr':
+      locale = 'fr-FR';
+      break;
+    default:
+      locale = 'en-US';
+  }
+  
+  try {
+    return date.toLocaleDateString(locale, options);
+  } catch (error) {
+    // Fallback في حالة وجود مشكلة
+    return date.toLocaleDateString('en-US', options);
+  }
+};
 
 const ProfileSkeleton = () => {
   return (
@@ -244,6 +292,7 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
+      // منع التمرير في الخلفية
       document.body.style.overflow = 'hidden';
     }
 
@@ -258,55 +307,65 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
 
   return (
     <>
-      <div className="fixed inset-0 z-40" onClick={onClose} />
+      {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها */}
+      <div className="profile-more-menu-overlay" onClick={onClose} />
       
+      {/* القائمة المنسدلة */}
       <motion.div
         ref={menuRef}
         initial={{ opacity: 0, scale: 0.95, y: -10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: -10 }}
         transition={{ duration: 0.2 }}
-        className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden`}
-        style={{ top: '100%' }}
+        className="profile-more-menu-dropdown"
+        style={{
+          position: 'fixed',
+          top: 'auto',
+          left: isRTL ? 'auto' : 'auto',
+          right: isRTL ? '20px' : '20px',
+          transform: 'translateY(calc(100% + 10px))',
+        }}
       >
-        <div className="py-1">
-          <button
-            onClick={() => {
-              onShare();
-              onClose();
-            }}
-            className="w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-right rtl:text-right"
-          >
-            <LinkIcon className="w-4 h-4 flex-shrink-0" />
-            <span>نسخ الرابط</span>
-          </button>
-          
-          <button
-            onClick={() => {
-              onBlockToggle();
-              onClose();
-            }}
-            disabled={blockingUser}
-            className={`w-full px-4 py-3 text-sm transition-colors flex items-center gap-3 text-right rtl:text-right ${
-              isBlocked
-                ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20'
-                : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-            }`}
-          >
-            <Ban className="w-4 h-4 flex-shrink-0" />
-            <span>{isBlocked ? 'إلغاء حظر المستخدم' : 'حظر المستخدم'}</span>
-          </button>
-          
-          <button
-            onClick={() => {
-              onReport();
-              onClose();
-            }}
-            className="w-full px-4 py-3 text-sm text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20 transition-colors flex items-center gap-3 text-right rtl:text-right border-t border-gray-200 dark:border-gray-700"
-          >
-            <Flag className="w-4 h-4 flex-shrink-0" />
-            <span>الإبلاغ عن المستخدم</span>
-          </button>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden w-64">
+          <div className="py-1">
+            <button
+              onClick={() => {
+                onShare();
+                onClose();
+              }}
+              className="w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 text-left rtl:text-right"
+            >
+              <LinkIcon className="w-4 h-4 flex-shrink-0" />
+              <span>نسخ الرابط</span>
+            </button>
+            
+            <button
+              onClick={() => {
+                onBlockToggle();
+                onClose();
+              }}
+              disabled={blockingUser}
+              className={`w-full px-4 py-3 text-sm transition-colors flex items-center gap-3 text-left rtl:text-right ${
+                isBlocked
+                  ? 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/20'
+                  : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+              }`}
+            >
+              <Ban className="w-4 h-4 flex-shrink-0" />
+              <span>{isBlocked ? 'إلغاء حظر المستخدم' : 'حظر المستخدم'}</span>
+            </button>
+            
+            <button
+              onClick={() => {
+                onReport();
+                onClose();
+              }}
+              className="w-full px-4 py-3 text-sm text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20 transition-colors flex items-center gap-3 text-left rtl:text-right border-t border-gray-200 dark:border-gray-700"
+            >
+              <Flag className="w-4 h-4 flex-shrink-0" />
+              <span>الإبلاغ عن المستخدم</span>
+            </button>
+          </div>
         </div>
       </motion.div>
     </>
@@ -316,7 +375,7 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
 const Profile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   
   const { 
     user: currentUser, 
@@ -379,6 +438,7 @@ const Profile = () => {
   }, [profileData?.role]);
   
   const isRTL = i18n.language === 'ar' || document.dir === 'rtl';
+  const currentLanguage = i18n.language;
 
   const displayRating = useMemo(() => {
     const rating = profileData?.stats?.rating;
@@ -769,7 +829,7 @@ const Profile = () => {
                       
                       <span className="inline-flex items-center text-sm">
                         <Calendar className="w-4 h-4 ml-1 rtl:mr-1" />
-                        {new Date(profileData.createdAt).toLocaleDateString('ar-DZ')}
+                        {formatDate(profileData.createdAt, currentLanguage)}
                       </span>
                     </div>
                   </div>
@@ -1092,7 +1152,7 @@ const Profile = () => {
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 profile-text-muted" />
                         <span className="profile-text-secondary">
-                          انضم في {new Date(profileData.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-DZ' : (i18n.language === 'fr' ? 'fr-FR' : 'en-US'))}
+                          انضم في {formatDate(profileData.createdAt, currentLanguage)}
                         </span>
                       </div>
                     </div>

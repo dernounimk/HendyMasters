@@ -149,7 +149,6 @@ style.textContent = `
     font-size: 0.9rem;
   }
 
-  /* Steps styling - Blue color matching the Register page */
   .steps-simple {
     display: flex;
     align-items: center;
@@ -241,7 +240,6 @@ style.textContent = `
     background: linear-gradient(to right, #2563eb, #1d4ed8);
   }
 
-  /* OTP Input Styling - Matching email input with LTR text */
   .otp-container {
     display: flex;
     justify-content: center;
@@ -281,7 +279,6 @@ style.textContent = `
     transform: scale(1.02);
   }
 
-  /* Success state for OTP inputs */
   .otp-input.success {
     border-color: #10b981;
     background-color: #f0fdf4;
@@ -292,7 +289,6 @@ style.textContent = `
     background-color: #064e3b;
   }
 
-  /* Error state for OTP inputs */
   .otp-input.error {
     border-color: #ef4444;
     background-color: #fef2f2;
@@ -304,7 +300,6 @@ style.textContent = `
     background-color: #7f1d1d;
   }
 
-  /* Force LTR for OTP inputs in RTL mode */
   [dir="rtl"] .otp-input {
     text-align: center !important;
     direction: ltr !important;
@@ -319,7 +314,9 @@ const PasswordReset = () => {
   const { 
     requestResetCode, 
     verifyResetCode, 
-    resetPasswordWithCode
+    resetPasswordWithCode,
+    isLoading: storeLoading,
+    error: storeError
   } = useStore();
 
   const [step, setStep] = useState(1);
@@ -330,9 +327,7 @@ const PasswordReset = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  
-  // DEMO MODE - Hidden fixed verification code
-  const DEMO_VERIFICATION_CODE = '370973';
+  const [errorMessage, setErrorMessage] = useState('');
   
   // Form data
   const [email, setEmail] = useState('');
@@ -414,7 +409,6 @@ const PasswordReset = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // التركيز على أول حقل OTP عند الوصول إلى الخطوة 2
   useEffect(() => {
     if (step === 2 && otpInputs.current[0]) {
       setTimeout(() => {
@@ -423,7 +417,13 @@ const PasswordReset = () => {
     }
   }, [step]);
 
-  // Password validation
+  useEffect(() => {
+    if (storeError) {
+      setErrorMessage(storeError);
+      setTimeout(() => setErrorMessage(''), 5000);
+    }
+  }, [storeError]);
+
   const validatePassword = (password) => {
     const checks = {
       length: password.length >= 8,
@@ -514,10 +514,11 @@ const PasswordReset = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // DEMO MODE: Handle request code (always succeeds without showing any demo hints)
+  // REQUEST CODE - حقيقي
   const handleRequestCode = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setErrorMessage('');
     
     if (!validateStepFields()) {
       formRef.current?.classList.add('error-shake');
@@ -527,38 +528,80 @@ const PasswordReset = () => {
     
     setLoading(true);
     
-    // Simulate API call delay - looks like real request
-    setTimeout(() => {
-      setLoading(false);
-      
-      // Always succeed in demo mode
+    const result = await requestResetCode(email);
+    
+    setLoading(false);
+    
+    if (result.success) {
       setDirection(1);
       setStep(2);
       setTimer(60);
       setCanResend(false);
       setSubmitted(false);
       setValidationErrors({});
-    }, 1000);
+      
+      // عرض رسالة نجاح
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-50 border border-green-200 rounded-lg shadow-lg p-4 max-w-md w-full mx-4';
+      successDiv.innerHTML = `
+        <div class="flex items-center space-x-3 rtl:space-x-reverse">
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <div>
+            <p class="text-sm text-green-700 font-medium">${result.message || t('reset.notifications.codeSent')}</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      setTimeout(() => successDiv.remove(), 3000);
+    } else {
+      setValidationErrors({ email: result.error });
+      formRef.current?.classList.add('error-shake');
+      setTimeout(() => formRef.current?.classList.remove('error-shake'), 500);
+    }
   };
 
-  // DEMO MODE: Handle resend code (always succeeds)
+  // RESEND CODE - حقيقي
   const handleResendCode = async () => {
     if (!canResend) return;
     
     setLoading(true);
+    setErrorMessage('');
     
-    setTimeout(() => {
-      setLoading(false);
+    const result = await requestResetCode(email);
+    
+    setLoading(false);
+    
+    if (result.success) {
       setTimer(60);
       setCanResend(false);
       setValidationErrors({});
-    }, 800);
+      
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-green-50 border border-green-200 rounded-lg shadow-lg p-4 max-w-md w-full mx-4';
+      successDiv.innerHTML = `
+        <div class="flex items-center space-x-3 rtl:space-x-reverse">
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <div>
+            <p class="text-sm text-green-700 font-medium">${t('reset.notifications.codeResent')}</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(successDiv);
+      setTimeout(() => successDiv.remove(), 3000);
+    } else {
+      setValidationErrors({ otp: result.error });
+    }
   };
 
-  // DEMO MODE: Verify code (checks against hidden fixed code)
+  // VERIFY CODE - حقيقي
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setErrorMessage('');
     
     if (!validateStepFields()) {
       formRef.current?.classList.add('error-shake');
@@ -568,29 +611,28 @@ const PasswordReset = () => {
     
     setLoading(true);
     
-    setTimeout(() => {
-      setLoading(false);
-      
-      const enteredCode = otpCode.join('');
-      
-      // Check against hidden demo code
-      if (enteredCode === DEMO_VERIFICATION_CODE) {
-        setDirection(1);
-        setStep(3);
-        setSubmitted(false);
-        setValidationErrors({});
-      } else {
-        setValidationErrors({ otp: t('reset.verify.codeInvalid') });
-        formRef.current?.classList.add('error-shake');
-        setTimeout(() => formRef.current?.classList.remove('error-shake'), 500);
-      }
-    }, 800);
+    const enteredCode = otpCode.join('');
+    const result = await verifyResetCode(email, enteredCode);
+    
+    setLoading(false);
+    
+    if (result.success && result.valid) {
+      setDirection(1);
+      setStep(3);
+      setSubmitted(false);
+      setValidationErrors({});
+    } else {
+      setValidationErrors({ otp: result.error || t('reset.verify.codeInvalid') });
+      formRef.current?.classList.add('error-shake');
+      setTimeout(() => formRef.current?.classList.remove('error-shake'), 500);
+    }
   };
 
-  // DEMO MODE: Reset password (always succeeds)
+  // RESET PASSWORD - حقيقي
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+    setErrorMessage('');
     
     if (!validateStepFields()) {
       formRef.current?.classList.add('error-shake');
@@ -600,14 +642,22 @@ const PasswordReset = () => {
     
     setLoading(true);
     
-    setTimeout(() => {
-      setLoading(false);
+    const enteredCode = otpCode.join('');
+    const result = await resetPasswordWithCode(email, enteredCode, newPassword);
+    
+    setLoading(false);
+    
+    if (result.success) {
       setShowSuccess(true);
       
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    }, 1000);
+    } else {
+      setValidationErrors({ password: result.error });
+      formRef.current?.classList.add('error-shake');
+      setTimeout(() => formRef.current?.classList.remove('error-shake'), 500);
+    }
   };
 
   const handleOtpChange = (index, value) => {
@@ -710,7 +760,6 @@ const PasswordReset = () => {
     return null;
   };
 
-  // Get OTP input class based on validation state
   const getOtpInputClass = (hasError, hasValue) => {
     let classes = 'otp-input';
     if (hasError) {
@@ -721,7 +770,6 @@ const PasswordReset = () => {
     return classes;
   };
 
-  // Animation component
   const ResetAnimation = () => (
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="text-center">
@@ -745,6 +793,23 @@ const PasswordReset = () => {
       dir={isRTL ? 'rtl' : 'ltr'}
       lang={i18n.language}
     >
+      {/* Error Notification */}
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 max-w-md w-full mx-4"
+          >
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700">{errorMessage}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Language Switcher */}
       <div ref={languageButtonRef} className={`fixed top-4 z-50 ${isRTL ? 'left-4' : 'right-4'}`}>
         <div className="relative">

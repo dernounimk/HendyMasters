@@ -1,4 +1,3 @@
-// backend/src/config/emailServices.js
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -169,7 +168,7 @@ export const sendResetCode = async (email, username, code) => {
           <div class="container">
             <div class="header">
               <h1>🛠️ Handys</h1>
-              <p>منصة الحرفيين والعمال في الجزائر</p>
+              <p>منصة الحرفيين والعمال</p>
             </div>
             <div class="content">
               <div class="greeting">مرحباً ${username}،</div>
@@ -190,7 +189,7 @@ export const sendResetCode = async (email, username, code) => {
             <div class="footer">
               <p class="footer-text">© ${new Date().getFullYear()} Handys. جميع الحقوق محفوظة.</p>
               <p class="footer-text" style="font-size: 10px;">هذا بريد إلكتروني تلقائي، الرجاء عدم الرد عليه.</p>
-            </div>
+            </div>+
           </div>
         </body>
         </html>

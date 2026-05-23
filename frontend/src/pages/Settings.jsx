@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import defaultImgProfile from '../assets/images/default-avatar.png';
 
-// إضافة CSS مخصص بنفس نمط Saved.jsx
+// إضافة CSS مخصص
 const settingsStyle = document.createElement('style');
 settingsStyle.textContent = `
   /* ==================== الوضع الفاتح (الألوان الداكنة) ==================== */
@@ -214,7 +214,7 @@ settingsStyle.textContent = `
 `;
 document.head.appendChild(settingsStyle);
 
-// Skeleton Component بنفس نمط Saved
+// Skeleton Component
 const SettingsSkeleton = () => {
   return (
     <div className="settings-skeleton rounded-2xl p-6 animate-pulse">
@@ -241,7 +241,6 @@ const Settings = () => {
     theme, 
     toggleTheme, 
     logout,
-    updatePrivacy,
     fetchBlockedUsers,
     unblockUser,
     changePassword,
@@ -261,13 +260,6 @@ const Settings = () => {
     confirmPassword: ''
   });
   
-  const [privacy, setPrivacy] = useState({
-    showEmail: false,
-    showPhone: false,
-    showLocation: true,
-    showOnlineStatus: true
-  });
-  
   const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
   
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -281,17 +273,6 @@ const Settings = () => {
     { code: 'en', name: t('languages.english'), nativeName: 'English', dir: 'ltr' },
     { code: 'fr', name: t('languages.french'), nativeName: 'Français', dir: 'ltr' }
   ];
-  
-  useEffect(() => {
-    if (user) {
-      setPrivacy({
-        showEmail: user.privacy?.showEmail || false,
-        showPhone: user.privacy?.showPhone || false,
-        showLocation: user.privacy?.showLocation !== false,
-        showOnlineStatus: user.privacy?.showOnlineStatus !== false
-      });
-    }
-  }, [user]);
   
   const loadBlockedUsers = useCallback(async (force = false) => {
     if (blockedLoaded && !force) return;
@@ -315,23 +296,6 @@ const Settings = () => {
       loadBlockedUsers();
     }
   }, [activeTab, blockedLoaded, loadingBlocked, loadBlockedUsers]);
-  
-  const handleUpdatePrivacy = async () => {
-    setLoading(true);
-    try {
-      const result = await updatePrivacy(privacy);
-      if (result.success) {
-        await fetchCurrentUserProfile();
-        toast.success(t('success.privacyUpdated', 'Privacy settings updated'));
-      } else {
-        toast.error(result.error || t('errors.privacyUpdateError', 'Failed to update privacy'));
-      }
-    } catch (error) {
-      toast.error(error.message || t('errors.privacyUpdateError', 'Failed to update privacy'));
-    } finally {
-      setLoading(false);
-    }
-  };
   
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -400,9 +364,9 @@ const Settings = () => {
     }
   };
   
+  // تبويبات بدون خصوصية
   const tabs = [
     { id: 'security', label: t('nav.security'), icon: Lock },
-    { id: 'privacy', label: t('nav.privacy'), icon: Shield },
     { id: 'appearance', label: t('nav.appearance'), icon: theme === 'dark' ? Moon : Sun },
     { id: 'language', label: t('nav.language'), icon: Languages },
     { id: 'blocked', label: t('nav.blocked'), icon: Ban },
@@ -478,7 +442,7 @@ const Settings = () => {
           </div>
         </div>
         
-        {/* المحتوى الرئيسي - مع أنيميشن سلسة عند التبديل */}
+        {/* المحتوى الرئيسي */}
         <div className="flex-1 min-w-0">
           <AnimatePresence mode="wait">
             {activeTab === 'security' && (
@@ -575,89 +539,6 @@ const Settings = () => {
                     </motion.button>
                   </form>
                 </div>
-              </motion.div>
-            )}
-            
-            {activeTab === 'privacy' && (
-              <motion.div
-                key="privacy"
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageAnimation}
-                className="settings-glass-card p-6"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                    <Shield className="w-5 h-5 text-white" />
-                  </div>
-                  <h2 className="text-lg font-bold">{t('settings.privacy.title')}</h2>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                    <div>
-                      <p className="font-medium">{t('settings.privacy.showEmail')}</p>
-                      <p className="text-sm">{t('settings.privacy.showEmailDesc')}</p>
-                    </div>
-                    <button
-                      onClick={() => setPrivacy({ ...privacy, showEmail: !privacy.showEmail })}
-                      className={`settings-toggle ${privacy.showEmail ? 'active' : 'inactive'}`}
-                    >
-                      <div className={`settings-toggle-knob ${privacy.showEmail ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                    <div>
-                      <p className="font-medium">{t('settings.privacy.showPhone')}</p>
-                      <p className="text-sm">{t('settings.privacy.showPhoneDesc')}</p>
-                    </div>
-                    <button
-                      onClick={() => setPrivacy({ ...privacy, showPhone: !privacy.showPhone })}
-                      className={`settings-toggle ${privacy.showPhone ? 'active' : 'inactive'}`}
-                    >
-                      <div className={`settings-toggle-knob ${privacy.showPhone ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                    <div>
-                      <p className="font-medium">{t('settings.privacy.showLocation')}</p>
-                      <p className="text-sm">{t('settings.privacy.showLocationDesc')}</p>
-                    </div>
-                    <button
-                      onClick={() => setPrivacy({ ...privacy, showLocation: !privacy.showLocation })}
-                      className={`settings-toggle ${privacy.showLocation ? 'active' : 'inactive'}`}
-                    >
-                      <div className={`settings-toggle-knob ${privacy.showLocation ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between py-3">
-                    <div>
-                      <p className="font-medium">{t('settings.privacy.showOnlineStatus')}</p>
-                      <p className="text-sm">{t('settings.privacy.showOnlineStatusDesc')}</p>
-                    </div>
-                    <button
-                      onClick={() => setPrivacy({ ...privacy, showOnlineStatus: !privacy.showOnlineStatus })}
-                      className={`settings-toggle ${privacy.showOnlineStatus ? 'active' : 'inactive'}`}
-                    >
-                      <div className={`settings-toggle-knob ${privacy.showOnlineStatus ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
-                    </button>
-                  </div>
-                </div>
-                
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleUpdatePrivacy}
-                  disabled={loading}
-                  className="w-full mt-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                  {t('common.save')}
-                </motion.button>
               </motion.div>
             )}
             

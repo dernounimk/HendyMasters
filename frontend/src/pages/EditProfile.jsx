@@ -202,6 +202,40 @@ style.textContent = `
   .dark .section-label {
     color: #9ca3af !important;
   }
+
+  /* ==================== أزرار التبديل (Toggle) ==================== */
+  .editprofile-toggle {
+    position: relative;
+    width: 48px;
+    height: 24px;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  
+  .editprofile-toggle.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  }
+  
+  .editprofile-toggle.inactive {
+    background: #cbd5e1 !important;
+  }
+  
+  .dark .editprofile-toggle.inactive {
+    background: #4b5563 !important;
+  }
+  
+  .editprofile-toggle-knob {
+    position: absolute;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
 `;
 document.head.appendChild(style);
 
@@ -266,7 +300,7 @@ const EditProfileSkeleton = () => {
 };
 
 const EditProfile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const craftsContainerRef = useRef(null);
@@ -317,7 +351,7 @@ const EditProfile = () => {
   const [showRemoveAvatarModal, setShowRemoveAvatarModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  const isRTL = document.dir === 'rtl';
+  const isRTL = i18n.language === 'ar';
   const isArtisan = currentUser?.role === 'artisan';
   const isWorker = currentUser?.role === 'worker';
   const isProfessional = isArtisan || isWorker;
@@ -483,6 +517,17 @@ const EditProfile = () => {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  // دالة خاصة لتبديل إعدادات الخصوصية
+  const handlePrivacyToggle = (field) => {
+    setFormData(prev => ({
+      ...prev,
+      privacy: {
+        ...prev.privacy,
+        [field]: !prev.privacy[field]
+      }
+    }));
   };
 
   const handleAvatarClick = () => {
@@ -1212,7 +1257,7 @@ const EditProfile = () => {
                 </div>
               )}
 
-              {/* القسم 3: إعدادات الخصوصية */}
+              {/* القسم 3: إعدادات الخصوصية - مع Toggle buttons */}
               <div className="edit-profile-section p-5">
                 <button
                   type="button"
@@ -1223,7 +1268,7 @@ const EditProfile = () => {
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                       <Shield className="w-4 h-4 text-white" />
                     </div>
-                    {t('profile.edit.privacy')}
+                    {t('settings.privacy.title') || 'إعدادات الخصوصية'}
                   </h2>
                   <ChevronDown className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform duration-300 ${selectedSection === 'privacy' ? 'rotate-180' : ''}`} />
                 </button>
@@ -1237,69 +1282,73 @@ const EditProfile = () => {
                       transition={{ duration: 0.3 }}
                       className="mt-4 space-y-3"
                     >
-                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      {/* إظهار البريد الإلكتروني - Toggle */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                           <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {t('profile.edit.showEmail')}
+                            {t('settings.privacy.showEmail') || 'إظهار البريد الإلكتروني'}
                           </span>
                         </div>
-                        <input
-                          type="checkbox"
-                          name="privacy.showEmail"
-                          checked={formData.privacy.showEmail}
-                          onChange={handleInputChange}
-                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => handlePrivacyToggle('showEmail')}
+                          className={`editprofile-toggle ${formData.privacy.showEmail ? 'active' : 'inactive'}`}
+                        >
+                          <div className={`editprofile-toggle-knob ${formData.privacy.showEmail ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
+                        </button>
+                      </div>
 
-                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      {/* إظهار رقم الهاتف - Toggle */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                           <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {t('profile.edit.showPhone')}
+                            {t('settings.privacy.showPhone') || 'إظهار رقم الهاتف'}
                           </span>
                         </div>
-                        <input
-                          type="checkbox"
-                          name="privacy.showPhone"
-                          checked={formData.privacy.showPhone}
-                          onChange={handleInputChange}
-                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => handlePrivacyToggle('showPhone')}
+                          className={`editprofile-toggle ${formData.privacy.showPhone ? 'active' : 'inactive'}`}
+                        >
+                          <div className={`editprofile-toggle-knob ${formData.privacy.showPhone ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
+                        </button>
+                      </div>
 
-                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      {/* إظهار الموقع - Toggle */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                           <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {t('profile.edit.showLocation')}
+                            {t('settings.privacy.showLocation') || 'إظهار الموقع'}
                           </span>
                         </div>
-                        <input
-                          type="checkbox"
-                          name="privacy.showLocation"
-                          checked={formData.privacy.showLocation}
-                          onChange={handleInputChange}
-                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => handlePrivacyToggle('showLocation')}
+                          className={`editprofile-toggle ${formData.privacy.showLocation ? 'active' : 'inactive'}`}
+                        >
+                          <div className={`editprofile-toggle-knob ${formData.privacy.showLocation ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
+                        </button>
+                      </div>
 
-                      <label className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      {/* إظهار حالة الاتصال - Toggle */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                         <div className="flex items-center gap-2">
                           <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                           <span className="text-sm text-gray-700 dark:text-gray-300">
-                            {t('profile.edit.showOnlineStatus')}
+                            {t('settings.privacy.showOnlineStatus') || 'إظهار حالة الاتصال'}
                           </span>
                         </div>
-                        <input
-                          type="checkbox"
-                          name="privacy.showOnlineStatus"
-                          checked={formData.privacy.showOnlineStatus}
-                          onChange={handleInputChange}
-                          className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                      </label>
+                        <button
+                          type="button"
+                          onClick={() => handlePrivacyToggle('showOnlineStatus')}
+                          className={`editprofile-toggle ${formData.privacy.showOnlineStatus ? 'active' : 'inactive'}`}
+                        >
+                          <div className={`editprofile-toggle-knob ${formData.privacy.showOnlineStatus ? (isRTL ? 'right-1' : 'right-1') : (isRTL ? 'left-1' : 'left-1')}`} />
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>

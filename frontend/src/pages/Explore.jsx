@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../store';
 import api from '../services/api';
 import {
-  Search, User, Users, X, Loader2, MapPin, Star, Wrench,
-  ArrowLeft, UserPlus, Check, Sparkles
+  Search, User, Users, Loader2, MapPin, Star, Wrench,
+  ArrowLeft, Check, Sparkles, X
 } from 'lucide-react';
 
 // استيراد الصورة الافتراضية
@@ -125,43 +125,82 @@ searchStyle.textContent = `
     color: #9ca3af !important;
   }
   
-  /* سكرول مخصص */
-  .search-scroll::-webkit-scrollbar {
-    width: 6px;
+  /* ==================== تحسينات السكرول ==================== */
+  .search-results-container {
+    max-height: calc(100vh - 320px);
+    min-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
-  .search-scroll::-webkit-scrollbar-track {
+  /* تخصيص شريط السكرول */
+  .search-results-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .search-results-container::-webkit-scrollbar-track {
     background: rgba(203, 213, 225, 0.2);
     border-radius: 10px;
   }
   
-  .search-scroll::-webkit-scrollbar-thumb {
+  .search-results-container::-webkit-scrollbar-thumb {
     background: rgba(37, 99, 235, 0.4);
     border-radius: 10px;
+    transition: all 0.3s ease;
   }
   
-  .search-scroll::-webkit-scrollbar-thumb:hover {
+  .search-results-container::-webkit-scrollbar-thumb:hover {
     background: rgba(37, 99, 235, 0.6);
   }
   
-  .dark .search-scroll::-webkit-scrollbar-track {
+  /* للوضع المظلم */
+  .dark .search-results-container::-webkit-scrollbar-track {
     background: rgba(75, 85, 99, 0.2);
   }
   
-  .dark .search-scroll::-webkit-scrollbar-thumb {
+  .dark .search-results-container::-webkit-scrollbar-thumb {
     background: rgba(59, 130, 246, 0.4);
+  }
+  
+  .dark .search-results-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.6);
+  }
+  
+  /* إخفاء السكرول عندما لا تكون هناك حاجة له */
+  .search-results-container::-webkit-scrollbar-thumb:vertical {
+    min-height: 40px;
+  }
+  
+  /* للـ Firefox */
+  .search-results-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(37, 99, 235, 0.4) rgba(203, 213, 225, 0.2);
+  }
+  
+  .dark .search-results-container {
+    scrollbar-color: rgba(59, 130, 246, 0.4) rgba(75, 85, 99, 0.2);
+  }
+  
+  /* منع السكرول المزدوج */
+  body {
+    overflow-y: auto;
+  }
+  
+  /* تحسين عرض البطاقات */
+  .search-result-item {
+    overflow: hidden;
+  }
+  
+  /* تأثير التحميل */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .animate-spin-slow {
+    animation: spin 1s linear infinite;
   }
 `;
 document.head.appendChild(searchStyle);
-
-// ترجمة المهن - سيتم استبدالها بملفات الترجمة لاحقاً
-const getCraftTranslation = (craftId, language, t) => {
-  if (language === 'ar') {
-    // استخدام الترجمة من ملف crafts.json
-    return t(`crafts.${craftId}`, craftId.replace(/_/g, ' '));
-  }
-  return craftId.replace(/_/g, ' ');
-};
 
 // مكون نتيجة البحث
 const SearchResultItem = ({ user, t, i18n }) => {
@@ -239,7 +278,7 @@ const SearchResultItem = ({ user, t, i18n }) => {
           whileTap={{ scale: 0.95 }}
           className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <UserPlus className="w-4 h-4 text-white" />
+          <ArrowLeft className="w-4 h-4 text-white" />
         </motion.div>
       </div>
     </motion.div>
@@ -378,7 +417,6 @@ const Explore = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        
         {/* Search Bar */}
         <div className="search-input-wrapper p-1">
           <div className="relative">
@@ -398,7 +436,7 @@ const Explore = () => {
                 onClick={clearSearch}
                 className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors`}
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </motion.button>
             )}
           </div>
@@ -418,7 +456,7 @@ const Explore = () => {
                 <Users className="w-3.5 h-3.5 text-white" />
               </div>
               <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                {t('search.results')}
+                {t('search.results')} {results.length > 0 && `(${results.length})`}
               </span>
             </div>
             {loading && results.length === 0 && (
@@ -442,7 +480,7 @@ const Explore = () => {
               </p>
             </div>
           ) : results.length > 0 ? (
-            <div className="space-y-3 search-scroll max-h-[calc(100vh-300px)] overflow-y-auto pr-1">
+            <div className="search-results-container space-y-3 pr-2">
               <AnimatePresence>
                 {results.map((user, index) => (
                   <SearchResultItem
