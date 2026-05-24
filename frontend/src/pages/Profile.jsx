@@ -13,7 +13,7 @@ import {
   Loader, Edit, CheckCircle, X, ChevronLeft, ChevronRight,
   AtSign, Link as LinkIcon, Heart, Bookmark,
   Info, PlusCircle, Eye, MoreHorizontal, Ban, Flag,
-  BadgeCheck, ShieldCheck
+  ShieldCheck
 } from 'lucide-react';
 
 import defaultImgProfile from '../assets/images/default-avatar.png';
@@ -148,23 +148,125 @@ profileStyle.textContent = `
     min-width: 240px;
   }
   
-  /* تأثير العلامة الزرقاء */
-  .verified-badge {
+  /* ==================== العلامة الزرقاء المدورة ==================== */
+  .verified-badge-circle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    animation: fadeInScale 0.3s ease-out;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s ease;
+    cursor: help;
+    flex-shrink: 0;
   }
   
+  .verified-badge-circle:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.5);
+  }
+  
+  .verified-badge-circle svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: white;
+    stroke-width: 2.5;
+  }
+  
+  /* حجم صغير */
+  .verified-badge-circle-sm {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .verified-badge-circle-sm svg {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+  
+  /* حجم كبير */
+  .verified-badge-circle-lg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  
+  .verified-badge-circle-lg svg {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  /* تلميح الأداة */
+  .verified-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background-color: #1f2937;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .verified-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+  }
+  
+  .verified-badge-circle:hover .verified-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  /* علامة النص الصغيرة */
+  .verified-text-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #2563eb;
+  }
+  
+  .dark .verified-text-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+  }
+  
+  /* حركة الظهور */
   @keyframes fadeInScale {
     from {
       opacity: 0;
-      transform: scale(0.8);
+      transform: scale(0.5);
     }
     to {
       opacity: 1;
       transform: scale(1);
     }
+  }
+  
+  .verified-animate {
+    animation: fadeInScale 0.3s ease-out;
   }
 `;
 document.head.appendChild(profileStyle);
@@ -198,6 +300,38 @@ const formatDate = (dateString, language) => {
   } catch (error) {
     return date.toLocaleDateString('en-US', options);
   }
+};
+
+// ==================== مكون العلامة الزرقاء المدورة ====================
+const VerifiedBadge = ({ size = 'md', showTooltip = true, className = '' }) => {
+  const sizeClass = {
+    sm: 'verified-badge-circle-sm',
+    md: '',
+    lg: 'verified-badge-circle-lg'
+  }[size];
+  
+  return (
+    <div className={`verified-badge-circle ${sizeClass} verified-animate ${className} relative`}>
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+      </svg>
+      {showTooltip && (
+        <span className="verified-tooltip">حساب موثق ✓</span>
+      )}
+    </div>
+  );
+};
+
+// ==================== مكون العلامة النصية ====================
+const VerifiedTextBadge = () => {
+  return (
+    <span className="verified-text-badge">
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+      </svg>
+      موثق
+    </span>
+  );
 };
 
 const ProfileSkeleton = () => {
@@ -789,15 +923,9 @@ const Profile = () => {
                     <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
                       {profileData.username}
                       
-                      {/* ✅ العلامة الزرقاء - حساب موثق (مثل فيسبوك) */}
+                      {/* ✅ العلامة الزرقاء المدورة مع check icon بيضاء */}
                       {profileData.isVerified === true && (
-                        <div className="relative inline-flex items-center justify-center group">
-                          <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-500 cursor-help verified-badge" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50 pointer-events-none shadow-lg">
-                            حساب موثق ✓
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-                          </div>
-                        </div>
+                        <VerifiedBadge size="lg" />
                       )}
                     </h1>
                     
@@ -810,12 +938,9 @@ const Profile = () => {
                         {profileData.role === 'artisan' ? 'حرفي' : profileData.role === 'worker' ? 'عامل' : 'عميل'}
                       </span>
                       
-                      {/* ✅ علامة "موثق" كنص */}
+                      {/* ✅ علامة "موثق" كنص (اختياري) */}
                       {profileData.isVerified === true && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 gap-1">
-                          <BadgeCheck className="w-3 h-3" />
-                          موثق
-                        </span>
+                        <VerifiedTextBadge />
                       )}
                       
                       {profileData.location && (
