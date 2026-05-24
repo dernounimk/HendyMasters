@@ -153,7 +153,6 @@ searchStyle.textContent = `
     background: rgba(37, 99, 235, 0.6);
   }
   
-  /* للوضع المظلم */
   .dark .search-results-container::-webkit-scrollbar-track {
     background: rgba(75, 85, 99, 0.2);
   }
@@ -166,12 +165,6 @@ searchStyle.textContent = `
     background: rgba(59, 130, 246, 0.6);
   }
   
-  /* إخفاء السكرول عندما لا تكون هناك حاجة له */
-  .search-results-container::-webkit-scrollbar-thumb:vertical {
-    min-height: 40px;
-  }
-  
-  /* للـ Firefox */
   .search-results-container {
     scrollbar-width: thin;
     scrollbar-color: rgba(37, 99, 235, 0.4) rgba(203, 213, 225, 0.2);
@@ -181,17 +174,26 @@ searchStyle.textContent = `
     scrollbar-color: rgba(59, 130, 246, 0.4) rgba(75, 85, 99, 0.2);
   }
   
-  /* منع السكرول المزدوج */
-  body {
-    overflow-y: auto;
+  /* العلامة الزرقاء المصغرة للبحث */
+  .search-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    height: 0.875rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
   }
   
-  /* تحسين عرض البطاقات */
-  .search-result-item {
-    overflow: hidden;
+  .search-verified-badge svg {
+    width: 0.5rem;
+    height: 0.5rem;
+    color: white;
+    stroke-width: 3;
   }
   
-  /* تأثير التحميل */
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -237,8 +239,15 @@ const SearchResultItem = ({ user, t, i18n }) => {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-white truncate flex items-center gap-1">
               {user.name}
+              {user.isVerified && (
+                <div className="search-verified-badge">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </h3>
             <span className="text-xs text-gray-500 dark:text-gray-400">
               @{user.username}
@@ -364,7 +373,8 @@ const Explore = () => {
               location: dbUser.location || t('search.defaultLocation'),
               rating: parseFloat(rating).toFixed(1),
               isOnline: dbUser.isOnline || false,
-              bio: dbUser.bio || ''
+              bio: dbUser.bio || '',
+              isVerified: dbUser.isVerified || false
             };
           })
         );

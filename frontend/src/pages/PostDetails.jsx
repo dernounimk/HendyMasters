@@ -115,10 +115,30 @@ postDetailsStyle.textContent = `
   .dark .post-details-back-btn:hover {
     background: rgba(31, 41, 55, 0.7);
   }
+  
+  /* العلامة الزرقاء المصغرة لتفاصيل البوست */
+  .details-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+  }
+  
+  .details-verified-badge svg {
+    width: 0.625rem;
+    height: 0.625rem;
+    color: white;
+    stroke-width: 3;
+  }
 `;
 document.head.appendChild(postDetailsStyle);
 
-// مكون ConfirmationModal (محسن)
+// مكون ConfirmationModal
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
   const { t } = useTranslation();
   if (!isOpen) return null;
@@ -526,9 +546,16 @@ ${postUrl}`;
             <div className="flex-1">
               <Link 
                 to={`/profile/${post.author?.username}`} 
-                className="font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center gap-1"
               >
                 {post.author?.username}
+                {post.author?.isVerified && (
+                  <div className="details-verified-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </Link>
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 <Clock className="w-3 h-3" />
@@ -684,7 +711,7 @@ ${postUrl}`;
         </div>
       </motion.div>
       
-      {/* Modal عرض الصورة - محسن */}
+      {/* Modal عرض الصورة */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -729,7 +756,7 @@ ${postUrl}`;
         isDanger={true}
       />
       
-      {/* Modal المشاركة - محسن */}
+      {/* Modal المشاركة */}
       <AnimatePresence>
         {showShareModal && (
           <motion.div

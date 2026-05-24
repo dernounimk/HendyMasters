@@ -306,6 +306,26 @@ style.textContent = `
     z-index: 999;
   }
   
+  /* العلامة الزرقاء المصغرة للمستخدمين المقترحين */
+  .suggested-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+  }
+  
+  .suggested-verified-badge svg {
+    width: 0.45rem;
+    height: 0.45rem;
+    color: white;
+    stroke-width: 3;
+  }
+  
   /* تنسيقات الشاشات الصغيرة */
   @media (max-width: 1024px) {
     .layout-container { 
@@ -512,7 +532,8 @@ const MainLayout = () => {
                 location: dbUser.location || t('search.defaultLocation', 'Algeria'),
                 rating: parseFloat(rating).toFixed(1),
                 isOnline: dbUser.isOnline || false,
-                bio: dbUser.bio || ''
+                bio: dbUser.bio || '',
+                isVerified: dbUser.isVerified || false
               };
             })
           );
@@ -731,9 +752,18 @@ const MainLayout = () => {
                           {user.isOnline && <span className="online-indicator" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                            {user.name}
-                          </p>
+                          <div className="flex items-center gap-1">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                              {user.name}
+                            </p>
+                            {user.isVerified && (
+                              <div className="suggested-verified-badge">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-600 dark:text-gray-300 truncate flex items-center gap-1">
                             <Briefcase className="w-3 h-3 text-primary-500 flex-shrink-0" />
                             <span className="truncate">{user.craft}</span>

@@ -148,8 +148,46 @@ profileStyle.textContent = `
     min-width: 240px;
   }
   
-  /* ==================== العلامة الزرقاء المدورة ==================== */
-  .verified-badge-circle {
+  /* العلامة الزرقاء المصغرة */
+  .verified-badge-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+    flex-shrink: 0;
+  }
+  
+  .verified-badge-sm svg {
+    width: 0.625rem;
+    height: 0.625rem;
+    color: white;
+    stroke-width: 3;
+  }
+  
+  .verified-badge-md {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+    flex-shrink: 0;
+  }
+  
+  .verified-badge-md svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: white;
+    stroke-width: 3;
+  }
+  
+  .verified-badge-lg {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -157,66 +195,35 @@ profileStyle.textContent = `
     height: 1.5rem;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
-    transition: all 0.2s ease;
-    cursor: help;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
     flex-shrink: 0;
   }
   
-  .verified-badge-circle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.5);
-  }
-  
-  .verified-badge-circle svg {
+  .verified-badge-lg svg {
     width: 0.875rem;
     height: 0.875rem;
     color: white;
-    stroke-width: 2.5;
+    stroke-width: 3;
   }
   
-  /* حجم صغير */
-  .verified-badge-circle-sm {
-    width: 1rem;
-    height: 1rem;
-  }
-  
-  .verified-badge-circle-sm svg {
-    width: 0.625rem;
-    height: 0.625rem;
-  }
-  
-  /* حجم كبير */
-  .verified-badge-circle-lg {
-    width: 1.75rem;
-    height: 1.75rem;
-  }
-  
-  .verified-badge-circle-lg svg {
-    width: 1rem;
-    height: 1rem;
-  }
-  
-  /* تلميح الأداة */
   .verified-tooltip {
     position: absolute;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: 0.5rem;
-    padding: 0.375rem 0.75rem;
+    padding: 0.25rem 0.5rem;
     background-color: #1f2937;
     color: white;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 500;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
     transition: all 0.2s ease;
     pointer-events: none;
     z-index: 100;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
   
   .verified-tooltip::after {
@@ -225,17 +232,18 @@ profileStyle.textContent = `
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    border-width: 5px;
+    border-width: 4px;
     border-style: solid;
     border-color: #1f2937 transparent transparent transparent;
   }
   
-  .verified-badge-circle:hover .verified-tooltip {
+  .verified-badge-sm:hover .verified-tooltip,
+  .verified-badge-md:hover .verified-tooltip,
+  .verified-badge-lg:hover .verified-tooltip {
     opacity: 1;
     visibility: visible;
   }
   
-  /* علامة النص الصغيرة */
   .verified-text-badge {
     display: inline-flex;
     align-items: center;
@@ -253,7 +261,6 @@ profileStyle.textContent = `
     color: #60a5fa;
   }
   
-  /* حركة الظهور */
   @keyframes fadeInScale {
     from {
       opacity: 0;
@@ -266,7 +273,7 @@ profileStyle.textContent = `
   }
   
   .verified-animate {
-    animation: fadeInScale 0.3s ease-out;
+    animation: fadeInScale 0.2s ease-out;
   }
 `;
 document.head.appendChild(profileStyle);
@@ -302,16 +309,16 @@ const formatDate = (dateString, language) => {
   }
 };
 
-// ==================== مكون العلامة الزرقاء المدورة ====================
-const VerifiedBadge = ({ size = 'md', showTooltip = true, className = '' }) => {
+// مكون العلامة الزرقاء المصغر
+const VerifiedBadge = ({ size = 'sm', showTooltip = true, className = '' }) => {
   const sizeClass = {
-    sm: 'verified-badge-circle-sm',
-    md: '',
-    lg: 'verified-badge-circle-lg'
+    sm: 'verified-badge-sm',
+    md: 'verified-badge-md',
+    lg: 'verified-badge-lg'
   }[size];
   
   return (
-    <div className={`verified-badge-circle ${sizeClass} verified-animate ${className} relative`}>
+    <div className={`${sizeClass} verified-animate ${className} relative`}>
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
       </svg>
@@ -322,7 +329,6 @@ const VerifiedBadge = ({ size = 'md', showTooltip = true, className = '' }) => {
   );
 };
 
-// ==================== مكون العلامة النصية ====================
 const VerifiedTextBadge = () => {
   return (
     <span className="verified-text-badge">
@@ -922,10 +928,8 @@ const Profile = () => {
                   <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
                       {profileData.username}
-                      
-                      {/* ✅ العلامة الزرقاء المدورة مع check icon بيضاء */}
                       {profileData.isVerified === true && (
-                        <VerifiedBadge size="lg" />
+                        <VerifiedBadge size="sm" />
                       )}
                     </h1>
                     
@@ -938,7 +942,6 @@ const Profile = () => {
                         {profileData.role === 'artisan' ? 'حرفي' : profileData.role === 'worker' ? 'عامل' : 'عميل'}
                       </span>
                       
-                      {/* ✅ علامة "موثق" كنص (اختياري) */}
                       {profileData.isVerified === true && (
                         <VerifiedTextBadge />
                       )}

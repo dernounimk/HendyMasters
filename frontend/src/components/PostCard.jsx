@@ -81,6 +81,26 @@ postCardStyle.textContent = `
   .dark .post-card .username:hover {
     color: #3b82f6 !important;
   }
+  
+  /* العلامة الزرقاء المصغرة للبوستات */
+  .post-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.875rem;
+    height: 0.875rem;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
+  }
+  
+  .post-verified-badge svg {
+    width: 0.5rem;
+    height: 0.5rem;
+    color: white;
+    stroke-width: 3;
+  }
 `;
 document.head.appendChild(postCardStyle);
 
@@ -408,9 +428,17 @@ ${postUrl}`;
             <div className="flex-1">
               <Link 
                 to={`/profile/${post.author?.username}`} 
-                className="username font-semibold hover:text-primary-600 transition-colors"
+                className="username font-semibold hover:text-primary-600 transition-colors flex items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
               >
                 {post.author?.username}
+                {post.author?.isVerified && (
+                  <div className="post-verified-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
               </Link>
               <div className="post-meta flex items-center gap-2 text-xs">
                 <Clock className="w-3 h-3" />
