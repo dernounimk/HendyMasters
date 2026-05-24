@@ -22,7 +22,6 @@ export const blockUser = async (req, res) => {
       });
     }
 
-    // التحقق من وجود الحظر مسبقاً
     const existingBlock = await Block.findOne({ 
       blocker: blockerId, 
       blocked: userId 
@@ -35,18 +34,14 @@ export const blockUser = async (req, res) => {
       });
     }
 
-    // إنشاء سجل الحظر
     await Block.create({ blocker: blockerId, blocked: userId });
 
-    // حذف المحادثة بين المستخدمين
     const conversation = await Conversation.findOne({
       participants: { $all: [blockerId, userId], $size: 2 }
     });
 
     if (conversation) {
-      // حذف جميع الرسائل
       await Message.deleteMany({ conversation: conversation._id });
-      // حذف المحادثة
       await conversation.deleteOne();
     }
 
@@ -148,7 +143,6 @@ export const getUsers = async (req, res, next) => {
       limit = 20 
     } = req.query;
     
-    // جلب قائمة المستخدمين المحظورين
     const blockedUsers = await Block.find({ blocker: currentUserId }).select('blocked');
     const blockedUserIds = blockedUsers.map(block => block.blocked.toString());
 
@@ -172,8 +166,9 @@ export const getUsers = async (req, res, next) => {
       filter['professionalInfo.craft'] = craft;
     }
 
+    // ✅ أضف isVerified إلى الـ select
     const users = await User.find(filter)
-      .select('username profileImage role professionalInfo location isOnline lastSeen')
+      .select('username profileImage role professionalInfo location isOnline lastSeen isVerified verifiedAt')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
@@ -215,8 +210,9 @@ export const getCurrentUser = async (req, res, next) => {
     }
 
     console.log('✅ User found:', user.username);
+    console.log('✅ isVerified:', user.isVerified);
+    console.log('✅ verifiedAt:', user.verifiedAt);
 
-    // جلب savedPosts بشكل منفصل وآمن
     let savedPostsData = [];
     if (user.savedPosts && user.savedPosts.length > 0) {
       try {
@@ -229,11 +225,9 @@ export const getCurrentUser = async (req, res, next) => {
       }
     }
 
-    // جلب إحصائيات إضافية
     const postsCount = await Post.countDocuments({ author: user._id });
     const reviewsCount = await Review.countDocuments({ reviewedUser: user._id });
     
-    // حساب التقييم من التقييمات فقط
     let averageRating = 0;
     let totalRatings = 0;
     
@@ -253,12 +247,12 @@ export const getCurrentUser = async (req, res, next) => {
       totalRatings = reviewStats[0].count;
     }
 
-    // جلب التقييمات مع تفاصيل المراجعين
     const recentReviews = await Review.find({ reviewedUser: user._id })
       .populate('reviewer', 'username profileImage role')
       .sort({ createdAt: -1 })
       .limit(5);
 
+    // ✅ أضف isVerified و verifiedAt إلى البيانات المرسلة
     const userData = {
       _id: user._id,
       username: user.username,
@@ -285,7 +279,10 @@ export const getCurrentUser = async (req, res, next) => {
         showOnlineStatus: true
       },
       savedPosts: savedPostsData,
-      recentReviews: recentReviews
+      recentReviews: recentReviews,
+      // ✅ إضافة حقول التوثيق
+      isVerified: user.isVerified || false,
+      verifiedAt: user.verifiedAt || null
     };
 
     res.status(200).json({
@@ -313,7 +310,6 @@ export const getUserProfile = async (req, res, next) => {
     
     console.log(`🔍 Fetching profile: ${username}`);
     
-    // البحث عن المستخدم
     const targetUser = await User.findOne({ username, isActive: true })
       .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires');
 
@@ -325,7 +321,8 @@ export const getUserProfile = async (req, res, next) => {
       });
     }
     
-    // التحقق من الحظر
+    console.log('✅ isVerified for', username, ':', targetUser.isVerified);
+    
     if (currentUserId) {
       const isBlocked = await Block.findOne({
         $or: [
@@ -345,11 +342,9 @@ export const getUserProfile = async (req, res, next) => {
 
     console.log(`✅ User found: ${targetUser._id}`);
 
-    // إحصائيات إضافية
     const postsCount = await Post.countDocuments({ author: targetUser._id });
     const reviewsCount = await Review.countDocuments({ reviewedUser: targetUser._id });
     
-    // حساب التقييم من التقييمات فقط
     let averageRating = 0;
     let totalRatings = 0;
     
@@ -369,6 +364,7 @@ export const getUserProfile = async (req, res, next) => {
       totalRatings = reviewStats[0].count;
     }
 
+    // ✅ أضف isVerified و verifiedAt إلى البيانات المرسلة
     const userData = {
       _id: targetUser._id,
       username: targetUser.username,
@@ -393,10 +389,13 @@ export const getUserProfile = async (req, res, next) => {
         showPhone: false,
         showLocation: true,
         showOnlineStatus: true
-      }
+      },
+      // ✅ إضافة حقول التوثيق
+      isVerified: targetUser.isVerified || false,
+      verifiedAt: targetUser.verifiedAt || null
     };
 
-    console.log(`✅ Sending profile data for ${username}`);
+    console.log(`✅ Sending profile data for ${username} with isVerified: ${userData.isVerified}`);
 
     res.status(200).json({
       success: true,
@@ -432,7 +431,6 @@ export const getUserById = async (req, res, next) => {
       });
     }
     
-    // التحقق من عدم حظر المستخدم
     const isBlocked = await Block.findOne({ 
       blocker: currentUserId, 
       blocked: id 
@@ -480,7 +478,10 @@ export const getUserById = async (req, res, next) => {
         showPhone: false,
         showLocation: true,
         showOnlineStatus: true
-      }
+      },
+      // ✅ إضافة حقول التوثيق
+      isVerified: user.isVerified || false,
+      verifiedAt: user.verifiedAt || null
     };
 
     res.status(200).json({
@@ -595,9 +596,7 @@ export const updateProfile = async (req, res, next) => {
       });
     }
 
-    // ===== معالجة تغيير اسم المستخدم (username) =====
     if (username && username !== user.username) {
-      // التحقق من صحة اسم المستخدم
       const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
       if (!usernameRegex.test(username)) {
         return res.status(400).json({
@@ -606,7 +605,6 @@ export const updateProfile = async (req, res, next) => {
         });
       }
 
-      // التحقق من عدم وجود اسم المستخدم مسبقًا
       const existingUser = await User.findOne({ username, _id: { $ne: user._id } });
       if (existingUser) {
         return res.status(400).json({
@@ -615,7 +613,6 @@ export const updateProfile = async (req, res, next) => {
         });
       }
 
-      // التحقق من فترة 15 يومًا (تطبق فقط إذا كان المستخدم قد غيّر اسمه من قبل)
       const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
       const now = Date.now();
 
@@ -628,19 +625,16 @@ export const updateProfile = async (req, res, next) => {
         });
       }
 
-      // تحديث اسم المستخدم وتاريخ آخر تغيير
       user.username = username;
       user.lastUsernameChange = new Date();
       console.log(`✅ Username changed to: ${username}`);
     }
 
-    // ===== تحديث باقي الحقول =====
     if (email !== undefined) user.email = email;
     if (phone !== undefined) user.phone = phone;
     if (bio !== undefined) user.bio = bio;
     if (location !== undefined) user.location = location || '';
 
-    // تحديث المعلومات المهنية
     if (professionalInfo && user.role !== 'client') {
       user.professionalInfo = {
         ...user.professionalInfo,
@@ -651,7 +645,6 @@ export const updateProfile = async (req, res, next) => {
       };
     }
 
-    // تحديث إعدادات الخصوصية
     if (privacy) {
       user.privacy = {
         showEmail: privacy.showEmail !== undefined ? privacy.showEmail : user.privacy?.showEmail,
@@ -663,11 +656,9 @@ export const updateProfile = async (req, res, next) => {
 
     await user.save();
 
-    // جلب البيانات المحدثة بدون الحقول الحساسة
     const updatedUser = await User.findById(user._id)
       .select('-password -loginAttempts -lockUntil -passwordChangedAt -passwordResetToken -passwordResetExpires');
 
-    // حساب أيام التبقي لتغيير الاسم (إذا كان هناك تغيير سابق)
     let daysUntilUsernameChange = null;
     if (updatedUser.lastUsernameChange) {
       const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
@@ -677,7 +668,6 @@ export const updateProfile = async (req, res, next) => {
       }
     }
 
-    // إضافة معلومات أيام التبقي إلى الاستجابة
     const responseData = updatedUser.toObject();
     responseData.daysUntilUsernameChange = daysUntilUsernameChange;
 
@@ -720,18 +710,16 @@ export const uploadAvatar = async (req, res, next) => {
       });
     }
 
-    // حذف الصورة القديمة من Cloudinary إذا وجدت
     if (user.profileImagePublicId) {
       await deleteFromCloudinary(user.profileImagePublicId);
       console.log('✅ Old image deleted from Cloudinary:', user.profileImagePublicId);
     }
 
-    // رفع الصورة الجديدة إلى Cloudinary
     const result = await uploadToCloudinary(req.file.buffer, {
       folder: 'handymasters/avatars',
       public_id: `avatar-${req.user.id}-${Date.now()}`,
       transformation: [
-        { width: 500, height:500, crop: 'limit' },
+        { width: 500, height: 500, crop: 'limit' },
         { quality: 'auto' }
       ]
     });
@@ -884,7 +872,6 @@ export const getUserReviews = async (req, res) => {
       .limit(parseInt(limit))
       .populate('reviewer', 'username profileImage role');
     
-    // حساب الإحصائيات
     const stats = await Review.aggregate([
       { $match: { reviewedUser: user._id } },
       {
