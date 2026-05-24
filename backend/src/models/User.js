@@ -1,3 +1,4 @@
+// backend/models/User.js
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
@@ -10,7 +11,6 @@ const userSchema = new mongoose.Schema({
     minlength: [3, 'اسم المستخدم يجب أن يكون 3 أحرف على الأقل'],
     maxlength: [30, 'اسم المستخدم يجب أن يكون أقل من 30 حرف']
   },
-  // ✅ حقل جديد لتخزين تاريخ آخر تغيير لاسم المستخدم
   lastUsernameChange: {
     type: Date,
     default: null
@@ -41,6 +41,17 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: 'client'
   },
+  
+  // ✅ حقول التوثيق (علامة زرقاء)
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  verifiedAt: {
+    type: Date,
+    default: null
+  },
+  
   profileImage: {
     type: String,
     default: '/uploads/profiles/default-avatar.png'
@@ -168,7 +179,6 @@ const userSchema = new mongoose.Schema({
     default: true
   },
 
-  // حقول إعادة تعيين كلمة المرور (رابط)
   passwordResetToken: {
     type: String,
     select: false
@@ -182,7 +192,6 @@ const userSchema = new mongoose.Schema({
     default: null
   },
   
-  // حقول إعادة تعيين كلمة المرور (رمز OTP)
   resetCode: {
     type: String,
     select: false
@@ -230,6 +239,7 @@ userSchema.virtual('userProposals', {
 userSchema.index({ username: 'text', bio: 'text' });
 userSchema.index({ location: 1 });
 userSchema.index({ role: 1 });
+userSchema.index({ isVerified: 1 });
 userSchema.index({ 'professionalInfo.craft': 1 });
 userSchema.index({ 'professionalInfo.skills': 1 });
 userSchema.index({ 'professionalInfo.workCraft': 1 });
@@ -250,47 +260,28 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-// دالة إنشاء رمز تحقق عشوائي (6 أرقام)
 userSchema.methods.createResetCode = function() {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   this.resetCode = code;
-  this.resetCodeExpires = Date.now() + 10 * 60 * 1000; // 10 دقائق
+  this.resetCodeExpires = Date.now() + 10 * 60 * 1000;
   return code;
 };
 
-// دالة التحقق من صحة الرمز
 userSchema.methods.verifyResetCode = function(code) {
-  console.log('🔍 verifyResetCode called with:', code);
-  console.log('📊 stored resetCode:', this.resetCode);
-  console.log('📊 stored resetCodeExpires:', this.resetCodeExpires);
-  console.log('📊 Current time:', Date.now());
-  
   if (!this.resetCode || !this.resetCodeExpires) {
-    console.log('❌ No reset code found');
     return false;
   }
-  
   const isExpired = this.resetCodeExpires < Date.now();
   const isMatch = this.resetCode === code;
-  
-  console.log('✅ isMatch:', isMatch);
-  console.log('✅ isExpired:', isExpired);
-  
-  if (isExpired) {
-    console.log('❌ Code expired');
-    return false;
-  }
-  
+  if (isExpired) return false;
   return isMatch;
 };
 
-// دالة مسح رمز التحقق
 userSchema.methods.clearResetCode = function() {
   this.resetCode = undefined;
   this.resetCodeExpires = undefined;
 };
 
-// دالة الحصول على أنواع المستخدمين المسموح التواصل معهم
 userSchema.methods.getAllowedMessageRecipients = function() {
   switch(this.role) {
     case 'client':
@@ -454,7 +445,6 @@ userSchema.methods.getApplicablePostTypes = function() {
   }
 };
 
-// ✅ دالة لحساب الأيام المتبقية لتغيير اسم المستخدم
 userSchema.methods.getDaysUntilUsernameChange = function() {
   if (!this.lastUsernameChange) return 0;
   
@@ -469,7 +459,7 @@ userSchema.methods.getDaysUntilUsernameChange = function() {
 // Statics
 userSchema.statics.getByRole = async function(role, limit = 20) {
   return this.find({ role, isActive: true })
-    .select('username profileImage role location stats professionalInfo')
+    .select('username profileImage role location stats professionalInfo isVerified')
     .limit(limit)
     .sort({ createdAt: -1 });
 };
@@ -480,7 +470,7 @@ userSchema.statics.getArtisansByCraft = async function(craft, limit = 20) {
     'professionalInfo.craft': craft,
     isActive: true 
   })
-    .select('username profileImage role location stats professionalInfo')
+    .select('username profileImage role location stats professionalInfo isVerified')
     .limit(limit);
 };
 
@@ -490,7 +480,7 @@ userSchema.statics.getWorkersByCraft = async function(workCraft, limit = 20) {
     'professionalInfo.workCraft': workCraft,
     isActive: true 
   })
-    .select('username profileImage role location stats professionalInfo')
+    .select('username profileImage role location stats professionalInfo isVerified')
     .limit(limit);
 };
 

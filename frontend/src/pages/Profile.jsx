@@ -12,7 +12,8 @@ import {
   DollarSign, Wrench, AlertCircle,
   Loader, Edit, CheckCircle, X, ChevronLeft, ChevronRight,
   AtSign, Link as LinkIcon, Heart, Bookmark,
-  Info, PlusCircle, Eye, MoreHorizontal, Ban, Flag
+  Info, PlusCircle, Eye, MoreHorizontal, Ban, Flag,
+  BadgeCheck, ShieldCheck
 } from 'lucide-react';
 
 import defaultImgProfile from '../assets/images/default-avatar.png';
@@ -20,10 +21,9 @@ import AddReviewModal from '../components/reviews/AddReviewModal';
 import ReviewCard from '../components/reviews/ReviewCard';
 import PostCard from '../components/PostCard';
 
-// إضافة CSS مخصص لصفحة البروفايل
+// CSS مخصص لصفحة البروفايل
 const profileStyle = document.createElement('style');
 profileStyle.textContent = `
-  /* ==================== الوضع الفاتح (الألوان الداكنة) ==================== */
   .profile-glass-card {
     background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(12px);
@@ -41,7 +41,6 @@ profileStyle.textContent = `
     transition: all 0.3s ease;
   }
   
-  /* النصوص الرئيسية في الوضع الفاتح - أسود */
   .profile-glass-card h1,
   .profile-glass-card h2,
   .profile-glass-card h3,
@@ -51,7 +50,6 @@ profileStyle.textContent = `
     color: #1f2937 !important;
   }
   
-  /* النصوص العادية في الوضع الفاتح - رمادي غامق */
   .profile-glass-card p,
   .profile-glass-card span,
   .profile-glass-card label,
@@ -59,14 +57,12 @@ profileStyle.textContent = `
     color: #374151 !important;
   }
   
-  /* النصوص الثانوية في الوضع الفاتح - رمادي */
   .profile-glass-card .text-gray-500,
   .profile-glass-card .text-gray-600,
   .profile-text-muted {
     color: #6b7280 !important;
   }
   
-  /* ==================== الوضع المظلم ==================== */
   .dark .profile-glass-card {
     background: rgba(17, 24, 39, 0.7) !important;
     border-color: rgba(75, 85, 99, 0.3);
@@ -78,7 +74,6 @@ profileStyle.textContent = `
     border-color: rgba(75, 85, 99, 0.2);
   }
   
-  /* النصوص الرئيسية في الوضع المظلم - أبيض */
   .dark .profile-glass-card h1,
   .dark .profile-glass-card h2,
   .dark .profile-glass-card h3,
@@ -88,7 +83,6 @@ profileStyle.textContent = `
     color: #f3f4f6 !important;
   }
   
-  /* النصوص العادية في الوضع المظلم - رمادي فاتح */
   .dark .profile-glass-card p,
   .dark .profile-glass-card span,
   .dark .profile-glass-card label,
@@ -96,14 +90,12 @@ profileStyle.textContent = `
     color: #d1d5db !important;
   }
   
-  /* النصوص الثانوية في الوضع المظلم */
   .dark .profile-glass-card .text-gray-500,
   .dark .profile-glass-card .text-gray-600,
   .dark .profile-text-muted {
     color: #9ca3af !important;
   }
   
-  /* ==================== تبويبات البروفايل ==================== */
   .profile-tab {
     transition: all 0.3s ease;
     border-bottom: 2px solid transparent;
@@ -135,7 +127,6 @@ profileStyle.textContent = `
     color: #3b82f6 !important;
   }
   
-  /* ==================== تنسيق المتجر ==================== */
   .profile-stat {
     transition: all 0.3s ease;
   }
@@ -144,7 +135,6 @@ profileStyle.textContent = `
     transform: translateY(-2px);
   }
 
-  /* ==================== تحسين عرض القائمة المنسدلة ==================== */
   .profile-more-menu-overlay {
     position: fixed;
     inset: 0;
@@ -157,10 +147,28 @@ profileStyle.textContent = `
     z-index: 9999;
     min-width: 240px;
   }
+  
+  /* تأثير العلامة الزرقاء */
+  .verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInScale 0.3s ease-out;
+  }
+  
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 `;
 document.head.appendChild(profileStyle);
 
-// دالة مساعدة لتنسيق التاريخ بشكل موحد
 const formatDate = (dateString, language) => {
   if (!dateString) return '';
   
@@ -173,7 +181,6 @@ const formatDate = (dateString, language) => {
     day: 'numeric'
   };
   
-  // تحديد اللغة المناسبة للتنسيق
   let locale;
   switch (language) {
     case 'ar':
@@ -189,7 +196,6 @@ const formatDate = (dateString, language) => {
   try {
     return date.toLocaleDateString(locale, options);
   } catch (error) {
-    // Fallback في حالة وجود مشكلة
     return date.toLocaleDateString('en-US', options);
   }
 };
@@ -217,7 +223,6 @@ const ProfileSkeleton = () => {
   );
 };
 
-// مكون Popup التأكيد المخصص (محسن)
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDanger = true }) => {
   if (!isOpen) return null;
 
@@ -272,7 +277,6 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, confirm
   );
 };
 
-// مكون القائمة المنسدلة المنفصل (محسن)
 const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport, isRTL, blockingUser }) => {
   const menuRef = useRef(null);
 
@@ -292,7 +296,6 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
-      // منع التمرير في الخلفية
       document.body.style.overflow = 'hidden';
     }
 
@@ -307,10 +310,8 @@ const MoreMenu = ({ isOpen, onClose, onShare, onBlockToggle, isBlocked, onReport
 
   return (
     <>
-      {/* خلفية شفافة لإغلاق القائمة عند النقر خارجها */}
       <div className="profile-more-menu-overlay" onClick={onClose} />
       
-      {/* القائمة المنسدلة */}
       <motion.div
         ref={menuRef}
         initial={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -418,11 +419,9 @@ const Profile = () => {
   const [blockingUser, setBlockingUser] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState([]);
-  
-  // State للـ Popup التأكيد
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'block', 'unblock', 'deleteReview'
-  const [reviewToDelete, setReviewToDelete] = useState(null); // لتخزين معرف التقييم المراد حذفه
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
   
   const isOwnProfile = useMemo(() => {
     if (!profileData || !currentUser) return false;
@@ -447,7 +446,6 @@ const Profile = () => {
     return '0.0';
   }, [profileData?.stats?.rating]);
 
-  // جلب قائمة المحظورين
   const loadBlockedUsers = useCallback(async () => {
     if (!currentUser) return;
     try {
@@ -458,7 +456,6 @@ const Profile = () => {
     }
   }, [fetchBlockedUsers, currentUser]);
 
-  // التحقق من حالة الحظر
   useEffect(() => {
     if (profileData && currentUser && !isOwnProfile) {
       const isUserBlocked = blockedUsers.some(blocked => blocked._id === profileData._id);
@@ -549,27 +546,22 @@ const Profile = () => {
     toast.success('تم نسخ الرابط');
   };
 
-  // فتح Popup التأكيد للحظر
   const openBlockConfirm = () => {
     setConfirmAction(isBlocked ? 'unblock' : 'block');
     setShowConfirmModal(true);
   };
 
-  // فتح Popup تأكيد حذف التقييم
   const openDeleteReviewConfirm = (reviewId) => {
     setReviewToDelete(reviewId);
     setConfirmAction('deleteReview');
     setShowConfirmModal(true);
   };
 
-  // تنفيذ الحظر أو إلغاء الحظر أو حذف التقييم بعد التأكيد
   const executeBlockAction = async () => {
     if (confirmAction === 'deleteReview') {
-      // تنفيذ حذف التقييم
       try {
         await deleteReview(reviewToDelete);
         toast.success('تم حذف التقييم بنجاح');
-        // إعادة تحميل التقييمات
         await loadReviews(true);
       } catch (error) {
         console.error('Error deleting review:', error);
@@ -623,23 +615,19 @@ const Profile = () => {
     setShowImageModal(true);
   };
 
-  // دالة معالجة حذف البوست
   const handlePostDelete = (deletedPostId) => {
     loadPosts(true);
     toast.success('تم حذف المنشور');
   };
 
-  // دالة معالجة حذف التقييم من ReviewCard
   const handleReviewDelete = async (reviewId) => {
     openDeleteReviewConfirm(reviewId);
   };
 
-  // إغلاق قائمة المزيد
   const closeMoreMenu = () => {
     setShowMoreMenu(false);
   };
 
-  // استخدام Intersection Observer للـ Infinite Scroll
   useEffect(() => {
     if (!hasMorePosts || postsLoading || activeTab !== 'posts') return;
     
@@ -768,9 +756,8 @@ const Profile = () => {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Card - Glass morphism style */}
+        {/* Profile Card */}
         <div className="profile-glass-card overflow-hidden mb-6">
-          {/* Banner */}
           <div className="h-32 relative rounded-t-3xl">
             <button
               onClick={() => navigate(-1)}
@@ -794,20 +781,23 @@ const Profile = () => {
                   }}
                   loading="lazy"
                 />
-                {profileData.professionalInfo?.verified && (
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white dark:border-gray-800">
-                    <CheckCircle className="w-4 h-4 text-white" />
-                  </div>
-                )}
               </div>
 
               <div className="flex-1 sm:mr-6 rtl:sm:ml-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <h1 className="text-2xl font-bold flex items-center gap-2 flex-wrap">
                       {profileData.username}
-                      {profileData.professionalInfo?.verified && (
-                        <CheckCircle className="w-5 h-5 text-blue-500" />
+                      
+                      {/* ✅ العلامة الزرقاء - حساب موثق (مثل فيسبوك) */}
+                      {profileData.isVerified === true && (
+                        <div className="relative inline-flex items-center justify-center group">
+                          <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-500 cursor-help verified-badge" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-50 pointer-events-none shadow-lg">
+                            حساب موثق ✓
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                          </div>
+                        </div>
                       )}
                     </h1>
                     
@@ -819,6 +809,14 @@ const Profile = () => {
                       `}>
                         {profileData.role === 'artisan' ? 'حرفي' : profileData.role === 'worker' ? 'عامل' : 'عميل'}
                       </span>
+                      
+                      {/* ✅ علامة "موثق" كنص */}
+                      {profileData.isVerified === true && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 gap-1">
+                          <BadgeCheck className="w-3 h-3" />
+                          موثق
+                        </span>
+                      )}
                       
                       {profileData.location && (
                         <span className="inline-flex items-center text-sm">
@@ -873,14 +871,13 @@ const Profile = () => {
                     ) : (
                       <button
                         onClick={handleEditProfile}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white dark:text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
+                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl text-sm font-medium hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        <span className='text-white dark:text-white'>تعديل الملف</span>
+                        <span className='text-white'>تعديل الملف</span>
                       </button>
                     )}
                     
-                    {/* زر النقاط (القائمة المنسدلة) */}
                     {!isOwnProfile && (
                       <div className="relative">
                         <button
@@ -1004,7 +1001,7 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Tabs - Glass style */}
+        {/* Tabs */}
         <div className="sticky top-0 z-10 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 rounded-t-2xl">
           <nav className="flex space-x-8 rtl:space-x-reverse overflow-x-auto scrollbar-hide px-2">
             <button
@@ -1041,7 +1038,7 @@ const Profile = () => {
           </nav>
         </div>
 
-        {/* Tab Content - Glass cards */}
+        {/* Tab Content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -1155,6 +1152,14 @@ const Profile = () => {
                           انضم في {formatDate(profileData.createdAt, currentLanguage)}
                         </span>
                       </div>
+                      {profileData.isVerified && profileData.verifiedAt && (
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-blue-500" />
+                          <span className="profile-text-secondary text-blue-600 dark:text-blue-400">
+                            حساب موثق منذ {formatDate(profileData.verifiedAt, currentLanguage)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1389,7 +1394,7 @@ const Profile = () => {
         reviewedUserName={profileData?.username}
       />
 
-      {/* Confirmation Modal موحد للحظر/إلغاء الحظر/حذف التقييم */}
+      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={showConfirmModal}
         onClose={() => {

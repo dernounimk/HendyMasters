@@ -311,11 +311,41 @@ style.textContent = `
     .layout-container { 
       grid-template-columns: 1fr; 
       padding: 1rem; 
-      padding-bottom: 70px; 
+      padding-bottom: 0;
     }
     .left-column, .right-column { display: none; }
     .mobile-bottom-nav { display: block; }
-    .main-column { height: calc(100vh - 3rem); }
+    .main-column { 
+      height: calc(100vh - 2rem);
+    }
+    .main-content {
+      padding-bottom: 70px;
+    }
+  }
+  
+  /* للشاشات الصغيرة جداً */
+  @media (max-width: 640px) {
+    .layout-container {
+      padding: 0.75rem;
+    }
+    .main-content {
+      padding-bottom: 75px;
+    }
+    .top-bar-container {
+      margin-bottom: 0.75rem;
+    }
+  }
+  
+  /* للشاشات التي بها notch */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .main-content {
+      padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    }
+    @media (max-width: 640px) {
+      .main-content {
+        padding-bottom: calc(75px + env(safe-area-inset-bottom));
+      }
+    }
   }
 `;
 document.head.appendChild(style);
@@ -333,6 +363,7 @@ const MainLayout = () => {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const mobileSidebarRef = useRef(null);
+  const mainContentRef = useRef(null);
   
   const isRTL = i18n.language === 'ar';
   const canCreatePost = user?.role === 'client' || user?.role === 'artisan';
@@ -517,6 +548,13 @@ const MainLayout = () => {
   
   const handleLogout = async () => { await logout(); navigate('/login'); };
   
+  // Scroll to top when route changes
+  useEffect(() => {
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollTop = 0;
+    }
+  }, [location.pathname]);
+  
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -645,7 +683,7 @@ const MainLayout = () => {
           </Link>
         </div>
         
-        <div className="main-content">
+        <div ref={mainContentRef} className="main-content">
           <Outlet />
         </div>
       </main>
