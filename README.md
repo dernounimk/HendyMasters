@@ -2,7 +2,7 @@
 
 Handys is a full-stack web application built with the MERN stack (MongoDB, Express, React, Node.js). It demonstrates a modern, scalable architecture for e-commerce or service-based platforms.
 
-🌐 **Live Demo**: [hendy-masters.vercel.app](https://handys-dz.netlify.app)
+🌐 **Live Demo**: [handys-dz.netlify.app](https://handys-dz.netlify.app)
 
 ---
 
